@@ -1,0 +1,10 @@
+# TODO: CI for qua-libs-superconducting
+# Expected checks:
+#   - Formatting (black) on qualibration_graphs/superconducting/
+#   - Install qualibration_graphs/superconducting in editable mode and run pytest if present
+#   - Optional: lint QCA scripts under Quantum-Control-Applications/Superconducting/
+#   - Note: qualibration_graphs deps include quam-builder, qualibration-libs, qualibrate (git deps)
+#
+# name: ci
+# on: [push, pull_request]
+# jobs: ...

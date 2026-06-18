@@ -1,0 +1,10 @@
+# TODO: define root package metadata for the superconducting repo
+# TODO: decide whether this repo is a monorepo with sub-packages or documentation-only at root
+# TODO: sub-projects already have pyproject.toml:
+#   - qualibration_graphs/superconducting/pyproject.toml  (keep as-is)
+#   - Tutorials/intro-to-QUAlibrate/pyproject.toml        (keep as-is; note name collision)
+# TODO: add shared dev tooling (black, pytest) at repo root if desired
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
