@@ -25,3 +25,35 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Check formatting
         run: uvx --from "black>=24.3,<25" black --check --diff .
+
+  build-package:
+    name: build calibration package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qualibration_graphs/superconducting
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Build sdist + wheel
+        # Validates packaging (catches missing/renamed package dirs, bad readme
+        # paths, etc.). Does not install the git dependencies.
+        run: uv build
+
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qualibration_graphs/superconducting
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Run tests
+        # Smoke-test scaffold. The import test skips until the package is
+        # installed. To run the full suite against the installed package, add a
+        # `uv sync` step first -- best enabled once quam-builder /
+        # qualibration-libs are on PyPI (they are git deps today; see QL-1278).
+        run: uvx pytest -q
