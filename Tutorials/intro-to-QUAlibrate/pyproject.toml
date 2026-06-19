@@ -1,15 +1,15 @@
+# Intro-to-QUAlibrate tutorial: a runnable example, not an installable package.
+# `package = false` means `uv sync` builds an environment from the deps below
+# without trying to build or publish the tutorial. (Previously this file was a
+# mis-copy of the calibration package's pyproject — same name, wrong packages.)
+
 [project]
-name = "superconducting-calibrations"
-version = "0.1.0"
-description = "QM Superconducting Calibration Graphs"
-readme = "README.md"
+name = "intro-to-qualibrate"
+version = "0"
+description = "Introductory QUAlibrate tutorial (superconducting)"
+readme = "readme.md"
 license = { text = "BSD-3-Clause" }
 requires-python = ">=3.10,<3.13"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-]
 dependencies = [
     "qualang-tools>=0.19.0",
     "qualibrate>=1.0.2",
@@ -18,21 +18,11 @@ dependencies = [
     "qualibration-libs@git+https://github.com/qua-platform/qualibration-libs.git",
 ]
 
-[tool.black]
-line-length = 120
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.uv]
+package = false
 
 [dependency-groups]
 dev = ["ipykernel>=7.0.0a1", "pytest>=8.3.5"]
 
-[tool.hatch.build.targets.wheel]
-packages = ["calibrations", "quam_config", "calibration_utils"]
-
-[tool.hatch.metadata]
-allow-direct-references = true
-# [tool.uv.sources]
-# quam-builder = { git = "https://github.com/qua-platform/quam-builder.git" }
-# qualibration-libs = { git = "https://github.com/qua-platform/qualibration-libs.git" }
+[tool.black]
+line-length = 120
