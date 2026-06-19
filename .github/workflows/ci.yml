@@ -1,10 +1,27 @@
-# TODO: CI for qua-libs-superconducting
-# Expected checks:
-#   - Formatting (black) on qualibration_graphs/superconducting/
-#   - Install qualibration_graphs/superconducting in editable mode and run pytest if present
-#   - Optional: lint QCA scripts under Quantum-Control-Applications/Superconducting/
-#   - Note: qualibration_graphs deps include quam-builder, qualibration-libs, qualibrate (git deps)
-#
-# name: ci
-# on: [push, pull_request]
-# jobs: ...
+name: ci
+
+# Baseline CI: black formatting gate (mirrors the original qua-libs check),
+# adapted to uv. The per-repo [tool.black] config in pyproject.toml controls
+# scope -- this repo excludes the legacy Quantum-Control-Applications tree.
+# Build/test of the installable sub-packages is added separately.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: black --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Check formatting
+        run: uvx --from "black>=24.3,<25" black --check --diff .

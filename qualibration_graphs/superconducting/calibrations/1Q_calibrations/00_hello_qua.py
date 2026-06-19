@@ -22,7 +22,9 @@ description = """
 """
 
 
-node = QualibrationNode[Parameters, Quam](name="00_hello_qua", description=description, parameters=Parameters(), machine=Quam.load())
+node = QualibrationNode[Parameters, Quam](
+    name="00_hello_qua", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 
 # Any parameters that should change for debugging purposes only should go in here

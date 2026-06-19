@@ -52,7 +52,9 @@ State update:
 """
 
 
-node = QualibrationNode[Parameters, Quam](name="01a_time_of_flight", description=description, parameters=Parameters(), machine=Quam.load())
+node = QualibrationNode[Parameters, Quam](
+    name="01a_time_of_flight", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 
 # Any parameters that should change for debugging purposes only should go in here

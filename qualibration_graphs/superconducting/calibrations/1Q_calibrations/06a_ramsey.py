@@ -46,7 +46,9 @@ State update:
     - T2*: qubit.T2ramsey.
 """
 
-node = QualibrationNode[Parameters, Quam](name="06a_ramsey", description=description, parameters=Parameters(), machine=Quam.load())
+node = QualibrationNode[Parameters, Quam](
+    name="06a_ramsey", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 
 # Any parameters that should change for debugging purposes only should go in here
