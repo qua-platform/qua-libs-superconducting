@@ -23,3 +23,8 @@ dist/
 .idea/
 .vscode/
 .DS_Store
+
+# Generated QUAlibrate calibration output (mirrors qua-libs)
+**/data
+**/calibration_data
+**/quam_config/quam_state
