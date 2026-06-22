@@ -16,7 +16,6 @@ from qualibration_libs.parameters import get_qubits
 from qualibration_libs.runtime import simulate_and_plot
 from qualibration_libs.data import XarrayDataFetcher
 
-
 description = """
         Basic script to play with the QUA program and test the QOP connectivity.
 """
