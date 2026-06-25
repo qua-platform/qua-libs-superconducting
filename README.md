@@ -1,7 +1,7 @@
 ![Banner](GITHUB-BANNER.jpg)
 
 [![discord](https://img.shields.io/discord/806244683403100171?label=QUA&logo=Discord&style=plastic)](https://discord.gg/7FfhhpswbP)
-[![License](https://img.shields.io/badge/license-see%20LICENSE-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/license-Proprietary-blue.svg)](./LICENSE)
 
 <!-- Netlify (docs deploy) and Zenodo (citable DOI) badges are placeholders;
      fill in the IDs once this repo has its own Netlify site and Zenodo record. -->

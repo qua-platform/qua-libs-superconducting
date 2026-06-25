@@ -16,7 +16,7 @@
 name = "qua-libs-superconducting"
 version = "0"
 description = "Superconducting-transmon QUA libraries, calibration graphs, and examples"
-license = { text = "BSD-3-Clause" }
+license = { file = "LICENSE" }
 authors = [{ name = "Quantum Machines", email = "info@quantum-machines.co" }]
 requires-python = ">=3.10,<3.13"
 dependencies = [
