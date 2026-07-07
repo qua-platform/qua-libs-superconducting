@@ -13,6 +13,7 @@ dependencies = [
     "qualang-tools>=0.19.0",
     "qualibrate>=1.0.2",
     "qm-qua>=1.2.1",
+    "qua-libs-core@git+https://github.com/qua-platform/qua-libs-core.git",
     "quam-builder@git+https://github.com/qua-platform/quam-builder.git",
     "qualibration-libs@git+https://github.com/qua-platform/qualibration-libs.git",
 ]
