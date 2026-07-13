@@ -1,16 +1,10 @@
-# qua-libs-superconducting is a collection of QUA examples and sub-packages,
-# not an installable package itself. `package = false` is the uv-native
-# equivalent of the original qua-libs Poetry `package-mode = false`.
+# qua-libs-superconducting: QCA examples, tutorials, and calibration graphs.
 #
-# The dependencies below are the common runtime stack used by the loose QCA /
-# Tutorials scripts (derived from their imports), so `uv sync` gives a runnable
-# environment for those.
+# This is the uv workspace root. A single `uv sync` here creates one .venv with
+# dependencies for Quantum-Control-Applications and qualibration_graphs.
 #
-# The calibration graphs are a separate installable sub-package with their own,
-# fuller dependency set (including git deps quam-builder / qualibration-libs):
-#   qualibration_graphs/superconducting/  (superconducting-calibrations)
-# Niche per-use-case deps under Quantum-Control-Applications (e.g. qiskit, cirq)
-# are intentionally NOT pulled into this root.
+# The calibration package remains a workspace member with its own pyproject.toml
+# for hatch build metadata (calibrations, quam_config, calibration_utils).
 
 [project]
 name = "qua-libs-superconducting"
@@ -22,32 +16,34 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "qm-qua>=1.2.0",
     "qualang-tools>=0.19.0",
-    "qua-libs-core@git+https://github.com/qua-platform/qua-libs-core.git",
+    "qua-libs-core@git+https://github.com/JacobFastQM/qua-libs-core.git",
     "numpy>=1.18.5",
     "scipy>=1.7.0",
     "matplotlib>=3.2.2",
     "plotly>=5.24.1",
+    "superconducting-calibrations",
 ]
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+superconducting-calibrations = { workspace = true }
+qua-libs-core = { git = "https://github.com/JacobFastQM/qua-libs-core.git" }
+
+[tool.uv.workspace]
+members = ["qualibration_graphs/superconducting"]
 
 [dependency-groups]
 dev = ["black>=24.3,<25", "ruff>=0.6,<1"]
 
 [tool.black]
 line-length = 120
-# Legacy Quantum-Control-Applications use-case code is not formatted and is left
-# out of the formatting gate (it is contributed example code, kept as-is).
 extend-exclude = "Quantum-Control-Applications"
 
 [tool.ruff]
 line-length = 120
-# Match black: keep the legacy QCA tree out of linting too.
 extend-exclude = ["Quantum-Control-Applications"]
 
 [tool.ruff.lint]
-# `from qm.qua import *` is the idiomatic QUA style (F403/F405); single-letter
-# names like I/Q/l are standard in physics code (E741). Ignoring these keeps
-# ruff's output useful. Run locally with: uv run ruff check .
 ignore = ["F403", "F405", "E741"]
