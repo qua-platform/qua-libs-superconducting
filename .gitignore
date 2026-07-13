@@ -28,3 +28,6 @@ dist/
 **/data
 **/calibration_data
 **/quam_config/quam_state
+
+# Installer-local config (telemetry.toml, etc.)
+**/.qua-libs/
