@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -98,14 +98,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         "idle_times": xr.DataArray(4 * idle_times, attrs={"long_name": "idle times", "units": "ns"}),
     }
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
+        n = declare(int)
+        n_st = declare_output_stream()
         init_state = [declare(int) for _ in range(num_qubits)]
         current_state = [declare(int) for _ in range(num_qubits)]
-        state = [declare(int) for _ in range(num_qubits)]
-        state_st = [declare_stream() for _ in range(num_qubits)]
-        t = declare(int)  # QUA variable for the idle time
-        phi = declare(fixed)  # QUA variable for dephasing the second pi/2 pulse (virtual Z-rotation)
-        flux = declare(fixed)  # QUA variable for the flux dc level
+        phi = declare(fixed)
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -116,10 +113,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
             for i, qubit in multiplexed_qubits.items():
                 qubit.readout_state(init_state[i])
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(flux, fluxes)):
-                    with for_(*from_array(t, idle_times)):
+                for flux in QuaIterable("flux_bias", fluxes):
+                    for t in QuaIterable("idle_times", idle_times):
                         # Qubit manipulation
                         for i, qubit in multiplexed_qubits.items():
                             # Rotate the frame of the second x90 gate to implement a virtual Z-rotation
@@ -140,17 +138,15 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                         # Qubit readout
                         for i, qubit in multiplexed_qubits.items():
                             qubit.readout_state(current_state[i])
-                            assign(state[i], init_state[i] ^ current_state[i])
+                            state = declare_with_stream(int, f"state{i + 1}", average_axes=["shots"])
+                            assign(state, init_state[i] ^ current_state[i])
                             assign(init_state[i], current_state[i])
-                            save(state[i], state_st[i])
                             # Reset the frame of the qubits in order not to accumulate rotations
                             reset_frame(qubit.xy.name)
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                state_st[i].buffer(len(idle_times)).buffer(len(fluxes)).average().save(f"state{i + 1}")
 
 
 # %% {Simulate}

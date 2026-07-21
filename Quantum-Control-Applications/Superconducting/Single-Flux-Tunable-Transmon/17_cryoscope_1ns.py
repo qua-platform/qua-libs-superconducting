@@ -161,10 +161,10 @@ with program() as cryoscope:
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     if state_discrimination:
         state = declare(bool)
-        state_st = declare_stream()
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+        state_st = declare_output_stream()
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     if not state_discrimination:
         # Calibrate the ground and excited states readout for deriving the Bloch vector

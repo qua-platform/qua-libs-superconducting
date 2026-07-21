@@ -12,7 +12,7 @@ from calibration_utils.qubit_spectroscopy import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -91,9 +91,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        # Macro to declare I, Q, n and their respective streams for a given number of qubit
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        df = declare(int)  # QUA variable for the qubit frequency
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -101,9 +100,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(df, dfs)):
+                for df in QuaIterable("detuning", dfs):
                     for i, qubit in multiplexed_qubits.items():
                         # Get the duration of the operation from the node parameters or the state
                         duration = operation_len if operation_len is not None else qubit.xy.operations[operation].length
@@ -125,20 +125,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                     align()
 
                     for i, qubit in multiplexed_qubits.items():
+                        I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                        Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
                         # readout the resonator
-                        qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
+                        qubit.resonator.measure("readout", qua_vars=(I, Q))
                         # wait for the resonator to deplete
                         qubit.resonator.wait(node.machine.depletion_time * u.ns)
-                        # save data
-                        save(I[i], I_st[i])
-                        save(Q[i], Q_st[i])
                     align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                I_st[i].buffer(len(dfs)).average().save(f"I{i + 1}")
-                Q_st[i].buffer(len(dfs)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

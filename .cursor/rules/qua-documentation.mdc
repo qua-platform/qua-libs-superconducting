@@ -1,0 +1,64 @@
+---
+description: QUA language context and official Quantum Machines documentation
+alwaysApply: true
+---
+
+# QUA in this repository
+
+This repo contains **QUA programs embedded in Python** for superconducting qubit control and calibration on Quantum Machines hardware (OPX).
+
+## Official documentation
+
+When writing, reviewing, or debugging QUA code, consult the official docs:
+
+**https://docs.quantum-machines.co/latest/**
+
+Useful entry points:
+- [QUA Overview](https://docs.quantum-machines.co/latest/introduction/qua_overview/) — language concepts
+- [QUA Language Features](https://docs.quantum-machines.co/latest/guides/qua_language_features/) — syntax and constructs
+- [QUA Best Practice Guide](https://docs.quantum-machines.co/latest/guides/qua_best_practice_guide/)
+- [Configuration](https://docs.quantum-machines.co/latest/introduction/configuration/) — machine config schema
+- [QUA API](https://docs.quantum-machines.co/latest/api_references/qua_language_api/qua_api/) — `declare`, `play`, `measure`, `align`, streams, etc.
+- [Quantum Machine API](https://docs.quantum-machines.co/latest/api_references/opx1000/quantum_machine_api/) — compile, execute, simulate jobs
+
+Prefer these docs over general Python or generic quantum-computing assumptions when unsure about QUA syntax, timing, streams, or hardware configuration.
+
+## Python vs QUA
+
+- **Python** (outside `with program()`): setup, parameters, plotting, data handling, `QuantumMachinesManager`, simulation config.
+- **QUA** (inside `with program()`): real-time pulse sequences — `declare`, `play`, `measure`, `wait`, `align`, `for_`, `if_`, `declare_output_stream`, `declare_with_stream`, iterables, etc.
+
+Do not rewrite QUA constructs as plain Python loops or NumPy when they must run on the OPX in real time.
+
+## Repo layout
+
+| Path | Role |
+|------|------|
+| `Quantum-Control-Applications/` | Standalone example/calibration scripts |
+| `qualibration_graphs/superconducting/` | QUAlibrate calibration nodes (`create_qua_program`, `execute_qua_program`) |
+| `Tutorials/` | Introductory QUAlibrate tutorial |
+
+## Related ecosystem (not QUA itself)
+
+These complement QUA but have their own docs:
+- [py-qua-tools](https://github.com/qua-platform/py-qua-tools) — helpers used heavily in scripts (`qualang_tools`)
+- [QUAM](https://qua-platform.github.io/quam/) / [quam-builder](https://github.com/qua-platform/quam-builder) — machine abstraction in calibration graphs
+- [QUAlibrate](https://qua-platform.github.io/qualibrate/) — calibration orchestration
+
+## Conventions in this repo
+
+- `from qm.qua import *` is standard here; do not flag it as a lint issue.
+- Match existing patterns in the nearest folder (standalone script vs qualibration node).
+- Format/lint: `uv run black .` and `uv run ruff check .` per [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## QUA 1.3.1 migration
+
+When updating QUA programs for **qm-qua 1.3.1**, follow
+[docs/plans/qua-1.3.1-migration.md](../../docs/plans/qua-1.3.1-migration.md).
+
+Prefer **iterables + auto-streaming** for sweep experiments:
+- [Iterables & Auto-Streaming (1.3.1)](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/)
+- [qm-qua 1.3.1 release notes](https://docs.quantum-machines.co/1.3.1/docs/Releases/qm_qua_releases/)
+
+Use `declare_output_stream()` instead of deprecated `declare_stream()`.
+Use native QUA 1.3.1 iterables and `declare_with_stream` directly in calibration nodes (see migration plan template).

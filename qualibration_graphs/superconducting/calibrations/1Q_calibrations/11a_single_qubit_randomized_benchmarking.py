@@ -195,13 +195,13 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     with program() as node.namespace["qua_program"]:
         I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
         state = [declare(int) for _ in range(num_qubits)]
-        state_st = [declare_stream() for _ in range(num_qubits)]
+        state_st = [declare_output_stream() for _ in range(num_qubits)]
         depth = declare(int)  # QUA variable for the varying depth
         # QUA variable to store the last Clifford gate of the current sequence which is replaced by the recovery gate
         saved_gate = declare(int)
         # QUA variable for the loop over random sequences
         m = declare(int)
-        m_st = declare_stream()
+        m_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)

@@ -13,7 +13,7 @@ from calibration_utils.readout_gef_frequency_optimization import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -119,10 +119,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        I_g, I_g_st, Q_g, Q_g_st, n, n_st = node.machine.declare_qua_variables()
-        I_e, I_e_st, Q_e, Q_e_st, _, _ = node.machine.declare_qua_variables()
-        I_f, I_f_st, Q_f, Q_f_st, _, _ = node.machine.declare_qua_variables()
-        df = declare(int)
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -130,15 +128,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_runs, n + 1):
+            for shot in QuaIterableRange("shots", n_runs):
+                assign(n, shot)
                 save(n, n_st)
-
-                with for_(*from_array(df, frequencies)):
-                    if qubit.resonator.GEF_frequency_shift is None:
-                        qubit.resonator.GEF_frequency_shift = 0
-                    qubit.resonator.update_frequency(
-                        qubit.resonator.intermediate_frequency + qubit.resonator.GEF_frequency_shift + df
-                    )
+                for df in QuaIterable("frequency", frequencies):
+                    for i, qubit in multiplexed_qubits.items():
+                        if qubit.resonator.GEF_frequency_shift is None:
+                            qubit.resonator.GEF_frequency_shift = 0
+                        qubit.resonator.update_frequency(
+                            qubit.resonator.intermediate_frequency + qubit.resonator.GEF_frequency_shift + df
+                        )
                     # Ground state iq blobs for all qubits
                     # Qubit initialization
                     for i, qubit in multiplexed_qubits.items():
@@ -146,11 +145,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                     align()
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
-                        qubit.resonator.measure(operation, qua_vars=(I_g[i], Q_g[i]))
+                        I_g = declare_with_stream(fixed, f"Ig{i + 1}", average_axes=["shots"])
+                        Q_g = declare_with_stream(fixed, f"Qg{i + 1}", average_axes=["shots"])
+                        qubit.resonator.measure(operation, qua_vars=(I_g, Q_g))
                         qubit.resonator.wait(qubit.resonator.depletion_time * u.ns)
-                        # save data
-                        save(I_g[i], I_g_st[i])
-                        save(Q_g[i], Q_g_st[i])
                     align()
 
                     # Excited state iq blobs for all qubits
@@ -161,13 +159,12 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
+                        I_e = declare_with_stream(fixed, f"Ie{i + 1}", average_axes=["shots"])
+                        Q_e = declare_with_stream(fixed, f"Qe{i + 1}", average_axes=["shots"])
                         qubit.xy.play("x180")
                         qubit.align()
-                        qubit.resonator.measure(operation, qua_vars=(I_e[i], Q_e[i]))
+                        qubit.resonator.measure(operation, qua_vars=(I_e, Q_e))
                         qubit.resonator.wait(qubit.resonator.depletion_time * u.ns)
-                        # save data
-                        save(I_e[i], I_e_st[i])
-                        save(Q_e[i], Q_e_st[i])
 
                     # Second excited state iq blobs for all qubits
                     # Qubit initialization
@@ -179,26 +176,18 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
+                        I_f = declare_with_stream(fixed, f"If{i + 1}", average_axes=["shots"])
+                        Q_f = declare_with_stream(fixed, f"Qf{i + 1}", average_axes=["shots"])
                         qubit.xy.play("x180")
                         update_frequency(qubit.xy.name, qubit.xy.intermediate_frequency - qubit.anharmonicity)
                         qubit.xy.play("EF_x180")
                         update_frequency(qubit.xy.name, qubit.xy.intermediate_frequency)
                         qubit.align()
-                        qubit.resonator.measure(operation, qua_vars=(I_f[i], Q_f[i]))
+                        qubit.resonator.measure(operation, qua_vars=(I_f, Q_f))
                         qubit.resonator.wait(qubit.resonator.depletion_time * u.ns)
-                        # save data
-                        save(I_f[i], I_f_st[i])
-                        save(Q_f[i], Q_f_st[i])
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                I_g_st[i].buffer(len(frequencies)).average().save(f"Ig{i + 1}")
-                Q_g_st[i].buffer(len(frequencies)).average().save(f"Qg{i + 1}")
-                I_e_st[i].buffer(len(frequencies)).average().save(f"Ie{i + 1}")
-                Q_e_st[i].buffer(len(frequencies)).average().save(f"Qe{i + 1}")
-                I_f_st[i].buffer(len(frequencies)).average().save(f"If{i + 1}")
-                Q_f_st[i].buffer(len(frequencies)).average().save(f"Qf{i + 1}")
 
 
 # %% {Simulate}

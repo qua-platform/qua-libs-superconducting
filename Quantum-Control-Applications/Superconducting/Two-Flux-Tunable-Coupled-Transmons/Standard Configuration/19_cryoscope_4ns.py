@@ -134,7 +134,7 @@ with program() as cryoscope:
     t = declare(int)  # QUA variable for the flux pulse duration
     flag = declare(bool)  # QUA boolean to switch between x90 and y90
     state = [declare(bool) for _ in range(2)]
-    state_st = [declare_stream() for _ in range(2)]
+    state_st = [declare_output_stream() for _ in range(2)]
 
     # Outer loop for averaging
     with for_(n, 0, n < n_avg, n + 1):

@@ -162,19 +162,19 @@ with program() as active_reset_prog:
     n = declare(int)  # Averaging index
     I = declare(fixed)
     Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
     I_g = declare(fixed)
     Q_g = declare(fixed)
-    I_g_st = declare_stream()
-    Q_g_st = declare_stream()
+    I_g_st = declare_output_stream()
+    Q_g_st = declare_output_stream()
     I_e = declare(fixed)
     Q_e = declare(fixed)
-    I_e_st = declare_stream()
-    Q_e_st = declare_stream()
+    I_e_st = declare_output_stream()
+    Q_e_st = declare_output_stream()
 
     cont_condition = declare(bool)
-    tries_st = declare_stream()
+    tries_st = declare_output_stream()
 
     with for_(n, 0, n < n_shot, n + 1):
         # Active reset

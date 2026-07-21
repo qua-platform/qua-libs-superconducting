@@ -199,7 +199,7 @@ def measurement_basis_change(k, l, qubit1, qubit2):
 with program() as two_qubit_process_tomography:
 
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
 
     I1 = declare(fixed)
     Q1 = declare(fixed)
@@ -207,7 +207,7 @@ with program() as two_qubit_process_tomography:
     Q2 = declare(fixed)
 
     state = declare(bool)  # QUA variable for the measured qubits state
-    state_st = declare_stream()  # Stream for the qubits state
+    state_st = declare_output_stream()  # Stream for the qubits state
 
     c1 = declare(int)  # QUA variable for switching between state preparation/creations on qubit 1
     c2 = declare(int)  # QUA variable for switching between state preparation/creations on qubit 2

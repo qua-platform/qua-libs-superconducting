@@ -32,9 +32,9 @@ with program() as training:
     n = declare(int)
     I = declare(fixed)
     Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
-    adc_st = declare_stream(adc_trace=True)
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
+    adc_st = declare_output_stream(adc_trace=True)
 
     with for_(n, 0, n < n_runs, n + 1):
         measure(

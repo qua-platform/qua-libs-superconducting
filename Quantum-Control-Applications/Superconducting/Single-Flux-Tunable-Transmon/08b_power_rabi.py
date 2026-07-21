@@ -51,9 +51,9 @@ with program() as power_rabi:
     a = declare(fixed)  # QUA variable for the qubit drive amplitude pre-factor
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(a, amplitudes)):  # QUA for_ loop for sweeping the pulse amplitude pre-factor

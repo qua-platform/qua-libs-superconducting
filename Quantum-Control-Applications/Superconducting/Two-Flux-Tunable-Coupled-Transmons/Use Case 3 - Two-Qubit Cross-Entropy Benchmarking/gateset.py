@@ -1,5 +1,4 @@
-from qiskit.circuit.library.standard_gates import get_standard_gate_name_mapping as gate_map
-from qiskit.circuit.library import UnitaryGate, RYGate
+from qiskit.circuit.library import UnitaryGate, RYGate, get_standard_gate_name_mapping as gate_map
 from scipy.linalg import sqrtm
 import numpy as np
 from typing import Literal

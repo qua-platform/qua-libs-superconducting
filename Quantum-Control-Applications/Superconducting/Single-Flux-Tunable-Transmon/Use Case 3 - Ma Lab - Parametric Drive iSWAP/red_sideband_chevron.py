@@ -36,9 +36,9 @@ with program() as red_sideband:
     tau = declare(int)  # Variable for the flux pulse duration sweep
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     a = declare(fixed, value=rs_a)  # Update the amplitude of the flux pulse directly in QUA
 
     # Pulse sequence

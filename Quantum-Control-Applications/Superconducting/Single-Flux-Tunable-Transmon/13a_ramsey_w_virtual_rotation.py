@@ -58,10 +58,10 @@ with program() as ramsey:
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     state = declare(bool)  # QUA variable for the qubit state
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    state_st = declare_stream()  # Stream for the qubit state
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    state_st = declare_output_stream()  # Stream for the qubit state
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(tau, taus)):

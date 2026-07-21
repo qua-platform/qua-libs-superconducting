@@ -77,7 +77,7 @@ save_data_dict = {
 with program() as PROGRAM:
     I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
     state = [declare(bool) for _ in range(2)]
-    state_st = [declare_stream() for _ in range(2)]
+    state_st = [declare_output_stream() for _ in range(2)]
     t = declare(int)
     s = declare(int)  # QUA variable for the control state
     c = declare(int)  # QUA variable for the projection index in QST

@@ -60,11 +60,11 @@ with program() as ro_weights_opt:
     QQ = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the partial 'QQ'
     I = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the full 'I'=II+IQ
     Q = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the full 'Q'=QI+QQ
-    Ig_st = [declare_stream() for _ in range(2)]  # Stream for 'I' in the ground state
-    Qg_st = [declare_stream() for _ in range(2)]  # Stream for 'Q' in the ground state
-    Ie_st = [declare_stream() for _ in range(2)]  # Stream for 'I' in the excited state
-    Qe_st = [declare_stream() for _ in range(2)]  # Stream for 'Q' in the excited state
-    n_st = declare_stream()
+    Ig_st = [declare_output_stream() for _ in range(2)]  # Stream for 'I' in the ground state
+    Qg_st = [declare_output_stream() for _ in range(2)]  # Stream for 'Q' in the ground state
+    Ie_st = [declare_output_stream() for _ in range(2)]  # Stream for 'I' in the excited state
+    Qe_st = [declare_output_stream() for _ in range(2)]  # Stream for 'Q' in the excited state
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         # Measure the ground state.

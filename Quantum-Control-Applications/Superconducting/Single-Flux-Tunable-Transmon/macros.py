@@ -60,10 +60,10 @@ def ge_averaged_measurement(cooldown_time, n_avg):
     n = declare(int)
     I = declare(fixed)
     Q = declare(fixed)
-    Ig_st = declare_stream()
-    Qg_st = declare_stream()
-    Ie_st = declare_stream()
-    Qe_st = declare_stream()
+    Ig_st = declare_output_stream()
+    Qg_st = declare_output_stream()
+    Ie_st = declare_output_stream()
+    Qe_st = declare_output_stream()
     with for_(n, 0, n < n_avg, n + 1):
         # Ground state calibration
         align("qubit", "resonator")

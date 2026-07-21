@@ -51,13 +51,13 @@ with program() as ro_amp_opt:
     a = declare(fixed)  # QUA variable for the readout amplitude
     I_g = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |g>
     Q_g = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |g>
-    I_g_st = declare_stream()
-    Q_g_st = declare_stream()
+    I_g_st = declare_output_stream()
+    Q_g_st = declare_output_stream()
     I_e = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |e>
     Q_e = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |e>
-    I_e_st = declare_stream()
-    Q_e_st = declare_stream()
-    n_st = declare_stream()
+    I_e_st = declare_output_stream()
+    Q_e_st = declare_output_stream()
+    n_st = declare_output_stream()
 
     with for_(*from_array(a, amplitudes)):
         save(counter, n_st)

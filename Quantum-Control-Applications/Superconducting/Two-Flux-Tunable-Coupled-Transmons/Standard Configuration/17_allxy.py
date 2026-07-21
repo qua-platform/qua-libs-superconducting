@@ -114,12 +114,12 @@ def allXY(pulses, qubit, resonator):
 ###################
 with program() as ALL_XY:
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     r = Random()  # Pseudo random number generator
     r_ = declare(int)  # Index of the sequence to play
     # The result of each set of gates is saved in its own stream
-    I_st = [declare_stream() for _ in range(21)]
-    Q_st = [declare_stream() for _ in range(21)]
+    I_st = [declare_output_stream() for _ in range(21)]
+    Q_st = [declare_output_stream() for _ in range(21)]
 
     with for_(n, 0, n < n_avg, n + 1):
         # Get a value from the pseudo-random number generator on the OPX FPGA

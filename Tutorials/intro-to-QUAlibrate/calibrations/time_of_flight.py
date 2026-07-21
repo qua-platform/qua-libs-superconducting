@@ -5,6 +5,7 @@ from configuration.configuration_with_lf_fem_and_mw_fem import *
 
 from qm import QuantumMachinesManager
 from qm.qua import *
+from qm.qua.extensions import QuaIterableRange
 
 from qualang_tools.results import fetching_tool
 
@@ -60,13 +61,15 @@ def create_qua_program(node: QualibrationNode[Parameters, None]):
     # Get the active qubits from the node and organize them by batches
     resonators = node.parameters.resonators
     with program() as node.namespace["qua_program"]:
+        shots = QuaIterableRange("shots", node.parameters.num_shots)
         n = declare(int)  # QUA variable for the averaging loop
-        n_st = declare_stream()
+        n_st = declare_output_stream()
         adc_st = [
-            declare_stream(adc_trace=True) for _ in range(len(resonators))
+            declare_output_stream(adc_trace=True) for _ in range(len(resonators))
         ]  # The stream to store the raw ADC trace
 
-        with for_(n, 0, n < node.parameters.num_shots, n + 1):
+        for shot in shots:
+            assign(n, shot)
             save(n, n_st)
             for i, resonator in enumerate(resonators):
                 # Reset the phase of the digital oscillator associated to the resonator element. Needed to average the cosine signal.

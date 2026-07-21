@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 from calibration_utils.pi_flux import Parameters, fit_raw_data, log_fitted_results, plot_fit, process_raw_dataset
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -150,26 +150,21 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     node.namespace["tracked_qubits"] = tracked_qubits
 
     with program() as qua_prog:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        if node.parameters.use_state_discrimination:
-            state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-
-        df = declare(int)
-        t_delay = declare(int)
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Place qubits to their respective flux point
             for qubit in multiplexed_qubits.values():
                 node.machine.initialize_qpu(target=qubit)
             align()
-            # Averaging loop
-            with for_(n, 0, n < node.parameters.num_shots, n + 1):
+            for shot in QuaIterableRange("shots", node.parameters.num_shots):
+                assign(n, shot)
                 save(n, n_st)
                 # Qubit spectroscopy frequency loop
-                with for_(*from_array(df, dfs)):
+                for df in QuaIterable("detuning", dfs):
                     # Time delay loop
-                    with for_each_(t_delay, times):
+                    for t_delay in QuaIterable("time", times):
                         # Reset the qubits
                         for i, qubit in multiplexed_qubits.items():
                             qubit.reset(node.parameters.reset_type, node.parameters.simulate)
@@ -197,22 +192,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
                         for i, qubit in multiplexed_qubits.items():
                             if node.parameters.use_state_discrimination:
-                                qubit.readout_state(state[i])
-                                save(state[i], state_st[i])
+                                state = declare_with_stream(int, f"state{i + 1}", average_axes=["shots"])
+                                qubit.readout_state(state)
                             else:
-                                qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
-                                save(I[i], I_st[i])
-                                save(Q[i], Q_st[i])
+                                I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                                Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                                qubit.resonator.measure("readout", qua_vars=(I, Q))
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i, _ in enumerate(qubits):
-                if node.parameters.use_state_discrimination:
-                    state_st[i].buffer(len(times)).buffer(len(dfs)).average().save(f"state{i + 1}")
-                else:
-                    I_st[i].buffer(len(times)).buffer(len(dfs)).average().save(f"I{i + 1}")
-                    Q_st[i].buffer(len(times)).buffer(len(dfs)).average().save(f"Q{i + 1}")
 
     node.namespace["qua_program"] = qua_prog
 

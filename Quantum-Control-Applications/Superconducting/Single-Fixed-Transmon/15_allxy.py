@@ -107,9 +107,9 @@ with program() as ALL_XY:
     r = Random()  # Pseudo random number generator
     r_ = declare(int)  # Index of the sequence to play
     # The result of each set of gates is saved in its own stream
-    I_st = [declare_stream() for _ in range(len(sequence))]
-    Q_st = [declare_stream() for _ in range(len(sequence))]
-    n_st = declare_stream()
+    I_st = [declare_output_stream() for _ in range(len(sequence))]
+    Q_st = [declare_output_stream() for _ in range(len(sequence))]
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         # Get a value from the pseudo-random number generator on the OPX FPGA

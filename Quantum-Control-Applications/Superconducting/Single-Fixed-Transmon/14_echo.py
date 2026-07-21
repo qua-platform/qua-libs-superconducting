@@ -47,11 +47,11 @@ save_data_dict = {
 ###################
 with program() as echo:
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     I = declare(fixed)
-    I_st = declare_stream()
+    I_st = declare_output_stream()
     Q = declare(fixed)
-    Q_st = declare_stream()
+    Q_st = declare_output_stream()
     tau = declare(int)
 
     with for_(n, 0, n < n_avg, n + 1):

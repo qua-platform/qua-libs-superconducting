@@ -5,8 +5,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -70,7 +70,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     u = unit(coerce_to_integer=True)
     # Get the active qubits from the node and organize them by batches
     node.namespace["qubits"] = qubits = get_qubits(node)
-    num_qubits = len(qubits)
     # Extract the sweep parameters and axes from the node parameters
     n_avg = node.parameters.num_shots
     # The frequency sweep around the resonator resonance frequency
@@ -85,35 +84,32 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        df = declare(int)  # QUA variable for the readout frequency
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
             for qubit in multiplexed_qubits.values():
                 node.machine.initialize_qpu(target=qubit)
             align()
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(df, dfs)):
+                for df in QuaIterable("detuning", dfs):
                     for i, qubit in multiplexed_qubits.items():
+                        I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                        Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
                         rr = qubit.resonator
                         # Update the resonator frequencies for all resonators
                         rr.update_frequency(df + rr.intermediate_frequency)
                         # Measure the resonator
-                        rr.measure("readout", qua_vars=(I[i], Q[i]))
+                        rr.measure("readout", qua_vars=(I, Q))
                         # wait for the resonator to deplete
                         rr.wait(rr.depletion_time * u.ns)
-                        # save data
-                        save(I[i], I_st[i])
-                        save(Q[i], Q_st[i])
                     align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                I_st[i].buffer(len(dfs)).average().save(f"I{i + 1}")
-                Q_st[i].buffer(len(dfs)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

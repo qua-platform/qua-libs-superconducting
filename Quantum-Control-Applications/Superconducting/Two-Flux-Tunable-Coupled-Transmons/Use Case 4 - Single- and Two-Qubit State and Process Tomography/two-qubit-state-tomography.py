@@ -89,24 +89,24 @@ ideal_state = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1 / 2, 1j / 2], [0, 0
 with program() as two_qubit_state_tomography:
 
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     I = [declare(fixed) for _ in range(2)]
     Q = [declare(fixed) for _ in range(2)]
-    # I_st = [declare_stream() for _ in range(2)]
-    # Q_st = [declare_stream() for _ in range(2)]
+    # I_st = [declare_output_stream() for _ in range(2)]
+    # Q_st = [declare_output_stream() for _ in range(2)]
 
     states = [
         declare(bool),
         declare(bool),
     ]  # QUA variable for the measured qubit states
-    # states_st = [declare_stream(), declare_stream()]  # Stream for the qubits states
+    # states_st = [declare_output_stream(), declare_output_stream()]  # Stream for the qubits states
 
     p00 = declare(int)  # variable to track number of |0>|0> measurements
     p01 = declare(int)  # variable to track number of |0>|1> measurements
     p10 = declare(int)  # variable to track number of |1>|0> measurements
     p11 = declare(int)  # variable to track number of |1>|1> measurements
 
-    prob_vec_results_st = declare_stream()  # Stream for the probability vector - average of states vector
+    prob_vec_results_st = declare_output_stream()  # Stream for the probability vector - average of states vector
 
     c = declare(int)  # QUA variable for switching between projections
 

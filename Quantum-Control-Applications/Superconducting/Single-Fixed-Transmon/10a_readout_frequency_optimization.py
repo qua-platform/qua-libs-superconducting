@@ -50,13 +50,13 @@ with program() as ro_freq_opt:
     df = declare(int)  # QUA variable for the readout frequency
     I_g = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |g>
     Q_g = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |g>
-    Ig_st = declare_stream()
-    Qg_st = declare_stream()
+    Ig_st = declare_output_stream()
+    Qg_st = declare_output_stream()
     I_e = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |e>
     Q_e = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |e>
-    Ie_st = declare_stream()
-    Qe_st = declare_stream()
-    n_st = declare_stream()
+    Ie_st = declare_output_stream()
+    Qe_st = declare_output_stream()
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(df, dfs)):

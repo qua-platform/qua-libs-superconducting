@@ -5,8 +5,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -96,12 +96,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        if node.parameters.use_state_discrimination:
-            state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-        a = declare(fixed)  # QUA variable for the qubit drive amplitude pre-factor
-        npi = declare(int)  # QUA variable for the number of qubit pulses
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -109,10 +105,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(npi, N_pi_vec)):
-                    with for_(*from_array(a, amps)):
+                for npi in QuaIterable("nb_of_pulses", N_pi_vec):
+                    for a in QuaIterable("amp_prefactor", amps):
                         # Qubit initialization
                         for i, qubit in multiplexed_qubits.items():
                             qubit.reset(node.parameters.reset_type, node.parameters.simulate)
@@ -129,34 +126,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                         # Qubit readout
                         for i, qubit in multiplexed_qubits.items():
                             if node.parameters.use_state_discrimination:
-                                qubit.readout_state(state[i])
-                                save(state[i], state_st[i])
+                                state = declare_with_stream(int, f"state{i + 1}", average_axes=["shots"])
+                                qubit.readout_state(state)
                             else:
-                                qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
-                                save(I[i], I_st[i])
-                                save(Q[i], Q_st[i])
+                                I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                                Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                                qubit.resonator.measure("readout", qua_vars=(I, Q))
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i, qubit in enumerate(qubits):
-                if operation == "x180":
-                    if node.parameters.use_state_discrimination:
-                        state_st[i].buffer(len(amps)).buffer(
-                            np.ceil(node.parameters.max_number_pulses_per_sweep / 2)
-                        ).average().save(f"state{i + 1}")
-                    else:
-                        I_st[i].buffer(len(amps)).buffer(len(N_pi_vec)).average().save(f"I{i + 1}")
-                        Q_st[i].buffer(len(amps)).buffer(len(N_pi_vec)).average().save(f"Q{i + 1}")
-
-                elif operation in ["x90", "-x90", "y90", "-y90"]:
-                    if node.parameters.use_state_discrimination:
-                        state_st[i].buffer(len(amps)).buffer(len(N_pi_vec)).average().save(f"state{i + 1}")
-                    else:
-                        I_st[i].buffer(len(amps)).buffer(len(N_pi_vec)).average().save(f"I{i + 1}")
-                        Q_st[i].buffer(len(amps)).buffer(len(N_pi_vec)).average().save(f"Q{i + 1}")
-                else:
-                    raise ValueError(f"Unrecognized operation {operation}.")
 
 
 # %% {Simulate}

@@ -175,10 +175,10 @@ with program() as PROGRAM:
     # QUA variable to store the last Clifford gate of the current sequence which is replaced by the recovery gate
     saved_gate = declare(int)
     m = declare(int)  # QUA variable for the loop over random sequences
-    m_st = declare_stream()
+    m_st = declare_output_stream()
     I, I_st, Q, Q_st, n, _ = qua_declaration(nb_of_qubits=2)
     state = [declare(bool) for _ in range(2)]
-    state_st = [declare_stream() for _ in range(2)]
+    state_st = [declare_output_stream() for _ in range(2)]
 
     with for_(m, 0, m < num_of_sequences, m + 1):  # QUA for_ loop over the random sequences
         # Save the counter for the progress bar

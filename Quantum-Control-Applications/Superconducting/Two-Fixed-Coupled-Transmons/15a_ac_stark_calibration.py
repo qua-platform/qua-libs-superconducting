@@ -56,7 +56,7 @@ save_data_dict = {
 with program() as PROGRAM:
     I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
     state = [declare(bool) for _ in range(2)]
-    state_st = [declare_stream() for _ in range(2)]
+    state_st = [declare_output_stream() for _ in range(2)]
     df = declare(int)  # QUA variable for the qubit drive detuning
     npi = declare(int)  # QUA variable for the number of qubit pulses
     count = declare(int)  # QUA variable for counting the qubit pulses

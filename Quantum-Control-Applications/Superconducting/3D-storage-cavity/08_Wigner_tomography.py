@@ -59,16 +59,16 @@ with program() as wigner_tomography:
     state2 = declare(bool)
     I1 = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q1 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I1_st = declare_stream()  # Stream for the 'I' quadrature
-    Q1_st = declare_stream()  # Stream for the 'Q' quadrature
+    I1_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q1_st = declare_output_stream()  # Stream for the 'Q' quadrature
     I2 = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q2 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I2_st = declare_stream()  # Stream for the 'I' quadrature
-    Q2_st = declare_stream()  # Stream for the 'Q' quadrature
-    state_st = declare_stream()
-    state1_st = declare_stream()
-    state2_st = declare_stream()
-    n_st = declare_stream()
+    I2_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q2_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    state_st = declare_output_stream()
+    state1_st = declare_output_stream()
+    state2_st = declare_output_stream()
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(aI, aIs)):

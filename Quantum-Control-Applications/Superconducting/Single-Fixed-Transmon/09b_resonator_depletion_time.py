@@ -48,12 +48,12 @@ save_data_dict = {
 ###################
 with program() as res_depletion_time:
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     t = declare(int)
     I = declare(fixed)
     Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(t, taus)):

@@ -104,8 +104,8 @@ with program() as rabi_amp_freq:
     I = declare(fixed)  # Declare a fixed-point variable for the I (in-phase) component of the signal
     Q = declare(fixed)  # Declare a fixed-point variable for the Q (quadrature) component of the signal
 
-    I_st = declare_stream()  # Declare a stream to store I component data
-    Q_st = declare_stream()  # Declare a stream to store Q component data
+    I_st = declare_output_stream()  # Declare a stream to store I component data
+    Q_st = declare_output_stream()  # Declare a stream to store Q component data
 
     # Outer loop over the number of averages
     with for_(n, 0, n < n_avg, n + 1):

@@ -25,7 +25,7 @@ n_avg = 100  # Number of averaging loops
 ###################
 with program() as raw_trace_prog:
     n = declare(int)  # QUA variable for the averaging loop
-    adc_st = declare_stream(adc_trace=True)  # The stream to store the raw ADC trace
+    adc_st = declare_output_stream(adc_trace=True)  # The stream to store the raw ADC trace
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         # Make sure that the readout pulse is sent with the same phase so that the acquired signal does not average out

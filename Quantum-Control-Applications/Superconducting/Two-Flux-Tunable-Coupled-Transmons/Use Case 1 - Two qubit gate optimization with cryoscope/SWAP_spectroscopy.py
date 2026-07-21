@@ -66,11 +66,11 @@ n_avg = 1e3 / 2
 ###################
 with program() as SWAP_spectroscopy:
     n = declare(int)  # Variable for averaging
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     I = declare(fixed)  # I quadrature for state measurement
     Q = declare(fixed)  # Q quadrature for state measurement
     state = declare(bool)  # Qubit state
-    state_st = declare_stream()
+    state_st = declare_output_stream()
     a = declare(fixed)  # Flux pulse amplitude
     segment = declare(int)  # Flux pulse segment
 

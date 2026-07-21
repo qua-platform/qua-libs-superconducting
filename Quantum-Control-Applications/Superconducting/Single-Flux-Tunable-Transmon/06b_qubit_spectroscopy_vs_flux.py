@@ -76,9 +76,9 @@ with program() as qubit_spec_2D:
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     resonator_freq = declare(int, value=fitted_curve.tolist())  # res freq vs flux table
     index = declare(int, value=0)  # index to get the right resonator freq for a given flux
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(f, frequencies)):

@@ -14,6 +14,8 @@ from calibration_utils.JAZZ_ZZ import (
     process_raw_dataset,
 )
 from qm.qua import *
+from qm.qua.extensions import QuaIterableRange
+
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -109,7 +111,9 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
+        I, I_st, Q, Q_st, _, _ = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
+        n = declare(int)
+        n_st = declare_output_stream()
         virtual_detuning_phase = declare(fixed)
         amp = declare(fixed)
         t = declare(int)
@@ -133,7 +137,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                 for ii, qp in multiplexed_qubit_pairs.items()
             }
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
                 with for_(*from_array(amp, amplitudes)):
                     with for_(*from_array(t, durations)):

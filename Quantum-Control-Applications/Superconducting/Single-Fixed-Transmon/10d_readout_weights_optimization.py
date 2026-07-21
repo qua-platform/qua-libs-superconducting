@@ -134,11 +134,11 @@ with program() as opt_weights:
     QI = declare(fixed, size=number_of_divisions)
     QQ = declare(fixed, size=number_of_divisions)
 
-    n_st = declare_stream()
-    II_st = declare_stream()
-    IQ_st = declare_stream()
-    QI_st = declare_stream()
-    QQ_st = declare_stream()
+    n_st = declare_output_stream()
+    II_st = declare_output_stream()
+    IQ_st = declare_output_stream()
+    QI_st = declare_output_stream()
+    QQ_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         # Measure the ground state

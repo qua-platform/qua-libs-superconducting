@@ -119,11 +119,11 @@ with program() as opt_weights:
     QQ = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the partial 'QQ'
     I = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the full 'I'=II+IQ
     Q = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the full 'Q'=QI+QQ
-    II_st = [declare_stream() for _ in range(2)]  # Stream for the partial 'II'
-    IQ_st = [declare_stream() for _ in range(2)]  # Stream for the partial 'IQ'
-    QI_st = [declare_stream() for _ in range(2)]  # Stream for the partial 'QI'
-    QQ_st = [declare_stream() for _ in range(2)]  # Stream for the partial 'QQ'
-    n_st = declare_stream()
+    II_st = [declare_output_stream() for _ in range(2)]  # Stream for the partial 'II'
+    IQ_st = [declare_output_stream() for _ in range(2)]  # Stream for the partial 'IQ'
+    QI_st = [declare_output_stream() for _ in range(2)]  # Stream for the partial 'QI'
+    QQ_st = [declare_output_stream() for _ in range(2)]  # Stream for the partial 'QQ'
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         # Measure the ground state.

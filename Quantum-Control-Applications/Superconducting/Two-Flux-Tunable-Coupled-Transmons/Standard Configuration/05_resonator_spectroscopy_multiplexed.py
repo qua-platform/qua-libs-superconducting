@@ -49,12 +49,12 @@ save_data_dict = {
 with program() as multi_res_spec:
     n = declare(int)  # QUA variable for the averaging loop
     df = declare(int)  # QUA variable for the readout frequency detuning around the resonance
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     # Here we define one 'I', 'Q', 'I_st' & 'Q_st' for each resonator via a python list
     I = [declare(fixed) for _ in range(2)]
     Q = [declare(fixed) for _ in range(2)]
-    I_st = [declare_stream() for _ in range(2)]
-    Q_st = [declare_stream() for _ in range(2)]
+    I_st = [declare_output_stream() for _ in range(2)]
+    Q_st = [declare_output_stream() for _ in range(2)]
 
     with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
         with for_(*from_array(df, dfs)):  # QUA for_ loop for sweeping the frequency

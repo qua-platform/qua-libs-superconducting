@@ -5,6 +5,7 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterableRange
 
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -95,13 +96,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        n = declare(int)  # QUA variable for the averaging loop
-        n_st = declare_stream()
-        adc_st = [declare_stream(adc_trace=True) for _ in range(num_qubits)]  # The stream to store the raw ADC trace
+        n = declare(int)
+        n_st = declare_output_stream()
+        adc_st = [
+            declare_output_stream(adc_trace=True) for _ in range(num_qubits)
+        ]  # The stream to store the raw ADC trace
 
         for multiplexed_qubits in qubits.batch():
             align()
-            with for_(n, 0, n < node.parameters.num_shots, n + 1):
+            for shot in QuaIterableRange("shots", node.parameters.num_shots):
+                assign(n, shot)
                 save(n, n_st)
                 for i, qubit in multiplexed_qubits.items():
                     # Reset the phase of the digital oscillator associated to the resonator element. Needed to average the cosine signal.

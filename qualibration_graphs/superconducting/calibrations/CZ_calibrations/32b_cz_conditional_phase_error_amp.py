@@ -15,6 +15,8 @@ from calibration_utils.cz_conditional_phase_error_amp import (
     process_raw_dataset,
 )
 from qm.qua import *
+from qm.qua.extensions import QuaIterableRange
+
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -132,8 +134,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         moving_initial = declare(int)  # initial state of the moving qubit
         n_op = declare(int)  # number of CZ operations
         count = declare(int)  # loop counter
-        I_m, I_m_st, Q_m, Q_m_st, n, n_st = node.machine.declare_qua_variables()
+        I_m, I_m_st, Q_m, Q_m_st, _, _ = node.machine.declare_qua_variables()
         I_s, I_s_st, Q_s, Q_s_st, _, _ = node.machine.declare_qua_variables()
+        n = declare(int)
+        n_st = declare_output_stream()
         if node.parameters.use_state_discrimination:
             state_mq = [declare(int) for _ in range(num_qubit_pairs)]
             state_sq = [declare(int) for _ in range(num_qubit_pairs)]
@@ -152,7 +156,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=mq)
                 node.machine.initialize_qpu(target=sq)
             # Loop for averaging
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
                 # Loop over the number of CZ operations for error amplification
                 with for_(n_op, 1, n_op <= num_operations, n_op + 1):

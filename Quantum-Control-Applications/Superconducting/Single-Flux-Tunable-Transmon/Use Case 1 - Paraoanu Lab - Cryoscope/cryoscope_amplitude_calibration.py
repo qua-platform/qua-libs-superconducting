@@ -26,10 +26,10 @@ flux_amp_array = np.linspace(0, -0.2, n_flux_amp)
 def ge_calibration(n_avg_cal):
     Ical = declare(fixed)
     Qcal = declare(fixed)
-    Igcal_st = declare_stream()
-    Qgcal_st = declare_stream()
-    Iecal_st = declare_stream()
-    Qecal_st = declare_stream()
+    Igcal_st = declare_output_stream()
+    Qgcal_st = declare_output_stream()
+    Iecal_st = declare_output_stream()
+    Qecal_st = declare_output_stream()
     with for_(n, 0, n < n_avg_cal, n + 1):
         # Ground state calibration
         align("qubit", "resonator")
@@ -68,8 +68,8 @@ with program() as cryoscope_amp:
     flux_amp = declare(fixed)  # Flux amplitude prefactor
     I = declare(fixed)
     Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
 
     # Calibrate the ground and excited states readout for deriving the Bloch vector
     Ig_st, Qg_st, Ie_st, Qe_st = ge_calibration(n_avg)

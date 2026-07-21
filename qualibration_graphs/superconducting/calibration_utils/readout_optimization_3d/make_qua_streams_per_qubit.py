@@ -1,6 +1,6 @@
 from typing import Sequence, Tuple, List, Union
 
-from qm.qua import declare_stream
+from qm.qua import declare_output_stream
 from qm.qua._dsl import _ResultSource
 
 from quam_builder.architecture.superconducting.qubit import AnyTransmon
@@ -18,6 +18,6 @@ def make_qua_streams_per_qubit(
 
     for i in range(len(measurement_batch)):
         for j in range(len(qua_streams_per_qubit)):
-            qua_streams_per_qubit[j].append(declare_stream())
+            qua_streams_per_qubit[j].append(declare_output_stream())
 
     return I_g_st, Q_g_st, I_e_st, Q_e_st

@@ -66,10 +66,10 @@ def prepare_state(qubit):
 
 with program() as single_qubit_state_tomography:
     n = declare(int)  # QUA variable for average loop
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     state = declare(bool)  # QUA variable for the qubit state
-    state_st = declare_stream()  # Stream for the qubit state
+    state_st = declare_output_stream()  # Stream for the qubit state
 
     p = declare(int)  # QUA variable for switching between projections
 

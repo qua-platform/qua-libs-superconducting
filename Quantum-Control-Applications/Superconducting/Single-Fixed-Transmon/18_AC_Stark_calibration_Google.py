@@ -61,9 +61,9 @@ with program() as ac_stark_shift:
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     state = declare(bool)  # QUA variable for the qubit state
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    state_st = declare_stream()  # Stream for the qubit state
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    state_st = declare_output_stream()  # Stream for the qubit state
 
     with for_(n, 0, n < n_avg, n + 1):
         with for_(*from_array(it, iters)):  # QUA for_ loop for sweeping the number of pulses

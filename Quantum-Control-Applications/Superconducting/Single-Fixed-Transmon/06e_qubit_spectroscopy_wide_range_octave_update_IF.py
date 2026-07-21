@@ -83,9 +83,9 @@ with program() as qubit_spec:
     f = declare(int)  # QUA variable for the qubit frequency
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
-    n_st = declare_stream()  # Stream for the averaging iteration 'n'
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     c00_qua = declare(fixed, value=c00)  # QUA variable for c00
     c01_qua = declare(fixed, value=c01)  # QUA variable for c01

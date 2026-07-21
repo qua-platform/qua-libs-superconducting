@@ -5,8 +5,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -82,9 +82,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         "amp_prefactor": xr.DataArray(amps, attrs={"long_name": "readout amplitude", "units": ""}),
     }
     with program() as node.namespace["qua_program"]:
-        Ig, Ig_st, Qg, Qg_st, n, n_st = node.machine.declare_qua_variables()
-        Ie, Ie_st, Qe, Qe_st, _, _ = node.machine.declare_qua_variables()
-        a = declare(fixed)
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -92,21 +91,20 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_runs, n + 1):
-                # ground iq blobs for all qubits
+            for shot in QuaIterableRange("n_runs", n_runs):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(a, amps)):
+                for a in QuaIterable("amp_prefactor", amps):
                     # Qubit initialization
                     for i, qubit in multiplexed_qubits.items():
                         qubit.reset(node.parameters.reset_type, node.parameters.simulate)
                     align()
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
+                        Ig = declare_with_stream(fixed, f"Ig{i + 1}", average_axes=[])
+                        Qg = declare_with_stream(fixed, f"Qg{i + 1}", average_axes=[])
                         # Measure the state of the resonators
-                        qubit.resonator.measure("readout", qua_vars=(Ig[i], Qg[i]), amplitude_scale=a)
-                        # save data to their respective streams
-                        save(Ig[i], Ig_st[i])
-                        save(Qg[i], Qg_st[i])
+                        qubit.resonator.measure("readout", qua_vars=(Ig, Qg), amplitude_scale=a)
 
                     # Qubit initialization
                     for i, qubit in multiplexed_qubits.items():
@@ -114,23 +112,17 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                     align()
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
+                        Ie = declare_with_stream(fixed, f"Ie{i + 1}", average_axes=[])
+                        Qe = declare_with_stream(fixed, f"Qe{i + 1}", average_axes=[])
                         # Play the x180 gate to put the qubits in the excited state
                         qubit.xy.play("x180")
                         # Align the elements to measure after playing the qubit pulses.
                         qubit.align()
                         # Measure the state of the resonators
-                        qubit.resonator.measure("readout", qua_vars=(Ie[i], Qe[i]), amplitude_scale=a)
-                        # save data to their respective streams
-                        save(Ie[i], Ie_st[i])
-                        save(Qe[i], Qe_st[i])
+                        qubit.resonator.measure("readout", qua_vars=(Ie, Qe), amplitude_scale=a)
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                Ig_st[i].buffer(len(amps)).buffer(n_runs).save(f"Ig{i + 1}")
-                Qg_st[i].buffer(len(amps)).buffer(n_runs).save(f"Qg{i + 1}")
-                Ie_st[i].buffer(len(amps)).buffer(n_runs).save(f"Ie{i + 1}")
-                Qe_st[i].buffer(len(amps)).buffer(n_runs).save(f"Qe{i + 1}")
 
 
 # %% {Simulate}

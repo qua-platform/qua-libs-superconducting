@@ -13,7 +13,7 @@ from calibration_utils.resonator_spectroscopy_vs_coupler_flux import (
     plot_raw_data_with_fit,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -108,9 +108,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables(num_qubit_pairs)
-        dc = declare(fixed)  # QUA variable for the coupler flux bias
-        df = declare(int)  # QUA variable for the readout frequency detuning
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the QPU for all qubits in the batch
@@ -119,9 +118,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qp.qubit_target)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(dc, dcs)):
+                for dc in QuaIterable("flux_bias", dcs):
                     # Apply coupler flux bias via DC offset for EACH qubit pair's coupler
                     for ii, qp in multiplexed_qubit_pairs.items():
                         qp.coupler.set_dc_offset(dc)
@@ -130,8 +130,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                     # align all the couplers
                     align()
                     # Measure all qubits in the batch
-                    with for_(*from_array(df, dfs)):
+                    for df in QuaIterable("detuning", dfs):
                         for ii, qp in multiplexed_qubit_pairs.items():
+                            I = declare_with_stream(fixed, f"I{ii + 1}", average_axes=["shots"])
+                            Q = declare_with_stream(fixed, f"Q{ii + 1}", average_axes=["shots"])
                             measured_qubit = (
                                 qp.qubit_control if node.parameters.measure_qubit == "control" else qp.qubit_target
                             )
@@ -139,18 +141,13 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                             # Update the resonator frequency
                             rr.update_frequency(df + rr.intermediate_frequency)
                             # Readout the resonator
-                            rr.measure("readout", qua_vars=(I[ii], Q[ii]))
+                            rr.measure("readout", qua_vars=(I, Q))
                             # Wait for the resonator to deplete
                             rr.wait(rr.depletion_time * u.ns)
-                            # Save data
-                            save(I[ii], I_st[ii])
-                            save(Q[ii], Q_st[ii])
                         align()
+
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                I_st[i].buffer(len(dfs)).buffer(len(dcs)).average().save(f"I{i + 1}")
-                Q_st[i].buffer(len(dfs)).buffer(len(dcs)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

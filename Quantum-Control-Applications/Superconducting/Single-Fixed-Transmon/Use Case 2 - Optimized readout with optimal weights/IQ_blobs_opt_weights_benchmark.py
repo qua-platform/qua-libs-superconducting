@@ -45,10 +45,10 @@ with program() as benchmark:
     I = declare(fixed)
     Q = declare(fixed)
     res = declare(bool)
-    I_st = declare_stream()
-    Q_st = declare_stream()
-    res_st = declare_stream()
-    adc_st = declare_stream(adc_trace=True)
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
+    res_st = declare_output_stream()
+    adc_st = declare_output_stream(adc_trace=True)
 
     with for_(n, 0, n < n_runs, n + 1):
         discriminator.measure_state("readout", "out1", "out2", res=res, I=I, Q=Q)

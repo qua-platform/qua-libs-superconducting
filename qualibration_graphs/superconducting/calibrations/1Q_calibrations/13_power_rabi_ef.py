@@ -14,7 +14,7 @@ from calibration_utils.power_rabi import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -100,13 +100,8 @@ def create_qua_program(node: QualibrationNode[EfParameters, Quam]):
             )
 
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        if node.parameters.use_state_discrimination:
-            state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-        a = declare(fixed)  # QUA variable for the qubit drive amplitude pre-factor
-        npi = declare(int)  # QUA variable for the number of qubit pulses
-        count = declare(int)  # QUA variable for counting the qubit pulses
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -118,9 +113,10 @@ def create_qua_program(node: QualibrationNode[EfParameters, Quam]):
                 )
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(a, amps)):
+                for a in QuaIterable("amp_prefactor", amps):
                     # Qubit initialization
                     for i, qubit in multiplexed_qubits.items():  # Reset the qubit to ground state
                         qubit.reset(reset_type=node.parameters.reset_type, simulate=node.parameters.simulate)
@@ -142,22 +138,16 @@ def create_qua_program(node: QualibrationNode[EfParameters, Quam]):
                     # Qubit readout
                     for i, qubit in multiplexed_qubits.items():
                         if node.parameters.use_state_discrimination:
-                            qubit.readout_state_gef(state[i])  # Need to calibrate gef readout first
-                            save(state[i], state_st[i])
+                            state = declare_with_stream(int, f"state{i + 1}", average_axes=["shots"])
+                            qubit.readout_state_gef(state)  # Need to calibrate gef readout first
                         else:
-                            qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
-                            save(I[i], I_st[i])
-                            save(Q[i], Q_st[i])
+                            I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                            Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                            qubit.resonator.measure("readout", qua_vars=(I, Q))
                     align()
 
         with stream_processing():
             n_st.save("n")
-            for i, qubit in enumerate(qubits):
-                if node.parameters.use_state_discrimination:
-                    state_st[i].buffer(len(amps)).average().save(f"state{i + 1}")
-                else:
-                    I_st[i].buffer(len(amps)).average().save(f"I{i + 1}")
-                    Q_st[i].buffer(len(amps)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

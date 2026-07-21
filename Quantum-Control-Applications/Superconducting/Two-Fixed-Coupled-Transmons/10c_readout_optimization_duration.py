@@ -46,13 +46,13 @@ with program() as PROGRAM:
     Q = declare(fixed, size=number_of_divisions)
     ind = declare(int)
 
-    n_st = declare_stream()
-    Ig_st = declare_stream()
-    Qg_st = declare_stream()
-    Ie_st = declare_stream()
-    Qe_st = declare_stream()
+    n_st = declare_output_stream()
+    Ig_st = declare_output_stream()
+    Qg_st = declare_output_stream()
+    Ie_st = declare_output_stream()
+    Qe_st = declare_output_stream()
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
 
     with for_(n, 0, n < n_avg, n + 1):
         # Save the averaging iteration to get the progress bar

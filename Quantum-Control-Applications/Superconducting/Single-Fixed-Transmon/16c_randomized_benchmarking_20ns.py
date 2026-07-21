@@ -333,12 +333,12 @@ with program() as rb:
     state = declare(bool)  # Qubit state if state discrimination
     seq_length = declare(int)  # Length of the current sequence
     # Declare the streams
-    rnd_seq_ind_st = declare_stream()
+    rnd_seq_ind_st = declare_output_stream()
     if state_discrimination:
-        state_st = declare_stream()
+        state_st = declare_output_stream()
     else:
-        I_st = declare_stream()
-        Q_st = declare_stream()
+        I_st = declare_output_stream()
+        Q_st = declare_output_stream()
 
     # Loop over the different random sequences
     with for_(random_sequence_index, 0, random_sequence_index < num_of_sequences, random_sequence_index + 1):

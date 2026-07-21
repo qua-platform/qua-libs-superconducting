@@ -15,7 +15,7 @@ from calibration_utils.qubit_spectroscopy_vs_coupler import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -110,9 +110,8 @@ def create_qua_program(
     }
 
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
-        df = declare(int)  # QUA variable for the qubit frequency
-        dc = declare(fixed)  # QUA variable for the flux dc level
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -137,10 +136,11 @@ def create_qua_program(
                 for ii in multiplexed_qubit_pairs
             }
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(df, dfs)):
-                    with for_(*from_array(dc, dcs)):
+                for df in QuaIterable("detuning", dfs):
+                    for dc in QuaIterable("flux_bias", dcs):
                         for ii, _ in multiplexed_qubit_pairs.items():
                             measured_qubit = measured_qubits_map[ii]
                             # Update the qubit frequency
@@ -169,19 +169,15 @@ def create_qua_program(
 
                         # Qubit readout - only measure the selected qubit
                         for ii, _ in multiplexed_qubit_pairs.items():
+                            I = declare_with_stream(fixed, f"I{ii + 1}", average_axes=["shots"])
+                            Q = declare_with_stream(fixed, f"Q{ii + 1}", average_axes=["shots"])
                             measured_qubit = measured_qubits_map[ii]
                             measured_qubit.resonator.wait(50)
-                            measured_qubit.resonator.measure("readout", qua_vars=(I[ii], Q[ii]))
-                            # save data
-                            save(I[ii], I_st[ii])
-                            save(Q[ii], Q_st[ii])
+                            measured_qubit.resonator.measure("readout", qua_vars=(I, Q))
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                I_st[i].buffer(len(dcs)).buffer(len(dfs)).average().save(f"I{i + 1}")
-                Q_st[i].buffer(len(dcs)).buffer(len(dfs)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

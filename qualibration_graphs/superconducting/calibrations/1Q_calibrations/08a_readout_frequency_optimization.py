@@ -5,8 +5,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -83,16 +83,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
     with program() as node.namespace["qua_program"]:
         n = declare(int)
-        I_g = [declare(fixed) for _ in range(num_qubits)]
-        Q_g = [declare(fixed) for _ in range(num_qubits)]
-        I_e = [declare(fixed) for _ in range(num_qubits)]
-        Q_e = [declare(fixed) for _ in range(num_qubits)]
-        df = declare(int)
-        I_g_st = [declare_stream() for _ in range(num_qubits)]
-        Q_g_st = [declare_stream() for _ in range(num_qubits)]
-        I_e_st = [declare_stream() for _ in range(num_qubits)]
-        Q_e_st = [declare_stream() for _ in range(num_qubits)]
-        n_st = declare_stream()
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -100,9 +91,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(df, dfs)):
+                for df in QuaIterable("detuning", dfs):
                     # Qubit initialization
                     for i, qubit in multiplexed_qubits.items():
                         # Update the resonator frequencies & reset the qubits
@@ -112,11 +104,10 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
                     # Qubit readout - |g> state
                     for i, qubit in multiplexed_qubits.items():
+                        I_g = declare_with_stream(fixed, f"I_g{i + 1}", average_axes=["shots"])
+                        Q_g = declare_with_stream(fixed, f"Q_g{i + 1}", average_axes=["shots"])
                         # Measure the state of the resonators
-                        qubit.resonator.measure("readout", qua_vars=(I_g[i], Q_g[i]))
-                        # save data to their respective streams
-                        save(I_g[i], I_g_st[i])
-                        save(Q_g[i], Q_g_st[i])
+                        qubit.resonator.measure("readout", qua_vars=(I_g, Q_g))
                     align()
 
                     # Qubit initialization
@@ -125,23 +116,17 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                     align()
                     # Qubit readout - |e> state
                     for i, qubit in multiplexed_qubits.items():
+                        I_e = declare_with_stream(fixed, f"I_e{i + 1}", average_axes=["shots"])
+                        Q_e = declare_with_stream(fixed, f"Q_e{i + 1}", average_axes=["shots"])
                         # Play the x180 gate to put the qubits in the excited state
                         qubit.xy.play("x180")
                         # Align the elements to measure after playing the qubit pulses.
                         qubit.align()
                         # Measure the state of the resonators
-                        qubit.resonator.measure("readout", qua_vars=(I_e[i], Q_e[i]))
-                        # save data to their respective streams
-                        save(I_e[i], I_e_st[i])
-                        save(Q_e[i], Q_e_st[i])
+                        qubit.resonator.measure("readout", qua_vars=(I_e, Q_e))
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                I_g_st[i].buffer(len(dfs)).average().save(f"I_g{i + 1}")
-                Q_g_st[i].buffer(len(dfs)).average().save(f"Q_g{i + 1}")
-                I_e_st[i].buffer(len(dfs)).average().save(f"I_e{i + 1}")
-                Q_e_st[i].buffer(len(dfs)).average().save(f"Q_e{i + 1}")
 
 
 # %% {Simulate}

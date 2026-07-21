@@ -242,10 +242,10 @@ with program() as rb:
     state1 = declare(bool)  # QUA variable for state discrimination
     state2 = declare(bool)
     # The relevant streams
-    m_st = declare_stream()
+    m_st = declare_output_stream()
 
-    state1_st = declare_stream()
-    state2_st = declare_stream()
+    state1_st = declare_output_stream()
+    state2_st = declare_output_stream()
 
     sequence_qua = declare(int, value=sequence_list)
     len_list_qua = declare(int, value=len_list)

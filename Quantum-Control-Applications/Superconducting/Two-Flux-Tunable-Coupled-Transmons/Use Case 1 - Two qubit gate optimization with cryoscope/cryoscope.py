@@ -65,11 +65,11 @@ n_avg = 1e3
 
 with program() as cryoscope:
     n = declare(int)  # Variable for averaging
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     I = declare(fixed)  # I quadrature for state measurement
     Q = declare(fixed)  # Q quadrature for state measurement
     state = declare(bool)  # Qubit state
-    state_st = declare_stream()
+    state_st = declare_output_stream()
     I_g = declare(fixed)  # I quadrature for qubit cooldown
     segment = declare(int)  # Flux pulse segment
     flag = declare(bool)  # Boolean flag to switch between x90 and y90 for state measurement

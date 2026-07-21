@@ -52,7 +52,7 @@ with program() as ro_amp_opt:
     I_g, I_g_st, Q_g, Q_g_st, n, _ = qua_declaration(nb_of_qubits=2)
     I_e, I_e_st, Q_e, Q_e_st, _, _ = qua_declaration(nb_of_qubits=2)
     counter = declare(int, value=0)  # Counter for the progress bar
-    counter_st = declare_stream()  # Stream for the counter variable
+    counter_st = declare_output_stream()  # Stream for the counter variable
     a = declare(fixed)  # QUA variable for the readout amplitude
 
     with for_(*from_array(a, amplitudes)):

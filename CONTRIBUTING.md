@@ -19,9 +19,12 @@ example, ask a question, or propose something to add.
 
 ## Development
 
-This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.12
-(uv will fetch a suitable interpreter). Create a local environment — installs
-the runtime dependencies and dev tools into `.venv`:
+This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
+(uv will fetch a suitable interpreter). **CI uses Python 3.14.** QUA code targets
+**qm-qua 1.3.1+**; see [docs/plans/qua-1.3.1-migration.md](docs/plans/qua-1.3.1-migration.md)
+for iterables and auto-streaming conventions.
+
+Create a local environment — installs the runtime dependencies and dev tools into `.venv`:
 
 ```
 uv sync

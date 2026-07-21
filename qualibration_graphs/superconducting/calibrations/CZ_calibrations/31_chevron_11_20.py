@@ -15,7 +15,8 @@ from calibration_utils.chevron_cz import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
+
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
@@ -152,12 +153,12 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     node.namespace["baked_config"] = baked_config
 
     with program() as node.namespace["qua_program"]:
-        t = declare(int)  # QUA variable for the flux pulse segment index
-        a = declare(fixed)
         t_left_ns = declare(int)  # QUA variable for the flux pulse segment index
         t_cycles = declare(int)  # QUA variable for the flux pulse segment index
-        I_m, I_m_st, Q_m, Q_m_st, n, n_st = node.machine.declare_qua_variables()
+        I_m, I_m_st, Q_m, Q_m_st, _, _ = node.machine.declare_qua_variables()
         I_s, I_s_st, Q_s, Q_s_st, _, _ = node.machine.declare_qua_variables()
+        n = declare(int)
+        n_st = declare_output_stream()
         if node.parameters.use_state_discrimination:
             state_mq = [declare(int) for _ in range(num_qubit_pairs)]
             state_sq = [declare(int) for _ in range(num_qubit_pairs)]
@@ -173,17 +174,17 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=sq)
             align()
             # Averaging loop
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                # Pulse amplitude loop
-                with for_(*from_array(a, amplitudes)):
+                for a in QuaIterable("amplitude", amplitudes):
                     ################################################################################################
                     # The duration argument in the play command can only produce pulses with duration multiple of  #
                     # 4ns. To overcome this limitation we use the baking tool from the qualang-tools package to    #
                     # generate pulses with 1ns granularity. To avoid creating custom waveforms for each iteration  #
                     # we combine baked pulses with dynamically stretched (multiple of 4ns) pulses.                 #
                     ################################################################################################
-                    with for_(*from_array(t, times_cycles)):
+                    for t in QuaIterable("time", times_cycles):
                         for ii, qp in multiplexed_qubit_pairs.items():
                             qubit_role = qubit_roles_map[qp.name]
                             mq, sq = qubit_role.moving, qubit_role.stationary

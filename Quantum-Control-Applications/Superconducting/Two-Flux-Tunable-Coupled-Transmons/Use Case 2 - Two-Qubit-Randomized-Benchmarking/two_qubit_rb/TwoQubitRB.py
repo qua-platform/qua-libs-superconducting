@@ -164,8 +164,8 @@ class TwoQubitRb:
             state = declare(int)
             length = declare(int)
             progress = declare(int)
-            progress_os = declare_stream()
-            state_os = declare_stream()
+            progress_os = declare_output_stream()
+            state_os = declare_output_stream()
             gates_len_is = declare_input_stream(int, name="__gates_len_is__", size=1)
             gates_is = {
                 qe: declare_input_stream(int, name=f"{qe}_is", size=self._buffer_length)

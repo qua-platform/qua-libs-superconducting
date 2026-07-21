@@ -12,6 +12,8 @@ from calibration_utils.cz_phase_compensation import (
     process_raw_dataset,
 )
 from qm.qua import *
+from qm.qua.extensions import QuaIterableRange
+
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -87,15 +89,15 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        frame = declare(fixed)
         n = declare(int)
-        n_st = declare_stream()
-        I_c, I_c_st, Q_c, Q_c_st, n, n_st = node.machine.declare_qua_variables()
+        n_st = declare_output_stream()
+        I_c, I_c_st, Q_c, Q_c_st, _, _ = node.machine.declare_qua_variables()
         I_t, I_t_st, Q_t, Q_t_st, _, _ = node.machine.declare_qua_variables()
+        frame = declare(fixed)
         state_c = [declare(int) for _ in range(num_qubit_pairs)]
         state_t = [declare(int) for _ in range(num_qubit_pairs)]
-        state_c_st = [declare_stream() for _ in range(num_qubit_pairs)]
-        state_t_st = [declare_stream() for _ in range(num_qubit_pairs)]
+        state_c_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
+        state_t_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
         extra_phase_c = declare(fixed)
         extra_phase_t = declare(fixed)
 
@@ -106,7 +108,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qp.qubit_target)
             align()
             # Loop over the number of averages
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
                 # Loop over the virtual frame rotations for phase tomography
                 with for_(*from_array(frame, frames)):

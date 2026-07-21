@@ -37,7 +37,7 @@ def qua_declaration(n_qubits: int, readout_elements: list):
     :return:
     """
     I, Q = [[declare(fixed) for _ in range(n_qubits)] for _ in range(2)]
-    I_st, Q_st = [[declare_stream() for _ in range(n_qubits)] for _ in range(2)]
+    I_st, Q_st = [[declare_output_stream() for _ in range(n_qubits)] for _ in range(2)]
     # Workaround to manually assign the results variables to the readout elements
     for i in range(n_qubits):
         assign_variables_to_element(readout_elements[i], I[i], Q[i])

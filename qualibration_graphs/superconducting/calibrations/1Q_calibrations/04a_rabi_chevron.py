@@ -5,8 +5,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -99,12 +99,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        if state_discrimination:
-            state = [declare(bool) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-        t = declare(int)
-        df = declare(int)
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -112,10 +108,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(df, dfs)):
-                    with for_(*from_array(t, pulse_durations // 4)):
+                for df in QuaIterable("detuning", dfs):
+                    for t in QuaIterable("pulse_duration", pulse_durations // 4):
                         # Qubit initialization
                         for i, qubit in multiplexed_qubits.items():
                             # Set the xy drive frequency back to the qubit frequency for active reset
@@ -132,22 +129,16 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                         # Qubit readout
                         for i, qubit in multiplexed_qubits.items():
                             if state_discrimination:
-                                qubit.readout_state(state[i])
-                                save(state[i], state_st[i])
+                                state = declare_with_stream(bool, f"state{i + 1}", average_axes=["shots"])
+                                qubit.readout_state(state)
                             else:
-                                qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
-                                save(I[i], I_st[i])
-                                save(Q[i], Q_st[i])
+                                I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                                Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                                qubit.resonator.measure("readout", qua_vars=(I, Q))
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                if node.parameters.use_state_discrimination:
-                    state_st[i].buffer(len(pulse_durations)).buffer(len(dfs)).average().save(f"state{i + 1}")
-                else:
-                    I_st[i].buffer(len(pulse_durations)).buffer(len(dfs)).average().save(f"I{i + 1}")
-                    Q_st[i].buffer(len(pulse_durations)).buffer(len(dfs)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

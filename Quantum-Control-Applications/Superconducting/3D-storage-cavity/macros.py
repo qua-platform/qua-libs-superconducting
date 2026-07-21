@@ -179,7 +179,7 @@ class qubit_frequency_tracking:
         # Qubit state after a measurement (0.0 or 1.0)
         self.state_estimation = declare(fixed)
         # Stream for state_estimation as a buffer of streams if multiple sweeps are performed in the same program
-        self.state_estimation_st = [declare_stream() for i in range(10)]
+        self.state_estimation_st = [declare_output_stream() for i in range(10)]
         # Initialize the index for the buffer of state_estimation streams (python variable)
         self.state_estimation_st_idx = 0
         # Variable for averaging
@@ -195,11 +195,11 @@ class qubit_frequency_tracking:
         # Frequency correction to apply in order to track the qubit resonance
         self.corr = declare(int, value=0)
         # Stream for corr
-        self.corr_st = declare_stream()
+        self.corr_st = declare_output_stream()
         # Qubit frequency after correction with two_point_ramsey
         self.f_res_corr = declare(int, value=round(self.f_res))
         # Stream for f_res_corr
-        self.f_res_corr_st = declare_stream()
+        self.f_res_corr_st = declare_output_stream()
         # Detuning used to derive the phase of the second pi/2 pulse when using frame rotation
         self.frame_rotation_detuning = declare(fixed)
         # Conversion factor from GHz to Hz

@@ -4,6 +4,8 @@ import xarray as xr
 from dataclasses import asdict
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
+
 
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -75,13 +77,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
-        if node.parameters.use_state_discrimination:
-            state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-
-        shot = declare(int)
-        t = declare(int)
+        n = declare(int)
+        n_st = declare_output_stream()
 
         for multiplexed_qubits in qubits.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -89,47 +86,39 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 node.machine.initialize_qpu(target=qubit)
             align()
 
-            for i, qubit in multiplexed_qubits.items():
-                with for_(shot, 0, shot < n_avg, shot + 1):
-                    save(shot, n_st)
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
+                save(n, n_st)
+                for t in QuaIterable("idle_time", idle_times):
+                    # Qubit initialization
+                    for i, qubit in multiplexed_qubits.items():
+                        reset_frame(qubit.xy.name)
+                        qubit.reset(node.parameters.reset_type, node.parameters.simulate)
+                    align()
 
-                    with for_each_(t, idle_times):
-                        # Qubit initialization
-                        for i, qubit in multiplexed_qubits.items():
-                            reset_frame(qubit.xy.name)
-                            qubit.reset(node.parameters.reset_type, node.parameters.simulate)
-                        align()
+                    # Qubit manipulation
+                    for i, qubit in multiplexed_qubits.items():
+                        qubit.xy.play("x90")
+                        qubit.xy.wait(t)
+                        qubit.xy.play("x180")
+                        qubit.xy.wait(t)
+                        qubit.xy.play("-x90")
+                        qubit.align()
+                    align()
 
-                        # Qubit manipulation
-                        for i, qubit in multiplexed_qubits.items():
-                            qubit.xy.play("x90")
-                            qubit.xy.wait(t)
-                            qubit.xy.play("x180")
-                            qubit.xy.wait(t)
-                            qubit.xy.play("-x90")
-                            qubit.align()
-                        align()
-
-                        # Qubit readout
-                        for i, qubit in multiplexed_qubits.items():
-                            # Measure the state of the resonators
-                            if node.parameters.use_state_discrimination:
-                                qubit.readout_state(state[i])
-                                save(state[i], state_st[i])
-                            else:
-                                qubit.resonator.measure("readout", qua_vars=(I[i], Q[i]))
-                                # save data
-                                save(I[i], I_st[i])
-                                save(Q[i], Q_st[i])
+                    # Qubit readout
+                    for i, qubit in multiplexed_qubits.items():
+                        # Measure the state of the resonators
+                        if node.parameters.use_state_discrimination:
+                            state = declare_with_stream(int, f"state{i + 1}", average_axes=["shots"])
+                            qubit.readout_state(state)
+                        else:
+                            I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
+                            Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                            qubit.resonator.measure("readout", qua_vars=(I, Q))
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubits):
-                if node.parameters.use_state_discrimination:
-                    state_st[i].buffer(len(idle_times)).average().save(f"state{i + 1}")
-                else:
-                    I_st[i].buffer(len(idle_times)).average().save(f"I{i + 1}")
-                    Q_st[i].buffer(len(idle_times)).average().save(f"Q{i + 1}")
 
 
 # %% {Simulate}

@@ -20,15 +20,15 @@ resonator_cooldown = 500
 
 with program() as drag2:
     n = declare(int)
-    n_st = declare_stream()
+    n_st = declare_output_stream()
     a = declare(fixed)
     I = declare(fixed)
     Q = declare(fixed)
-    I_st = declare_stream()
-    Q_st = declare_stream()
+    I_st = declare_output_stream()
+    Q_st = declare_output_stream()
     state = declare(bool)
-    state_st = declare_stream()
-    state2_st = declare_stream()
+    state_st = declare_output_stream()
+    state2_st = declare_output_stream()
     I_g = declare(fixed)
 
     with for_(n, 0, n < n_avg, n + 1):

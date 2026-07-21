@@ -130,9 +130,9 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
         if node.parameters.use_state_discrimination:
             state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
+            state_st = [declare_output_stream() for _ in range(num_qubits)]
         state = [declare(int) for _ in range(num_qubits)]
-        state_st = [declare_stream() for _ in range(num_qubits)]
+        state_st = [declare_output_stream() for _ in range(num_qubits)]
         t_left_ns = declare(int)  # QUA variable for the remainding ns to add to the flux pulse multiple of 4
         t_cycles = declare(int)  # QUA variable for the flux pulse multiple of 4
         idx = declare(int)

@@ -2,7 +2,7 @@
 import numpy as np
 import xarray as xr
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -92,14 +92,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        _, _, _, _, n, n_st = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
+        n = declare(int)
+        n_st = declare_output_stream()
         init_state = [declare(int) for _ in range(num_qubit_pairs)]
         current_state = [declare(int) for _ in range(num_qubit_pairs)]
-        state = [declare(int) for _ in range(num_qubit_pairs)]
-        state_st = [declare_stream() for _ in range(num_qubit_pairs)]
-        t = declare(int)
         phi = declare(fixed)
-        flux = declare(fixed)
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize QPU
@@ -117,10 +114,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
             for ii, qp in multiplexed_qubit_pairs.items():
                 measured_qubits_map[ii].readout_state(init_state[ii])
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(flux, fluxes)):
-                    with for_(*from_array(t, idle_times)):
+                for flux in QuaIterable("coupler_flux", fluxes):
+                    for t in QuaIterable("idle_times", idle_times):
                         for ii, qp in multiplexed_qubit_pairs.items():
                             qubit = measured_qubits_map[ii]
                             assign(phi, Cast.mul_fixed_by_int(detuning * 1e-9, 4 * t))
@@ -140,16 +138,14 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                         for ii, qp in multiplexed_qubit_pairs.items():
                             qubit = measured_qubits_map[ii]
                             qubit.readout_state(current_state[ii])
-                            assign(state[ii], init_state[ii] ^ current_state[ii])
+                            state = declare_with_stream(int, f"state{ii + 1}", average_axes=["shots"])
+                            assign(state, init_state[ii] ^ current_state[ii])
                             assign(init_state[ii], current_state[ii])
-                            save(state[ii], state_st[ii])
                             reset_frame(qubit.xy.name)
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                state_st[i].buffer(len(idle_times)).buffer(len(fluxes)).average().save(f"state{i + 1}")
 
 
 # %% {Simulate}

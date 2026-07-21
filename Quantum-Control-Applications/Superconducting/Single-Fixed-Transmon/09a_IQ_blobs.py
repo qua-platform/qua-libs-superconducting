@@ -51,12 +51,12 @@ with program() as IQ_blobs:
     n = declare(int)
     I_g = declare(fixed)
     Q_g = declare(fixed)
-    I_g_st = declare_stream()
-    Q_g_st = declare_stream()
+    I_g_st = declare_output_stream()
+    Q_g_st = declare_output_stream()
     I_e = declare(fixed)
     Q_e = declare(fixed)
-    I_e_st = declare_stream()
-    Q_e_st = declare_stream()
+    I_e_st = declare_output_stream()
+    Q_e_st = declare_output_stream()
 
     with for_(n, 0, n < n_runs, n + 1):
         # Measure the state of the resonator

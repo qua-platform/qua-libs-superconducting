@@ -124,7 +124,7 @@ class qubit_frequency_tracking:
         self.I = declare(fixed)
         self.Q = declare(fixed)
         self.state_estimation = declare(fixed)
-        self.state_estimation_st = [declare_stream() for i in range(10)]
+        self.state_estimation_st = [declare_output_stream() for i in range(10)]
         self.state_estimation_st_idx = 0
 
         self.res = declare(bool)
@@ -140,9 +140,9 @@ class qubit_frequency_tracking:
         self.se_vec = declare(fixed, size=3)
         self.idx = declare(int)
         self.fres_corr = declare(int, value=int(self.fres + 0.5))
-        self.fres_corr_st = declare_stream()
+        self.fres_corr_st = declare_output_stream()
         self.corr = declare(int, value=0)
-        self.corr_st = declare_stream()
+        self.corr_st = declare_output_stream()
 
     def time_domain_ramesy_full_sweep(self, reps, f_ref, tau_min, tau_max, dtau, stream_name, correct=False):
         self.f_ref = f_ref

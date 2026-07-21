@@ -72,14 +72,14 @@ save_data_dict = {
 with program() as xy8:
     # Declare QUA variables
     n = declare(int)  # QUA variable for the averaging loop
-    n_st = declare_stream()  # Stream for the averaging iteration
+    n_st = declare_output_stream()  # Stream for the averaging iteration
     tau = declare(int)  # QUA variable for the idle time between pi pulses
     n_xy8 = declare(int)  # QUA variable for the number of XY8 repetitions
     i = declare(int)  # QUA variable for the XY8 repetition loop
     I = declare(fixed)  # QUA variable for the measured 'I' quadrature
     Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_stream()  # Stream for the 'Q' quadrature
+    I_st = declare_output_stream()  # Stream for the 'I' quadrature
+    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
 
     with for_(n, 0, n < n_avg, n + 1):
         # Sweep over number of XY8 repetitions

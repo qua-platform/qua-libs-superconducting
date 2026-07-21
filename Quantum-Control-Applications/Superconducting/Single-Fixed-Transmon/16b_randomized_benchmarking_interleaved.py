@@ -203,12 +203,12 @@ with program() as rb:
     Q = declare(fixed)  # QUA variable for the 'Q' quadrature
     state = declare(bool)  # QUA variable for state discrimination
     # The relevant streams
-    m_st = declare_stream()
+    m_st = declare_output_stream()
     if state_discrimination:
-        state_st = declare_stream()
+        state_st = declare_output_stream()
     else:
-        I_st = declare_stream()
-        Q_st = declare_stream()
+        I_st = declare_output_stream()
+        Q_st = declare_output_stream()
 
     with for_(m, 0, m < num_of_sequences, m + 1):  # QUA for_ loop over the random sequences
         # Generates the RB sequence with a gate interleaved after each Clifford
