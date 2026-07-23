@@ -33,6 +33,10 @@ dist/
 **/.qua-libs/
 
 # Graphify
-graphify-out                  # Exclude Graphifycompletely
-graphify-out/cost.json        # local only
-graphify-out/cache/           # optional: commit for speed, skip to keep repo small
+# Exclude Graphify completely
+graphify-out
+# local only
+graphify-out/cost.json
+# optional: commit for speed, skip to keep repo small
+graphify-out/cache/
+
