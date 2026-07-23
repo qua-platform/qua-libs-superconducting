@@ -16,6 +16,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -47,22 +48,24 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ro_amp_opt:
-    n = declare(int)  # QUA variable for the number of runs
-    counter = declare(int, value=0)  # Counter for the progress bar
-    a = declare(fixed)  # QUA variable for the readout amplitude
-    I_g = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |g>
-    Q_g = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |g>
+    a_sweep = QuaIterable("a", amplitudes)
+    shots = QuaIterableRange("shots", n_runs)
+    n = declare(int)
+    counter = declare(int, value=0)
+    I_g = declare(fixed)
+    Q_g = declare(fixed)
     I_g_st = declare_output_stream()
     Q_g_st = declare_output_stream()
-    I_e = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |e>
-    Q_e = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |e>
+    I_e = declare(fixed)
+    Q_e = declare(fixed)
     I_e_st = declare_output_stream()
     Q_e_st = declare_output_stream()
     n_st = declare_output_stream()
 
-    with for_(*from_array(a, amplitudes)):
+    for a in a_sweep:
         save(counter, n_st)
-        with for_(n, 0, n < n_runs, n + 1):
+        for shot in shots:
+            assign(n, shot)
             measure(
                 "readout" * amp(a),
                 "resonator",
@@ -70,18 +73,12 @@ with program() as ro_amp_opt:
                 dual_demod.full("rotated_cos", "rotated_sin", I_g),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g),
             )
-            # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
-            # Save the 'I_e' & 'Q_e' quadratures to their respective streams
             save(I_g, I_g_st)
             save(Q_g, Q_g_st)
-
-            align()  # global align
-            # Play the x180 gate to put the qubit in the excited state
+            align()
             play("x180", "qubit")
-            # Align the two elements to measure after playing the qubit pulse.
             align("qubit", "resonator")
-            # Measure the state of the resonator
             measure(
                 "readout" * amp(a),
                 "resonator",
@@ -89,22 +86,17 @@ with program() as ro_amp_opt:
                 dual_demod.full("rotated_cos", "rotated_sin", I_e),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e),
             )
-            # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
-            # Save the 'I_e' & 'Q_e' quadratures to their respective streams
             save(I_e, I_e_st)
             save(Q_e, Q_e_st)
-        # Save the counter to get the progress bar
         assign(counter, counter + 1)
 
     with stream_processing():
-        # mean values
         I_g_st.buffer(n_runs).buffer(len(amplitudes)).save("I_g")
         Q_g_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_g")
         I_e_st.buffer(n_runs).buffer(len(amplitudes)).save("I_e")
         Q_e_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_e")
         n_st.save("iteration")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

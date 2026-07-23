@@ -13,6 +13,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -45,16 +46,17 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as T1:
+    shots = QuaIterableRange("shots", n_avg)
+    t_sweep = QuaIterable("t", taus)
     n = declare(int)  # QUA variable for the averaging loop
-    t = declare(int)  # QUA variable for the wait time
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(t, taus)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for t in t_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
             # Play the x180 gate to put the qubit in the excited state
             play("x180", "qubit")
             # Wait a varying time after putting the qubit in the excited state
@@ -72,22 +74,8 @@ with program() as T1:
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
             # Save the 'I_e' & 'Q_e' quadratures to their respective streams
-            save(I, I_st)
-            save(Q, Q_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
-        # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        # If log sweep, then the swept values will be slightly different from np.logspace because of integer rounding in QUA.
-        # get_equivalent_log_array() is used to get the exact values used in the QUA program.
-        if np.isclose(np.std(taus[1:] / taus[:-1]), 0, atol=1e-3):
-            taus = get_equivalent_log_array(taus)
-            I_st.buffer(len(taus)).average().save("I")
-            Q_st.buffer(len(taus)).average().save("Q")
-        else:
-            I_st.buffer(len(taus)).average().save("I")
-            Q_st.buffer(len(taus)).average().save("Q")
         n_st.save("iteration")
 
 #####################################

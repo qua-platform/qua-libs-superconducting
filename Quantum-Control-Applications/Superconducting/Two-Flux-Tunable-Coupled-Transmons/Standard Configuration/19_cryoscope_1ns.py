@@ -163,11 +163,17 @@ with program() as cryoscope:
     state_st = [declare_output_stream() for _ in range(2)]
 
     # Outer loop for averaging
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # Loop over the truncated flux pulse
         with for_(segment, 0, segment <= const_flux_len + total_zeros, segment + 1):
             # Alternate between X/2 and Y/2 pulses
-            with for_each_(flag, [True, False]):
+            for flag in flag_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Play first X/2
                 play("x90", f"q{qubit}_xy")
                 # Play truncated flux pulse
@@ -188,7 +194,8 @@ with program() as cryoscope:
                     play("y90", f"q{qubit}_xy")
                 # Measure resonator state after the sequence
                 align()
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
                 # State discrimination
                 assign(state[0], I[0] > ge_threshold_q1)
                 assign(state[1], I[1] > ge_threshold_q2)
@@ -201,11 +208,9 @@ with program() as cryoscope:
     with stream_processing():
         # for the progress counter
         n_st.save("n")
-        # resonator 1
         I_st[0].buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("I1")
         Q_st[0].buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("Q1")
         state_st[0].boolean_to_int().buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("state1")
-        # resonator 2
         I_st[1].buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("I2")
         Q_st[1].buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("Q2")
         state_st[1].boolean_to_int().buffer(2).buffer(const_flux_len + total_zeros + 1).average().save("state2")

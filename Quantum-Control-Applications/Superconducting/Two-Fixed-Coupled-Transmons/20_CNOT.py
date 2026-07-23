@@ -13,6 +13,7 @@ Prerequisites:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -72,13 +73,17 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
+    shots = QuaIterableRange("shots", n_shots)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     state = [declare(bool) for _ in range(2)]
     state_st = [declare_output_stream() for _ in range(2)]
     c = declare(int)
     with_cnot = declare(int)
 
-    with for_(n, 0, n < n_shots, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         save(n, n_st)
         # to allow time to save the data
         wait(1000 * u.ns)
@@ -128,10 +133,11 @@ with program() as PROGRAM:
                     align(qc_xy, qt_xy, *resonators)
 
                 # Measure the state of the resonators
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
-                assign(state[0], I[0] > ge_threshold_q1)
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                assign(state[0], I1 > ge_threshold_q1)
                 save(state[0], state_st[0])
-                assign(state[1], I[1] > ge_threshold_q2)
+                assign(state[1], I2 > ge_threshold_q2)
                 save(state[1], state_st[1])
 
                 # Wait for the qubit to decay to the ground state - Can be replaced by active reset
@@ -140,12 +146,8 @@ with program() as PROGRAM:
     with stream_processing():
         n_st.save("iteration")
         # control qubit
-        I_st[0].buffer(2).buffer(4).save_all("I1")
-        Q_st[0].buffer(2).buffer(4).save_all("Q1")
         state_st[0].boolean_to_int().buffer(2).buffer(4).save_all("state1")
         # target qubit
-        I_st[1].buffer(2).buffer(4).save_all("I2")
-        Q_st[1].buffer(2).buffer(4).save_all("Q2")
         state_st[1].boolean_to_int().buffer(2).buffer(4).save_all("state2")
 
 

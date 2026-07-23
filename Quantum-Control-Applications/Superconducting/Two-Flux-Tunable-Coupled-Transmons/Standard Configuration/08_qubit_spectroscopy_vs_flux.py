@@ -15,6 +15,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -64,20 +65,28 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as multi_qubit_spec_vs_flux:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    df = declare(int)  # QUA variable for the qubit detuning
-    dc = declare(fixed)  # QUA variable for the flux bias
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
+    dc_sweep = QuaIterable("dc", dcs)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     resonator_freq1 = declare(int, value=fitted_curve1.tolist())  # res freq vs flux table
     resonator_freq2 = declare(int, value=fitted_curve2.tolist())  # res freq vs flux table
     index = declare(int, value=0)  # index to get the right resonator freq for a given flux
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(df, dfs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
             # Update the frequency of the two qubit elements
             update_frequency("q1_xy", df + qubit_IF_q1)
             update_frequency("q2_xy", df + qubit_IF_q2)
             assign(index, 0)
-            with for_(*from_array(dc, dcs)):
+            for dc in dc_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Flux sweeping
                 set_dc_offset("q1_z", "single", dc)
                 # set_dc_offset("q2_z", "single", dc)
@@ -91,22 +100,15 @@ with program() as multi_qubit_spec_vs_flux:
                 # play("saturation" * amp(saturation_amp), "q2_xy", duration=saturation_len * u.ns)
 
                 # Multiplexed readout, also saves the measurement outcomes
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2])
+                measure("readout", "rr1", None, dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns)
                 # Update the resonator frequency vs flux index
                 assign(index, index + 1)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # resonator 1
-        I_st[0].buffer(len(dcs)).buffer(len(dfs)).average().save("I1")
-        Q_st[0].buffer(len(dcs)).buffer(len(dfs)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(dcs)).buffer(len(dfs)).average().save("I2")
-        Q_st[1].buffer(len(dcs)).buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

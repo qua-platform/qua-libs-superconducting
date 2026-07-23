@@ -98,9 +98,18 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     }
 
     with program() as node.namespace["qua_program"]:
-        I_g, I_g_st, Q_g, Q_g_st, _, _ = node.machine.declare_qua_variables()
-        I_e, I_e_st, Q_e, Q_e_st, _, _ = node.machine.declare_qua_variables()
-        I_f, I_f_st, Q_f, Q_f_st, _, _ = node.machine.declare_qua_variables()
+        I_g = [declare(fixed) for _ in range(num_qubits)]
+        I_g_st = [declare_output_stream() for _ in range(num_qubits)]
+        Q_g = [declare(fixed) for _ in range(num_qubits)]
+        Q_g_st = [declare_output_stream() for _ in range(num_qubits)]
+        I_e = [declare(fixed) for _ in range(num_qubits)]
+        I_e_st = [declare_output_stream() for _ in range(num_qubits)]
+        Q_e = [declare(fixed) for _ in range(num_qubits)]
+        Q_e_st = [declare_output_stream() for _ in range(num_qubits)]
+        I_f = [declare(fixed) for _ in range(num_qubits)]
+        I_f_st = [declare_output_stream() for _ in range(num_qubits)]
+        Q_f = [declare(fixed) for _ in range(num_qubits)]
+        Q_f_st = [declare_output_stream() for _ in range(num_qubits)]
         n = declare(int)
         n_st = declare_output_stream()
 

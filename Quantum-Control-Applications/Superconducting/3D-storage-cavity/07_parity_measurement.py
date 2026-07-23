@@ -22,6 +22,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -57,24 +58,21 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as parity_meas:
+    shots = QuaIterableRange("shots", n_avg)
+    tau_sweep = QuaIterable("tau", taus)
     n = declare(int)  # QUA variable for the averaging loop
-    tau = declare(int)  # QUA variable for the idle time
-    state1 = declare(bool)
-    state2 = declare(bool)
-    I1 = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q1 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I1_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q1_st = declare_output_stream()  # Stream for the 'Q' quadrature
-    I2 = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q2 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I2_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q2_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
-    state1_st = declare_output_stream()
-    state2_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(tau, taus)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for tau in tau_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            state1 = declare_with_stream(bool, "state1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
+            state2 = declare_with_stream(bool, "state2", average_axes=["shots"])
             # Background measurement
             # Play the x90 qubit pulses with the frequency that corresponds to Fock state n=0
             update_frequency("qubit", qubit_IF)
@@ -93,10 +91,6 @@ with program() as parity_meas:
             # Wait for the storage to decay to the ground state
             align("storage", "resonator")
             wait(storage_thermalization_time * u.ns, "storage")
-            # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I1, I1_st)
-            save(Q1, Q1_st)
-            save(state1, state1_st)
 
             # Fock state parity measurement
             align()
@@ -118,21 +112,8 @@ with program() as parity_meas:
             # Wait for the storage to decay to the ground state
             align("storage", "resonator")
             wait(storage_thermalization_time * u.ns, "storage")
-            # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I2, I2_st)
-            save(Q2, Q2_st)
-            save(state2, state2_st)
-
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
-        # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        (I1_st.buffer(len(taus)) - I2_st.buffer(len(taus))).average().save("I")
-        (Q1_st.buffer(len(taus)) - Q2_st.buffer(len(taus))).average().save("Q")
-        (state1_st.boolean_to_int().buffer(len(taus)) - state2_st.boolean_to_int().buffer(len(taus))).average().save(
-            "state"
-        )
         n_st.save("iteration")
 
 #####################################
@@ -166,14 +147,19 @@ else:
     # Send the QUA program to the OPX, which compiles and executes it
     job = qm.execute(parity_meas)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["I", "Q", "state", "iteration"], mode="live")
+    results = fetching_tool(
+        job, data_list=["I1", "Q1", "I2", "Q2", "state1", "state2", "iteration"], mode="live"
+    )
     # Live plotting
     fig1, ax1 = plt.subplots(2, 1)
     fig2, ax2 = plt.subplots(1, 1)
     interrupt_on_close(fig1, job)  # Interrupts the job when closing the figure
     while results.is_processing():
         # Fetch results
-        I, Q, state, iteration = results.fetch_all()
+        I1, Q1, I2, Q2, state1, state2, iteration = results.fetch_all()
+        I = I1 - I2
+        Q = Q1 - Q2
+        state = state1 - state2
         # Convert the results into Volts
         I, Q = u.demod2volts(I, readout_len), u.demod2volts(Q, readout_len)
         # Progress bar

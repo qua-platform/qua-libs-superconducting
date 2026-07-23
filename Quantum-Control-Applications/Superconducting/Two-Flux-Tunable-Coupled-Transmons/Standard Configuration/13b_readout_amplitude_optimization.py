@@ -17,6 +17,7 @@ Next steps before going to the next node:
 
 from qm import QuantumMachinesManager
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import SimulationConfig
 from configuration import *
 import matplotlib.pyplot as plt
@@ -49,20 +50,56 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ro_amp_opt:
-    I_g, I_g_st, Q_g, Q_g_st, n, _ = qua_declaration(nb_of_qubits=2)
-    I_e, I_e_st, Q_e, Q_e_st, _, _ = qua_declaration(nb_of_qubits=2)
+    shots = QuaIterableRange("shots", n_runs)
+    a_sweep = QuaIterable("a", amplitudes)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
+    Ig1 = declare(fixed)
+    Qg1 = declare(fixed)
+    Ig2 = declare(fixed)
+    Qg2 = declare(fixed)
+    Ig1_st = declare_output_stream()
+    Qg1_st = declare_output_stream()
+    Ig2_st = declare_output_stream()
+    Qg2_st = declare_output_stream()
+    Ie1 = declare(fixed)
+    Qe1 = declare(fixed)
+    Ie2 = declare(fixed)
+    Qe2 = declare(fixed)
+    Ie1_st = declare_output_stream()
+    Qe1_st = declare_output_stream()
+    Ie2_st = declare_output_stream()
+    Qe2_st = declare_output_stream()
     counter = declare(int, value=0)  # Counter for the progress bar
     counter_st = declare_output_stream()  # Stream for the counter variable
-    a = declare(fixed)  # QUA variable for the readout amplitude
 
-    with for_(*from_array(a, amplitudes)):
+    for a in a_sweep:
         # Save the counter to get the progress bar
         save(counter, counter_st)
-        with for_(n, 0, n < n_runs, n + 1):
+        for shot in shots:
+            assign(n, shot)
+            save(n, n_st)
             # Reset both qubits to ground
             wait(thermalization_time * u.ns)
             # Measure the ground IQ blobs
-            multiplexed_readout(I_g, I_g_st, Q_g, Q_g_st, resonators=[1, 2], weights="rotated_", amplitude=a)
+            measure(
+                "readout" * amp(a),
+                "rr1",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", Ig1),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Qg1),
+            )
+            measure(
+                "readout" * amp(a),
+                "rr2",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", Ig2),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Qg2),
+            )
+            save(Ig1, Ig1_st)
+            save(Qg1, Qg1_st)
+            save(Ig2, Ig2_st)
+            save(Qg2, Qg2_st)
 
             align()
             # Reset both qubits to ground
@@ -71,17 +108,37 @@ with program() as ro_amp_opt:
             play("x180", "q1_xy")
             play("x180", "q2_xy")
             align()
-            multiplexed_readout(I_e, I_e_st, Q_e, Q_e_st, resonators=[1, 2], weights="rotated_", amplitude=a)
+            measure(
+                "readout" * amp(a),
+                "rr1",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", Ie1),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Qe1),
+            )
+            measure(
+                "readout" * amp(a),
+                "rr2",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", Ie2),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Qe2),
+            )
+            save(Ie1, Ie1_st)
+            save(Qe1, Qe1_st)
+            save(Ie2, Ie2_st)
+            save(Qe2, Qe2_st)
         # Increment the counter
         assign(counter, counter + 1)
 
     with stream_processing():
         # Save all streamed points for plotting the IQ blobs
-        for i in range(2):
-            I_g_st[i].buffer(n_runs).buffer(len(amplitudes)).save(f"I_g_q{i}")
-            Q_g_st[i].buffer(n_runs).buffer(len(amplitudes)).save(f"Q_g_q{i}")
-            I_e_st[i].buffer(n_runs).buffer(len(amplitudes)).save(f"I_e_q{i}")
-            Q_e_st[i].buffer(n_runs).buffer(len(amplitudes)).save(f"Q_e_q{i}")
+        Ig1_st.buffer(n_runs).buffer(len(amplitudes)).save("I_g_q0")
+        Qg1_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_g_q0")
+        Ie1_st.buffer(n_runs).buffer(len(amplitudes)).save("I_e_q0")
+        Qe1_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_e_q0")
+        Ig2_st.buffer(n_runs).buffer(len(amplitudes)).save("I_g_q1")
+        Qg2_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_g_q1")
+        Ie2_st.buffer(n_runs).buffer(len(amplitudes)).save("I_e_q1")
+        Qe2_st.buffer(n_runs).buffer(len(amplitudes)).save("Q_e_q1")
         counter_st.save("iteration")
 
 #####################################

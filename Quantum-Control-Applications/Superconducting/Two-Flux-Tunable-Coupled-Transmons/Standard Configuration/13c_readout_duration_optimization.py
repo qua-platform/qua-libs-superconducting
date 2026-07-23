@@ -20,6 +20,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -52,6 +53,7 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ro_weights_opt:
+    shots = QuaIterableRange("shots", n_avg)
     n = declare(int)  # QUA variable for the averaging loop
     ind = declare(int)  # QUA variable for the index used to save each element in the 'I' & 'Q' vectors
     II = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the partial 'II'
@@ -66,7 +68,9 @@ with program() as ro_weights_opt:
     Qe_st = [declare_output_stream() for _ in range(2)]  # Stream for 'Q' in the excited state
     n_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # Measure the ground state.
         wait(thermalization_time * u.ns)
         # Loop over the two resonators
@@ -117,8 +121,6 @@ with program() as ro_weights_opt:
 
         # Wait for the qubit to decay to the ground state
         wait(thermalization_time * u.ns)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("iteration")

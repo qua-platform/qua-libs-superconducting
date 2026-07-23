@@ -14,9 +14,7 @@ from calibration_utils.JAZZ_ZZ import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qm.qua.extensions import QuaIterableRange
-
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -85,7 +83,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
     u = unit(coerce_to_integer=True)
     # Get the active qubit pairs from the node and organize them by batches
     node.namespace["qubit_pairs"] = qubit_pairs = get_qubit_pairs(node)
-    num_qubit_pairs = len(qubit_pairs)
     measured_qubits = []
     for qp in qubit_pairs:
         if node.parameters.measure_qubit == "control":
@@ -111,15 +108,9 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, _, _ = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
         n = declare(int)
         n_st = declare_output_stream()
         virtual_detuning_phase = declare(fixed)
-        amp = declare(fixed)
-        t = declare(int)
-        if node.parameters.use_state_discrimination:
-            state = [declare(int) for _ in range(num_qubit_pairs)]
-            state_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the QPU
@@ -140,8 +131,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
             for shot in QuaIterableRange("shots", n_avg):
                 assign(n, shot)
                 save(n, n_st)
-                with for_(*from_array(amp, amplitudes)):
-                    with for_(*from_array(t, durations)):
+                for amp in QuaIterable("amp", amplitudes):
+                    for t in QuaIterable("time", durations):
                         assign(virtual_detuning_phase, Cast.mul_fixed_by_int(detuning * 1e-9, 4 * t))
 
                         # Reset
@@ -184,22 +175,18 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                         for ii, _ in multiplexed_qubit_pairs.items():
                             measured_qubit = measured_qubits_map[ii]
                             if node.parameters.use_state_discrimination:
-                                measured_qubit.readout_state(state[ii])
-                                save(state[ii], state_st[ii])
+                                state = declare_with_stream(
+                                    int, f"state_measured{ii + 1}", average_axes=["shots"]
+                                )
+                                measured_qubit.readout_state(state)
                             else:
-                                measured_qubit.resonator.measure("readout", qua_vars=(I[ii], Q[ii]))
-                                save(I[ii], I_st[ii])
-                                save(Q[ii], Q_st[ii])
+                                I = declare_with_stream(fixed, f"I_measured{ii + 1}", average_axes=["shots"])
+                                Q = declare_with_stream(fixed, f"Q_measured{ii + 1}", average_axes=["shots"])
+                                measured_qubit.resonator.measure("readout", qua_vars=(I, Q))
                         align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                if node.parameters.use_state_discrimination:
-                    state_st[i].buffer(len(durations)).buffer(len(amplitudes)).average().save(f"state_measured{i + 1}")
-                else:
-                    I_st[i].buffer(len(durations)).buffer(len(amplitudes)).average().save(f"I_measured{i + 1}")
-                    Q_st[i].buffer(len(durations)).buffer(len(amplitudes)).average().save(f"Q_measured{i + 1}")
 
 
 # %% {Simulate}

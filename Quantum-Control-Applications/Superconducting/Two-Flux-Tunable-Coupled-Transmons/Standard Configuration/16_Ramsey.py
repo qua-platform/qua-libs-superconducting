@@ -19,6 +19,7 @@ Next steps before going to the next node:
 
 from qm import QuantumMachinesManager
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import SimulationConfig
 from configuration import *
 import matplotlib.pyplot as plt
@@ -49,12 +50,20 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ramsey:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    t = declare(int)  # QUA variable for the idle time
+    shots = QuaIterableRange("shots", n_avg)
+    t_sweep = QuaIterable("t", idle_times)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     phi = declare(fixed)  # Phase to apply the virtual Z-rotation
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(t, idle_times)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for t in t_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             # Rotate the frame of the second x90 gate to implement a virtual Z-rotation
             # 4*tau because tau was in clock cycles and 1e-9 because tau is ns
             assign(phi, Cast.mul_fixed_by_int(detuning * 1e-9, 4 * t))
@@ -75,23 +84,16 @@ with program() as ramsey:
             # Align the elements to measure after having waited a time "tau" after the qubit pulses.
             align()
             # Measure the state of the resonators
-            multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+            measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+            measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
             # Reset the frame of the qubit in order not to accumulate rotations
             reset_frame("q1_xy")
             reset_frame("q2_xy")
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # resonator 1
-        I_st[0].buffer(len(idle_times)).average().save("I1")
-        Q_st[0].buffer(len(idle_times)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(idle_times)).average().save("I2")
-        Q_st[1].buffer(len(idle_times)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

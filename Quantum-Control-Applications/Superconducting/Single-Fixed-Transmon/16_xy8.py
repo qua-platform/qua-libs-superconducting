@@ -31,6 +31,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qm import QuantumMachinesManager, SimulationConfig
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
 from configuration import *
 from qualang_tools.loops import from_array
@@ -70,78 +71,63 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as xy8:
-    # Declare QUA variables
-    n = declare(int)  # QUA variable for the averaging loop
-    n_st = declare_output_stream()  # Stream for the averaging iteration
-    tau = declare(int)  # QUA variable for the idle time between pi pulses
-    n_xy8 = declare(int)  # QUA variable for the number of XY8 repetitions
+    shots = QuaIterableRange("shots", n_avg)
+    n_xy8_sweep = QuaIterable("n_xy8", n_xy8_values)
+    tau_sweep = QuaIterable("tau", taus)
     i = declare(int)  # QUA variable for the XY8 repetition loop
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Sweep over number of XY8 repetitions
-        with for_(*from_array(n_xy8, n_xy8_values)):
-            # Sweep over idle times (tau)
-            with for_(*from_array(tau, taus)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for n_xy8 in n_xy8_sweep:
+            for tau in tau_sweep:
+                I = declare_with_stream(fixed, "I", average_axes=["shots"])
+                Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # XY8 Sequence: x90 - [tau - (X-Y-X-Y-Y-X-Y-X)180 - tau]xN - -x90 - measure
-
                 # Initial x90 pulse to create superposition
                 play("x90", "qubit")
-
                 # XY8 repetition loop: N repetitions of the 8-pulse XY8 unit
                 with for_(i, 0, i < n_xy8, i + 1):
                     # XY8 unit: X - Y - X - Y - Y - X - Y - X (8 pi pulses)
                     # Each pulse is separated by 2*tau (tau before and tau after)
-
                     # Pulse 1: X180
                     wait(tau, "qubit")
                     play("x180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 2: Y180
                     wait(tau, "qubit")
                     play("y180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 3: X180
                     wait(tau, "qubit")
                     play("x180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 4: Y180
                     wait(tau, "qubit")
                     play("y180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 5: Y180
                     wait(tau, "qubit")
                     play("y180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 6: X180
                     wait(tau, "qubit")
                     play("x180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 7: Y180
                     wait(tau, "qubit")
                     play("y180", "qubit")
                     wait(tau, "qubit")
-
                     # Pulse 8: X180
                     wait(tau, "qubit")
                     play("x180", "qubit")
                     wait(tau, "qubit")
-
                 # Final -x90 pulse to project back
                 play("-x90", "qubit")
-
                 # Align qubit and resonator for measurement
                 align("qubit", "resonator")
-
                 # Measure the state of the resonator
                 measure(
                     "readout",
@@ -150,23 +136,13 @@ with program() as xy8:
                     dual_demod.full("rotated_cos", "rotated_sin", I),
                     dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
                 )
-
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns, "resonator")
-
                 # Save the 'I' & 'Q' quadratures to their respective streams
-                save(I, I_st)
-                save(Q, Q_st)
-
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 2D array [n_xy8_values x taus], average and save
-        I_st.buffer(len(taus)).buffer(len(n_xy8_values)).average().save("I")
-        Q_st.buffer(len(taus)).buffer(len(n_xy8_values)).average().save("Q")
         n_st.save("iteration")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

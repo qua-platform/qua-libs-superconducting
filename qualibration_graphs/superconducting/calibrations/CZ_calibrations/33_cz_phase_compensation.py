@@ -12,9 +12,8 @@ from calibration_utils.cz_phase_compensation import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qm.qua.extensions import QuaIterableRange
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -74,7 +73,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     u = unit(coerce_to_integer=True)
     # Get the active qubit pairs from the node and organize them by batches
     node.namespace["qubit_pairs"] = qubit_pairs = get_qubit_pairs(node)
-    num_qubit_pairs = len(qubit_pairs)
 
     # Extract the sweep parameters and axes from the node parameters
     n_avg = node.parameters.num_shots
@@ -91,13 +89,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     with program() as node.namespace["qua_program"]:
         n = declare(int)
         n_st = declare_output_stream()
-        I_c, I_c_st, Q_c, Q_c_st, _, _ = node.machine.declare_qua_variables()
-        I_t, I_t_st, Q_t, Q_t_st, _, _ = node.machine.declare_qua_variables()
-        frame = declare(fixed)
-        state_c = [declare(int) for _ in range(num_qubit_pairs)]
-        state_t = [declare(int) for _ in range(num_qubit_pairs)]
-        state_c_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-        state_t_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
         extra_phase_c = declare(fixed)
         extra_phase_t = declare(fixed)
 
@@ -112,15 +103,15 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                 assign(n, shot)
                 save(n, n_st)
                 # Loop over the virtual frame rotations for phase tomography
-                with for_(*from_array(frame, frames)):
+                for frame in QuaIterable("frame", frames):
                     for ii, qp in multiplexed_qubit_pairs.items():
                         # Add the current compensation from the active state
                         assign(extra_phase_c, qp.macros[cz_operation].phase_shift_control)
                         assign(extra_phase_t, qp.macros[cz_operation].phase_shift_target)
                         # Loop over the state preparations for control and target qubits
-                        for qubit, state_q, state_st in [
-                            (qp.qubit_control, state_c[ii], state_c_st[ii]),
-                            (qp.qubit_target, state_t[ii], state_t_st[ii]),
+                        for qubit, stream_suffix in [
+                            (qp.qubit_control, "control"),
+                            (qp.qubit_target, "target"),
                         ]:
                             # Reset both qubits and align
                             qp.qubit_control.reset(
@@ -144,30 +135,22 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
 
                             # Measure the corresponding qubit and save the results in the appropriate stream
                             if node.parameters.use_state_discrimination:
-                                # measure both qubits
-                                qubit.readout_state(state_q)
-                                save(state_q, state_st)
+                                state = declare_with_stream(
+                                    int, f"state_{stream_suffix}{ii + 1}", average_axes=["shots"]
+                                )
+                                qubit.readout_state(state)
                             else:
                                 if qubit is qp.qubit_control:
-                                    qp.qubit_control.resonator.measure("readout", qua_vars=(I_c[ii], Q_c[ii]))
-                                    save(I_c[ii], I_c_st[ii])
-                                    save(Q_c[ii], Q_c_st[ii])
+                                    I_c = declare_with_stream(fixed, f"I_control{ii + 1}", average_axes=["shots"])
+                                    Q_c = declare_with_stream(fixed, f"Q_control{ii + 1}", average_axes=["shots"])
+                                    qp.qubit_control.resonator.measure("readout", qua_vars=(I_c, Q_c))
                                 elif qubit is qp.qubit_target:
-                                    qp.qubit_target.resonator.measure("readout", qua_vars=(I_t[ii], Q_t[ii]))
-                                    save(I_t[ii], I_t_st[ii])
-                                    save(Q_t[ii], Q_t_st[ii])
+                                    I_t = declare_with_stream(fixed, f"I_target{ii + 1}", average_axes=["shots"])
+                                    Q_t = declare_with_stream(fixed, f"Q_target{ii + 1}", average_axes=["shots"])
+                                    qp.qubit_target.resonator.measure("readout", qua_vars=(I_t, Q_t))
 
         with stream_processing():
             n_st.save("n")
-            for ii in range(num_qubit_pairs):
-                if node.parameters.use_state_discrimination:
-                    state_c_st[ii].buffer(len(frames)).average().save(f"state_control{ii + 1}")
-                    state_t_st[ii].buffer(len(frames)).average().save(f"state_target{ii + 1}")
-                else:
-                    I_c_st[ii].buffer(len(frames)).average().save(f"I_control{ii + 1}")
-                    Q_c_st[ii].buffer(len(frames)).average().save(f"Q_control{ii + 1}")
-                    I_t_st[ii].buffer(len(frames)).average().save(f"I_target{ii + 1}")
-                    Q_t_st[ii].buffer(len(frames)).average().save(f"Q_target{ii + 1}")
 
 
 # %% {Simulate}

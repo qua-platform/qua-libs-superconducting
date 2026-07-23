@@ -82,9 +82,15 @@ with program() as PROGRAM:
     s = declare(int)  # QUA variable for the control state
     c = declare(int)  # QUA variable for the projection index in QST
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
         save(n, n_st)
-        with for_(*from_array(t, ts_cycles)):
+        save(n, n_st)
+        for t in t_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             with for_(c, 0, c < 3, c + 1):  # bases
                 with for_(s, 0, s < 2, s + 1):  # states
                     with if_(s == 1):
@@ -113,7 +119,8 @@ with program() as PROGRAM:
                     align(qt_xy, *resonators)
 
                     # Measure the state of the resonators
-                    multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                    measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                    measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
                     assign(state[0], I[0] > ge_threshold_q1)
                     save(state[0], state_st[0])
                     assign(state[1], I[1] > ge_threshold_q2)

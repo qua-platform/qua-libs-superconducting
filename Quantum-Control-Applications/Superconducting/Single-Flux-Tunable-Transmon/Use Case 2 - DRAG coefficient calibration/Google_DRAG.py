@@ -1,4 +1,5 @@
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 from qm import QuantumMachinesManager
 import matplotlib.pyplot as plt
@@ -24,22 +25,21 @@ iters = np.arange(iter_min, iter_max + 0.1, d)
 resonator_cooldown = 500
 
 with program() as drag:
-    n = declare(int)
-    n_st = declare_output_stream()
-    a = declare(fixed)
-    I = declare(fixed)
-    Q = declare(fixed)
-    I_st = declare_output_stream()
-    Q_st = declare_output_stream()
-    state = declare(bool)
-    state_st = declare_output_stream()
+    shots = QuaIterableRange("shots", n_avg)
+    a_sweep = QuaIterable("a", amps)
     it = declare(int)
     pulses = declare(int)
     I_g = declare(fixed)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Notice it's + da/2 to include a_max (This is only for fixed!)
-        with for_(*from_array(a, amps)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for a in a_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            state = declare_with_stream(int, "state", average_axes=["shots"])
             with for_(it, iter_min, it <= iter_max, it + d):
                 measure("readout", "resonator", None, dual_demod.full("rotated_cos", "rotated_sin", I_g))
                 # To prepare the ground state we used -0.0003 which is a more strict threshold (3 sigma)
@@ -59,18 +59,10 @@ with program() as drag:
                     dual_demod.full("rotated_cos", "rotated_sin", I),
                     dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
                 )
-                save(I, I_st)
-                save(Q, Q_st)
-                assign(state, I > ge_threshold)
-                save(state, state_st)
-        save(n, n_st)
+            assign(state, I > ge_threshold)
 
     with stream_processing():
-        I_st.buffer(len(iters)).buffer(len(amps)).average().save("I")
-        Q_st.buffer(len(iters)).buffer(len(amps)).average().save("Q")
         n_st.save("iteration")
-        state_st.boolean_to_int().buffer(len(iters)).buffer(len(amps)).average().save("state")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

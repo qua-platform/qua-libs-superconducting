@@ -15,6 +15,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 from qualang_tools.results import progress_counter, wait_until_job_is_paused
@@ -78,13 +79,9 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as qubit_spec:
+    f_sweep = QuaIterable("f", IFs)
     n = declare(int)  # QUA variable for the averaging loop
     i = declare(int)  # QUA variable for the LO frequency sweep
-    f = declare(int)  # QUA variable for the qubit frequency
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     c00_qua = declare(fixed, value=c00)  # QUA variable for c00
@@ -98,8 +95,11 @@ with program() as qubit_spec:
         set_dc_offset("qubit", "I", offset_I_qua)
         set_dc_offset("qubit", "Q", offset_Q_qua)
         pause()  # This waits until it is resumed from python
-        with for_(n, 0, n < n_avg, n + 1):
-            with for_(*from_array(f, IFs)):
+        for shot in QuaIterableRange("shots", n_avg):
+            assign(n, shot)
+            for f in f_sweep:
+                I = declare_with_stream(fixed, "I", average_axes=["shots"])
+                Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Update the frequency of the digital oscillator linked to the qubit element
                 update_frequency("qubit", f)
                 # Update the correction matrix only at a pre-defined set of intermediate IFs
@@ -128,17 +128,10 @@ with program() as qubit_spec:
                 )
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns, "resonator")
-                # Save the 'I' & 'Q' quadratures to their respective streams
-                save(I, I_st)
-                save(Q, Q_st)
         # Save the LO iteration to get the progress bar
         save(i, n_st)
 
     with stream_processing():
-        # Cast the data into a 2D matrix, average the matrix along its second dimension (of size 'n_avg') and store the results
-        # (1D vector) on the OPX processor
-        I_st.buffer(len(IFs)).buffer(n_avg).map(FUNCTIONS.average()).save_all("I")
-        Q_st.buffer(len(IFs)).buffer(n_avg).map(FUNCTIONS.average()).save_all("Q")
         n_st.save_all("iteration")
 
 

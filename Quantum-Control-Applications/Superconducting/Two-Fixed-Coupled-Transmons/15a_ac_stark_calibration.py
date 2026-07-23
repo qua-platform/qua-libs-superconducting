@@ -22,6 +22,7 @@ Next steps before going to the next node:
 
 from qm import QuantumMachinesManager, SimulationConfig
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 import matplotlib.pyplot as plt
 from qualang_tools.loops import from_array
@@ -54,19 +55,25 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
+    shots = QuaIterableRange("shots", n_avg)
+    npi_sweep = QuaIterable("npi", nb_of_pulses)
+    df_sweep = QuaIterable("df", detunings)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     state = [declare(bool) for _ in range(2)]
     state_st = [declare_output_stream() for _ in range(2)]
-    df = declare(int)  # QUA variable for the qubit drive detuning
-    npi = declare(int)  # QUA variable for the number of qubit pulses
     count = declare(int)  # QUA variable for counting the qubit pulses
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Save the averaging iteration to get the progress bar
+    for shot in shots:
+        assign(n, shot)
         save(n, n_st)
 
-        with for_(*from_array(npi, nb_of_pulses)):
-            with for_(*from_array(df, detunings)):
+        for npi in npi_sweep:
+            for df in df_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Update the frequency of the two qubit elements
 
                 update_frequency("q1_xy", df + qubit_IF_q1)
@@ -83,15 +90,13 @@ with program() as PROGRAM:
                 # Align the elements to measure after playing the qubit pulses.
                 align()
                 # Multiplexed readout, also saves the measurement outcomes
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
 
                 wait(thermalization_time * u.ns)
 
     with stream_processing():
         n_st.save("iteration")
-        for ind in range(2):
-            I_st[ind].buffer(len(detunings)).buffer(len(nb_of_pulses)).average().save(f"I{ind+1}")
-            Q_st[ind].buffer(len(detunings)).buffer(len(nb_of_pulses)).average().save(f"Q{ind+1}")
 
 
 #####################################

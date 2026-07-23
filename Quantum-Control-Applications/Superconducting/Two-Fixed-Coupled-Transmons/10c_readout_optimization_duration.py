@@ -4,6 +4,7 @@ READOUT OPTIMISATION: DURATION
 
 from qm import QuantumMachinesManager, SimulationConfig
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 import matplotlib.pyplot as plt
 from qualang_tools.results import fetching_tool, progress_counter
@@ -38,6 +39,7 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
+    shots = QuaIterableRange("shots", n_avg)
     II = declare(fixed, size=number_of_divisions)
     IQ = declare(fixed, size=number_of_divisions)
     QI = declare(fixed, size=number_of_divisions)
@@ -54,8 +56,8 @@ with program() as PROGRAM:
     n = declare(int)
     n_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Save the averaging iteration to get the progress bar
+    for shot in shots:
+        assign(n, shot)
         save(n, n_st)
 
         # Reset both qubits to ground

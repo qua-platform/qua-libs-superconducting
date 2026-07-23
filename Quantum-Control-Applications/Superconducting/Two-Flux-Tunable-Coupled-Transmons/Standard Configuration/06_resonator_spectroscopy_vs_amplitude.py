@@ -20,6 +20,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -57,30 +58,35 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as multi_res_spec_vs_amp:
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
+    a_sweep = QuaIterable("a", amplitudes)
     # QUA macro to declare the measurement variables and their corresponding streams for a given number of resonators
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    df = declare(int)  # QUA variable for sweeping the readout frequency detuning around the resonance
-    a = declare(fixed)  # QUA variable for sweeping the readout amplitude pre-factor
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
-        with for_(*from_array(df, dfs)):  # QUA for_ loop for sweeping the frequency
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
             # Update the frequency of the two resonator elements
             update_frequency("rr1", df + resonator_IF_q1)
             update_frequency("rr2", df + resonator_IF_q2)
 
-            with for_each_(a, amplitudes):  # QUA for_ loop for sweeping the readout amplitude
+            for a in a_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # resonator 1
                 wait(depletion_time * u.ns, "rr1")  # wait for the resonator to relax
                 measure(
                     "readout" * amp(a),
                     "rr1",
                     None,
-                    dual_demod.full("cos", "sin", I[0]),
-                    dual_demod.full("minus_sin", "cos", Q[0]),
+                    dual_demod.full("cos", "sin", I1),
+                    dual_demod.full("minus_sin", "cos", Q1),
                 )
-                # Save the 'I' & 'Q' quadratures for rr1 to their respective streams
-                save(I[0], I_st[0])
-                save(Q[0], Q_st[0])
 
                 # align("rr1", "rr2")  # Uncomment to measure sequentially
 
@@ -90,25 +96,12 @@ with program() as multi_res_spec_vs_amp:
                     "readout" * amp(a),
                     "rr2",
                     None,
-                    dual_demod.full("cos", "sin", I[1]),
-                    dual_demod.full("minus_sin", "cos", Q[1]),
+                    dual_demod.full("cos", "sin", I2),
+                    dual_demod.full("minus_sin", "cos", Q2),
                 )
-                # Save the 'I' & 'Q' quadratures for rr2 to their respective streams
-                save(I[1], I_st[1])
-                save(Q[1], Q_st[1])
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # Cast the data into a 2D matrix, average the 2D matrices together and store the results on the OPX processor
-        # Note that the buffering goes from the most inner loop (left) to the most outer one (right)
-        # resonator 1
-        I_st[0].buffer(len(amplitudes)).buffer(len(dfs)).average().save("I1")
-        Q_st[0].buffer(len(amplitudes)).buffer(len(dfs)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(amplitudes)).buffer(len(dfs)).average().save("I2")
-        Q_st[1].buffer(len(amplitudes)).buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

@@ -3,6 +3,7 @@ ALL-XY MEASUREMENT
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -79,27 +80,44 @@ def allXY(pulses, qb):
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
+    shots = QuaIterableRange("shots", n_avg)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
         save(n, n_st)
 
         for i in range(len(sequence)):
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             align()
 
             allXY(sequence[i], qubit)
 
             align()
 
-            multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+            measure(
+                "readout",
+                "rr1",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", I1),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Q1),
+            )
+            measure(
+                "readout",
+                "rr2",
+                None,
+                dual_demod.full("rotated_cos", "rotated_sin", I2),
+                dual_demod.full("rotated_minus_sin", "rotated_cos", Q2),
+            )
             # Wait for the qubit to decay to the ground state - Can be replaced by active reset
             wait(thermalization_time * u.ns)
 
     with stream_processing():
         n_st.save("iteration")
-        for ind in range(2):
-            I_st[ind].buffer(21).average().save(f"I{ind + 1}")
-            Q_st[ind].buffer(21).average().save(f"Q{ind + 1}")
 
 #####################################
 #  Open Communication with the QOP  #

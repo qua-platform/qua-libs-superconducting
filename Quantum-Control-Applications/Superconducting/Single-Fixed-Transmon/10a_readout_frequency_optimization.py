@@ -16,6 +16,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -46,8 +47,10 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ro_freq_opt:
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
     n = declare(int)  # QUA variable for the averaging loop
-    df = declare(int)  # QUA variable for the readout frequency
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     I_g = declare(fixed)  # QUA variable for the 'I' quadrature when the qubit is in |g>
     Q_g = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |g>
     Ig_st = declare_output_stream()
@@ -56,10 +59,11 @@ with program() as ro_freq_opt:
     Q_e = declare(fixed)  # QUA variable for the 'Q' quadrature when the qubit is in |e>
     Ie_st = declare_output_stream()
     Qe_st = declare_output_stream()
-    n_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(df, dfs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
             # Update the frequency of the digital oscillator linked to the resonator element
             update_frequency("resonator", df + resonator_IF)
             # Measure the state of the resonator
@@ -72,10 +76,8 @@ with program() as ro_freq_opt:
             )
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
-            # Save the 'I_e' & 'Q_e' quadratures to their respective streams
             save(I_g, Ig_st)
             save(Q_g, Qg_st)
-
             align()  # global align
             # Play the x180 gate to put the qubit in the excited state
             play("x180", "qubit")
@@ -91,11 +93,8 @@ with program() as ro_freq_opt:
             )
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
-            # Save the 'I_e' & 'Q_e' quadratures to their respective streams
             save(I_e, Ie_st)
             save(Q_e, Qe_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("iteration")

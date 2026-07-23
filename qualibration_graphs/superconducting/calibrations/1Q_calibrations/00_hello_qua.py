@@ -56,7 +56,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # node.namespace["sweep"]
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I, I_st, Q, Q_st, _, _ = node.machine.declare_qua_variables()
         n = declare(int)
         n_st = declare_output_stream()
         for multiplexed_qubits in qubits.batch():

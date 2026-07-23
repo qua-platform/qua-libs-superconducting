@@ -1,4 +1,5 @@
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 from qm import QuantumMachinesManager
 import matplotlib.pyplot as plt
@@ -19,21 +20,19 @@ amps = np.arange(a_min, a_max + da / 2, da)  # + da/2 to add a_max to amplitudes
 resonator_cooldown = 500
 
 with program() as drag2:
-    n = declare(int)
-    n_st = declare_output_stream()
-    a = declare(fixed)
-    I = declare(fixed)
-    Q = declare(fixed)
-    I_st = declare_output_stream()
-    Q_st = declare_output_stream()
-    state = declare(bool)
-    state_st = declare_output_stream()
-    state2_st = declare_output_stream()
+    shots = QuaIterableRange("shots", n_avg)
+    a_sweep = QuaIterable("a", amps)
     I_g = declare(fixed)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Notice it's + da/2 to include a_max (This is only for fixed!)
-        with for_(*from_array(a, amps)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for a in a_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            state = declare_with_stream(int, "state", average_axes=["shots"])
             measure("readout", "resonator", None, dual_demod.full("rotated_cos", "rotated_sin", I_g))
             # To prepare the ground state we used -0.0003 which is a more strict threshold (3 sigma)
             # to guarantee higher ground state fidelity
@@ -51,10 +50,7 @@ with program() as drag2:
                 dual_demod.full("rotated_cos", "rotated_sin", I),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
             )
-            save(I, I_st)
-            save(Q, Q_st)
             assign(state, I > ge_threshold)
-            save(state, state_st)
             # wait(cooldown_time, "resonator")
 
             align()
@@ -75,19 +71,10 @@ with program() as drag2:
                 dual_demod.full("rotated_cos", "rotated_sin", I),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
             )
-            save(I, I_st)
-            save(Q, Q_st)
             assign(state, I > ge_threshold)
-            save(state, state2_st)
-        save(n, n_st)
 
     with stream_processing():
-        I_st.buffer(len(amps)).average().save("I")
-        Q_st.buffer(len(amps)).average().save("Q")
         n_st.save("iteration")
-        state_st.boolean_to_int().buffer(len(amps)).average().save("state")
-        state2_st.boolean_to_int().buffer(len(amps)).average().save("state2")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

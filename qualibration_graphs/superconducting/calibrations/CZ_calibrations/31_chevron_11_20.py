@@ -155,15 +155,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     with program() as node.namespace["qua_program"]:
         t_left_ns = declare(int)  # QUA variable for the flux pulse segment index
         t_cycles = declare(int)  # QUA variable for the flux pulse segment index
-        I_m, I_m_st, Q_m, Q_m_st, _, _ = node.machine.declare_qua_variables()
-        I_s, I_s_st, Q_s, Q_s_st, _, _ = node.machine.declare_qua_variables()
         n = declare(int)
         n_st = declare_output_stream()
-        if node.parameters.use_state_discrimination:
-            state_mq = [declare(int) for _ in range(num_qubit_pairs)]
-            state_sq = [declare(int) for _ in range(num_qubit_pairs)]
-            state_mq_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_sq_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the QPU in terms of flux points (flux tunable transmons and/or tunable couplers)
@@ -257,31 +250,20 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                             align()
 
                             if node.parameters.use_state_discrimination:
-                                mq.readout_state_gef(state_mq[ii])
-                                sq.readout_state_gef(state_sq[ii])
-                                save(state_mq[ii], state_mq_st[ii])
-                                save(state_sq[ii], state_sq_st[ii])
+                                state_m = declare_with_stream(int, f"state_moving{ii}", average_axes=["shots"])
+                                state_s = declare_with_stream(int, f"state_stationary{ii}", average_axes=["shots"])
+                                mq.readout_state_gef(state_m)
+                                sq.readout_state_gef(state_s)
                             else:
-                                mq.resonator.measure("readout", qua_vars=(I_m[ii], Q_m[ii]))
-                                sq.resonator.measure("readout", qua_vars=(I_s[ii], Q_s[ii]))
-                                save(I_m[ii], I_m_st[ii])
-                                save(Q_m[ii], Q_m_st[ii])
-                                save(I_s[ii], I_s_st[ii])
-                                save(Q_s[ii], Q_s_st[ii])
+                                I_m = declare_with_stream(fixed, f"I_moving{ii}", average_axes=["shots"])
+                                Q_m = declare_with_stream(fixed, f"Q_moving{ii}", average_axes=["shots"])
+                                I_s = declare_with_stream(fixed, f"I_stationary{ii}", average_axes=["shots"])
+                                Q_s = declare_with_stream(fixed, f"Q_stationary{ii}", average_axes=["shots"])
+                                mq.resonator.measure("readout", qua_vars=(I_m, Q_m))
+                                sq.resonator.measure("readout", qua_vars=(I_s, Q_s))
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                if node.parameters.use_state_discrimination:
-                    state_mq_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(f"state_moving{i}")
-                    state_sq_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(
-                        f"state_stationary{i}"
-                    )
-                else:
-                    I_m_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(f"I_moving{i}")
-                    Q_m_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(f"Q_moving{i}")
-                    I_s_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(f"I_stationary{i}")
-                    Q_s_st[i].buffer(len(times_cycles)).buffer(len(amplitudes)).average().save(f"Q_stationary{i}")
 
 
 # %% {Simulate}

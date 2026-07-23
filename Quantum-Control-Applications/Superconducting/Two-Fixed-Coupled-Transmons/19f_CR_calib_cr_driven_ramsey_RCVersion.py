@@ -42,6 +42,7 @@ Reference: Sarah Sheldon, Easwar Magesan, Jerry M. Chow, and Jay M. Gambetta Phy
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -103,17 +104,23 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as prog:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
+    shots = QuaIterableRange("shots", n_avg)
+    ph_sweep = QuaIterable("ph", phases)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     state = [declare(bool) for _ in range(2)]
     state_st = [declare_output_stream() for _ in range(2)]
     s = declare(int)  # 0:s, 1:e for control state
-    ph = declare(fixed)
 
-    with for_(n, 0, n < n_avg, n + 1):
-        # Save the averaging iteration to get the progress bar
+    for shot in shots:
+        assign(n, shot)
         save(n, n_st)
 
-        with for_(*from_array(ph, phases)):
+        for ph in ph_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             with for_(s, 0, s < 2, s + 1):  # states
                 # Prepare Qt to |1>
                 with if_(s == 1):
@@ -194,10 +201,11 @@ with program() as prog:
                 align()
 
                 # Measure the state of the resonators
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
-                assign(state[0], I[0] > ge_threshold_q1)
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                assign(state[0], I1 > ge_threshold_q1)
                 save(state[0], state_st[0])
-                assign(state[1], I[1] > ge_threshold_q2)
+                assign(state[1], I2 > ge_threshold_q2)
                 save(state[1], state_st[1])
 
                 # Wait for the qubit to decay to the ground state - Can be replaced by active reset
@@ -206,12 +214,8 @@ with program() as prog:
     with stream_processing():
         n_st.save("n")
         # control qubit
-        I_st[0].buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("I1")
-        Q_st[0].buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("Q1")
         state_st[0].boolean_to_int().buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("state1")
         # target qubit
-        I_st[1].buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("I2")
-        Q_st[1].buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("Q2")
         state_st[1].boolean_to_int().buffer(2).buffer(len(ts_cycles)).buffer(len(phases)).average().save("state2")
 
 

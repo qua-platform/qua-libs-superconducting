@@ -20,6 +20,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -59,38 +60,38 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as multi_res_spec_vs_flux:
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
+    dc_sweep = QuaIterable("dc", flux)
     # QUA macro to declare the measurement variables and their corresponding streams for a given number of resonators
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    df = declare(int)  # QUA variable for sweeping the readout frequency detuning around the resonance
-    dc = declare(fixed)  # QUA variable for sweeping the flux bias
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     set_dc_offset("q2_z", "single", 0)
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(df, dfs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
             # Update the frequency of the two resonator elements
             update_frequency("rr1", df + resonator_IF_q1)
             update_frequency("rr2", df + resonator_IF_q2)
 
-            with for_(*from_array(dc, flux)):
+            for dc in dc_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Flux sweeping
                 set_dc_offset("q1_z", "single", dc)
                 set_dc_offset("q2_z", "single", dc)
                 wait(flux_settle_time * u.ns)  # Wait for the flux to settle
-                # Macro to perform multiplexed readout on the specified resonators
-                # It also save the 'I' and 'Q' quadratures into their respective streams
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], sequential=False)
+                measure("readout", "rr1", None, dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
                 # wait for the resonators to relax
                 wait(depletion_time * u.ns, "rr1", "rr2")
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # resonator 1
-        I_st[0].buffer(len(flux)).buffer(len(dfs)).average().save("I1")
-        Q_st[0].buffer(len(flux)).buffer(len(dfs)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(flux)).buffer(len(dfs)).average().save("I2")
-        Q_st[1].buffer(len(flux)).buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

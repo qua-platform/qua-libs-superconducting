@@ -16,6 +16,7 @@ Prerequisites:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -113,6 +114,7 @@ def allXY(pulses, qubit, resonator):
 # The QUA program #
 ###################
 with program() as ALL_XY:
+    shots = QuaIterableRange("shots", n_avg)
     n = declare(int)
     n_st = declare_output_stream()
     r = Random()  # Pseudo random number generator
@@ -121,7 +123,9 @@ with program() as ALL_XY:
     I_st = [declare_output_stream() for _ in range(21)]
     Q_st = [declare_output_stream() for _ in range(21)]
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # Get a value from the pseudo-random number generator on the OPX FPGA
         assign(r_, r.rand_int(21))
         # # Wait for the qubit to decay to the ground state - Can be replaced by active reset
@@ -138,7 +142,6 @@ with program() as ALL_XY:
                     # Save the 'I' & 'Q' quadratures to their respective streams
                     save(I, I_st[i])
                     save(Q, Q_st[i])
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")

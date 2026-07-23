@@ -27,13 +27,16 @@ with program() as iq_blobs:
     I_g, I_g_st, Q_g, Q_g_st, n, _ = qua_declaration(nb_of_qubits=2)
     I_e, I_e_st, Q_e, Q_e_st, _, _ = qua_declaration(nb_of_qubits=2)
 
-    with for_(n, 0, n < n_runs, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # ground iq blobs
         reset_qubit("cooldown", "q1_xy", "rr1", cooldown_time=thermalization_time)
         reset_qubit("cooldown", "q2_xy", "rr2", cooldown_time=thermalization_time)
         # reset_qubit("active", "q1_xy", "resonator", threshold=ge_threshold_q1, max_tries=10, Ig=I_g)
         align()
-        multiplexed_readout(I_g, I_g_st, Q_g, Q_g_st, resonators=[1, 2], weights="rotated_")
+        measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
+        measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
 
         # excited iq blobs
         align()
@@ -44,7 +47,8 @@ with program() as iq_blobs:
         play("x180", "q1_xy")
         # play("x180", "q2_xy")
         align()
-        multiplexed_readout(I_e, I_e_st, Q_e, Q_e_st, resonators=[1, 2], weights="rotated_")
+    measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
+    measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
 
     with stream_processing():
         # Save all streamed points for plotting the IQ blobs

@@ -31,7 +31,7 @@ SKIP_NAME_PATTERNS = (
 
 SIMPLE_DECL_BLOCK = re.compile(
     r"^    n = declare\(int\)[^\n]*\n"
-    r"^    (?P<sweep_var>\w+) = declare\(int\)[^\n]*\n"
+    r"^    (?P<sweep_var>\w+) = declare\((?:int|fixed)\)[^\n]*\n"
     r"^    I = declare\(fixed\)[^\n]*\n"
     r"^    Q = declare\(fixed\)[^\n]*\n"
     r"^    I_st = declare_(?:output_)?stream\(\)[^\n]*\n"
@@ -133,6 +133,8 @@ def detect_simple_sweep(content: str) -> dict[str, str] | None:
         return None
     if content.count("with for_(*from_array(") != 1:
         return None
+    if "for_each_(" in content:
+        return None
     if re.search(r"I = \[declare\(fixed\)", content):
         return None
     if re.search(r"I_st = \[declare_", content):
@@ -141,24 +143,25 @@ def detect_simple_sweep(content: str) -> dict[str, str] | None:
         return None
     if re.search(r"^    \w+ = declare\(bool\)", content, re.MULTILINE):
         return None
-    decl = SIMPLE_DECL_BLOCK.search(content)
     outer = OUTER_LOOP.search(content)
+    if not outer:
+        return None
+    sweep_var = outer.group("sweep_var")
+    sweep_array = outer.group("sweep_array")
+    n_avg = outer.group("n_avg")
     stream = STREAM_IQ.search(content)
-    if not (decl and outer and stream):
+    if stream and stream.group("sweep_array") != sweep_array:
         return None
-    if decl.group("sweep_var") != outer.group("sweep_var"):
+    decl = SIMPLE_DECL_BLOCK.search(content)
+    if decl and decl.group("sweep_var") != sweep_var:
         return None
-    if outer.group("sweep_array") != stream.group("sweep_array"):
-        return None
-    if re.search(
-        r"with stream_processing\(\):\n(?:[^\n]*\n)*?        if ",
-        content,
-    ):
+    if not decl and not re.search(rf"^    {re.escape(sweep_var)} = declare\(", content, re.MULTILINE):
         return None
     return {
-        "sweep_var": outer.group("sweep_var"),
-        "sweep_array": outer.group("sweep_array"),
-        "n_avg": outer.group("n_avg"),
+        "sweep_var": sweep_var,
+        "sweep_array": sweep_array,
+        "n_avg": n_avg,
+        "flexible_decl": decl is None,
     }
 
 
@@ -172,6 +175,16 @@ def replace_declarations(content: str, info: dict[str, str]) -> str:
         "    n = declare(int)  # QUA variable for the averaging loop\n"
         "    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'\n"
     )
+    if info.get("flexible_decl"):
+        outer = OUTER_LOOP.search(content)
+        if not outer:
+            raise ValueError("outer loop not found")
+        prog = re.search(r"^with program\(\) as .+:\n", content, re.MULTILINE)
+        if not prog:
+            raise ValueError("program block not found")
+        decl_start = prog.end()
+        decl_end = outer.start()
+        return content[:decl_start] + replacement + content[decl_end:]
     return SIMPLE_DECL_BLOCK.sub(replacement, content, count=1)
 
 
@@ -226,7 +239,19 @@ def simplify_stream_processing(content: str, sweep_array: str) -> str:
         flags=re.MULTILINE,
     )
     content = re.sub(
-        rf"^        Q_st\.buffer\(len\({re.escape(sweep_array)}\)\)\.average\(\)\.save\(\"Q\"\)[^\n]*\n",
+        rf"^        Q_st\.buffer\(len\(\w+\)\)\.average\(\)\.save\(\"Q\"\)[^\n]*\n",
+        "",
+        content,
+        flags=re.MULTILINE,
+    )
+    content = re.sub(
+        rf"^            I_st\.buffer\(len\({re.escape(sweep_array)}\)\)\.average\(\)\.save\(\"I\"\)[^\n]*\n",
+        "",
+        content,
+        flags=re.MULTILINE,
+    )
+    content = re.sub(
+        rf"^            Q_st\.buffer\(len\(\w+\)\)\.average\(\)\.save\(\"Q\"\)[^\n]*\n",
         "",
         content,
         flags=re.MULTILINE,

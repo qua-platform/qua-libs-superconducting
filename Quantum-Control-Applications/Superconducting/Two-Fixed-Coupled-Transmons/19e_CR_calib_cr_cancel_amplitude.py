@@ -50,6 +50,7 @@ Reference: Sarah Sheldon, Easwar Magesan, Jerry M. Chow, and Jay M. Gambetta Phy
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -118,21 +119,35 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    state = [declare(bool) for _ in range(2)]
-    state_st = [declare_output_stream() for _ in range(2)]
-    t = declare(int)
-    a = declare(fixed)
+    shots = QuaIterableRange("shots", n_avg)
+    a_sweep = QuaIterable("a", amp_scalings)
+    t_sweep = QuaIterable("t", ts_cycles)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
+    I1 = declare(fixed)
+    Q1 = declare(fixed)
+    I2 = declare(fixed)
+    Q2 = declare(fixed)
+    I1_st = declare_output_stream()
+    Q1_st = declare_output_stream()
+    I2_st = declare_output_stream()
+    Q2_st = declare_output_stream()
+    state1 = declare(bool)
+    state2 = declare(bool)
+    state1_st = declare_output_stream()
+    state2_st = declare_output_stream()
     counter = declare(int, value=0)
     counter_st = declare_output_stream()
     s = declare(int)  # QUA variable for the control state
     c = declare(int)  # QUA variable for the projection index in QST
 
-    with for_(*from_array(a, amp_scalings)):
+    for a in a_sweep:
         save(counter, counter_st)
         wait(60 * u.ms)
-        with for_(n, 0, n < n_avg, n + 1):
-            with for_(*from_array(t, ts_cycles)):
+        for shot in shots:
+            assign(n, shot)
+            save(n, n_st)
+            for t in t_sweep:
                 with for_(c, 0, c < 3, c + 1):  # bases
                     with for_(s, 0, s < 2, s + 1):  # states
                         with if_(s == 1):
@@ -187,11 +202,28 @@ with program() as PROGRAM:
                         align(qt_xy, *resonators)
 
                         # Measure the state of the resonators
-                        multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
-                        assign(state[0], I[0] > ge_threshold_q1)
-                        save(state[0], state_st[0])
-                        assign(state[1], I[1] > ge_threshold_q2)
-                        save(state[1], state_st[1])
+                        measure(
+                            "readout",
+                            "rr1",
+                            None,
+                            dual_demod.full("rotated_cos", "rotated_sin", I1),
+                            dual_demod.full("rotated_minus_sin", "rotated_cos", Q1),
+                        )
+                        measure(
+                            "readout",
+                            "rr2",
+                            None,
+                            dual_demod.full("rotated_cos", "rotated_sin", I2),
+                            dual_demod.full("rotated_minus_sin", "rotated_cos", Q2),
+                        )
+                        save(I1, I1_st)
+                        save(Q1, Q1_st)
+                        save(I2, I2_st)
+                        save(Q2, Q2_st)
+                        assign(state1, I1 > ge_threshold_q1)
+                        save(state1, state1_st)
+                        assign(state2, I2 > ge_threshold_q2)
+                        save(state2, state2_st)
 
                         # Wait for the qubit to decay to the ground state - Can be replaced by active reset
                         wait(thermalization_time * u.ns)
@@ -199,15 +231,15 @@ with program() as PROGRAM:
     with stream_processing():
         counter_st.save("n")
         # control qubit
-        I_st[0].buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("I1")
-        Q_st[0].buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("Q1")
-        state_st[0].boolean_to_int().buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(
+        I1_st.buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("I1")
+        Q1_st.buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("Q1")
+        state1_st.boolean_to_int().buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(
             len(amp_scalings)
         ).average().save("state1")
         # target qubit
-        I_st[1].buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("I2")
-        Q_st[1].buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("Q2")
-        state_st[1].boolean_to_int().buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(
+        I2_st.buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("I2")
+        Q2_st.buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(len(amp_scalings)).average().save("Q2")
+        state2_st.boolean_to_int().buffer(2).buffer(3).buffer(len(ts_cycles)).buffer(
             len(amp_scalings)
         ).average().save("state2")
 

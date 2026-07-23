@@ -14,6 +14,7 @@ Prerequisites:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -46,16 +47,16 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as echo:
-    n = declare(int)
-    n_st = declare_output_stream()
-    I = declare(fixed)
-    I_st = declare_output_stream()
-    Q = declare(fixed)
-    Q_st = declare_output_stream()
-    tau = declare(int)
-
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(tau, taus)):
+    shots = QuaIterableRange("shots", n_avg)
+    tau_sweep = QuaIterable("tau", taus)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for tau in tau_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
             # 1st x90 pulse
             play("x90", "qubit")
             # Wait the varying idle time
@@ -79,22 +80,8 @@ with program() as echo:
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
             # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I, I_st)
-            save(Q, Q_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
-        # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        # If log sweep, then the swept values will be slightly different from np.logspace because of integer rounding in QUA.
-        # get_equivalent_log_array() is used to get the exact values used in the QUA program.
-        if np.isclose(np.std(taus[1:] / taus[:-1]), 0, atol=1e-3):
-            taus = get_equivalent_log_array(taus)
-            I_st.buffer(len(taus)).average().save("I")
-            Q_st.buffer(len(taus)).average().save("Q")
-        else:
-            I_st.buffer(len(taus)).average().save("I")
-            Q_st.buffer(len(taus)).average().save("Q")
         n_st.save("iteration")
 
 ######################################

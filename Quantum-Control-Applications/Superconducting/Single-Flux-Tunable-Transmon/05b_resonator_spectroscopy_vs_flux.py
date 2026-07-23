@@ -20,6 +20,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -58,20 +59,19 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as resonator_spec_2D:
+    shots = QuaIterableRange("shots", n_avg)
+    f_sweep = QuaIterable("f", dfs)
+    dc_sweep = QuaIterable("dc", flux)
     n = declare(int)  # QUA variable for the averaging loop
-    f = declare(int)  # QUA variable for the readout frequency
-    dc = declare(fixed)  # QUA variable for the flux bias
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(f, dfs)):
-            # Update the frequency of the digital oscillator linked to the resonator element
-            update_frequency("resonator", f + resonator_IF)
-            with for_(*from_array(dc, flux)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for f in f_sweep:
+            for dc in dc_sweep:
+                I = declare_with_stream(fixed, "I", average_axes=["shots"])
+                Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Flux sweeping by tuning the OPX dc offset associated to the flux_line element
                 set_dc_offset("flux_line", "single", dc)
                 wait(flux_settle_time * u.ns, "resonator", "qubit")
@@ -87,18 +87,10 @@ with program() as resonator_spec_2D:
                 # Wait for the resonator to cooldown
                 wait(depletion_time * u.ns, "resonator")
                 # Save the 'I' & 'Q' quadratures to their respective streams
-                save(I, I_st)
-                save(Q, Q_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 2D matrix, average the 2D matrices together and store the results on the OPX processor
-        I_st.buffer(len(flux)).buffer(len(dfs)).average().save("I")
-        Q_st.buffer(len(flux)).buffer(len(dfs)).average().save("Q")
         n_st.save("iteration")
-
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

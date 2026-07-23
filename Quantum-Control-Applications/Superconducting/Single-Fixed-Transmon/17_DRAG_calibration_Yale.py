@@ -18,6 +18,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -54,34 +55,31 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as drag:
+    shots = QuaIterableRange("shots", n_avg)
+    a_sweep = QuaIterable("a", amps)
     n = declare(int)  # QUA variable for the averaging loop
-    a = declare(fixed)  # QUA variable for the DRAG coefficient pre-factor
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    state = declare(bool)  # QUA variable for the qubit state
-    I1_st = declare_output_stream()  # Stream for the 'I' quadrature for the 1st sequence x180-y90
-    Q1_st = declare_output_stream()  # Stream for the 'Q' quadrature for the 1st sequence x180-y90
-    I2_st = declare_output_stream()  # Stream for the 'Q' quadrature for the 2nd sequence y180-x90
-    Q2_st = declare_output_stream()  # Stream for the 'Q' quadrature for the 2nd sequence y180-x90
-    state1_st = declare_output_stream()  # Stream for the qubit state for the 1st sequence x180-y90
-    state2_st = declare_output_stream()  # Stream for the qubit state for the 2nd sequence y180-x90
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(a, amps)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for a in a_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
+            state1 = declare_with_stream(int, "state1", average_axes=["shots"])
+            state2 = declare_with_stream(int, "state2", average_axes=["shots"])
             # Play the 1st sequence with varying DRAG coefficient
             play("x180" * amp(1, 0, 0, a), "qubit")
             play("y90" * amp(a, 0, 0, 1), "qubit")
             # Align the two elements to measure after playing the qubit pulses.
             align("qubit", "resonator")
             # Measure the resonator and extract the qubit state
-            state, I, Q = readout_macro(threshold=ge_threshold, state=state, I=I, Q=Q)
+            state1, I1, Q1 = readout_macro(threshold=ge_threshold, state=state1, I=I1, Q=Q1)
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
             # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I, I1_st)
-            save(Q, Q1_st)
-            save(state, state1_st)
 
             align()  # Global align between the two sequences
 
@@ -91,25 +89,14 @@ with program() as drag:
             # Align the two elements to measure after playing the qubit pulses.
             align("qubit", "resonator")
             # Measure the resonator and extract the qubit state
-            state, I, Q = readout_macro(threshold=ge_threshold, state=state, I=I, Q=Q)
+            state2, I2, Q2 = readout_macro(threshold=ge_threshold, state=state2, I=I2, Q=Q2)
             # Wait for the qubit to decay to the ground state
             wait(thermalization_time * u.ns, "resonator")
             # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I, I2_st)
-            save(Q, Q2_st)
-            save(state, state2_st)
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        I1_st.buffer(len(amps)).average().save("I1")
-        Q1_st.buffer(len(amps)).average().save("Q1")
-        I2_st.buffer(len(amps)).average().save("I2")
-        Q2_st.buffer(len(amps)).average().save("Q2")
-        state1_st.boolean_to_int().buffer(len(amps)).average().save("state1")
-        state2_st.boolean_to_int().buffer(len(amps)).average().save("state2")
         n_st.save("iteration")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

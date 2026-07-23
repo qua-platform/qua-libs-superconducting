@@ -19,6 +19,7 @@ Prerequisites:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -57,18 +58,20 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as storage_AC_stark_shift:
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
     n = declare(int)  # QUA variable for the averaging loop
-    df = declare(int)  # QUA variable for the qubit frequency
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
     state = declare(bool)
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     state_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(df, dfs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            state = declare_with_stream(bool, "state", average_axes=["shots"])
             # Update the frequency of the digital oscillator linked to the storage element
             update_frequency("storage", df + center)
             # Play the displacement pulse to the storage cavity and
@@ -88,16 +91,9 @@ with program() as storage_AC_stark_shift:
             align("storage", "resonator")
             wait(storage_thermalization_time * u.ns, "storage")
             # Save the 'I' & 'Q' quadratures to their respective streams
-            save(I, I_st)
-            save(Q, Q_st)
-            save(state, state_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        I_st.buffer(len(dfs)).average().save("I")
-        Q_st.buffer(len(dfs)).average().save("Q")
         state_st.boolean_to_int().buffer(len(dfs)).average().save("state")
         n_st.save("iteration")
 

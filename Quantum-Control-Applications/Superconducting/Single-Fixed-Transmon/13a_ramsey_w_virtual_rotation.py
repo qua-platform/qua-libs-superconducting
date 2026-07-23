@@ -17,6 +17,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -51,19 +52,19 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ramsey:
-    n = declare(int)  # QUA variable for the averaging loop
-    tau = declare(int)  # QUA variable for the idle time
+    shots = QuaIterableRange("shots", n_avg)
+    tau_sweep = QuaIterable("tau", taus)
     phase = declare(fixed)  # QUA variable for dephasing the second pi/2 pulse (virtual Z-rotation)
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    state = declare(bool)  # QUA variable for the qubit state
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
-    state_st = declare_output_stream()  # Stream for the qubit state
+    n = declare(int)  # QUA variable for the averaging loop
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(tau, taus)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for tau in tau_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            state = declare_with_stream(int, "state", average_axes=["shots"])
             # Rotate the frame of the second x90 gate to implement a virtual Z-rotation
             # 4*tau because tau was in clock cycles and 1e-9 because tau is ns
             assign(phase, Cast.mul_fixed_by_int(detuning * 1e-9, 4 * tau))
@@ -92,21 +93,12 @@ with program() as ramsey:
             # State discrimination
             assign(state, I > ge_threshold)
             # Save the 'I', 'Q' and 'state' to their respective streams
-            save(I, I_st)
-            save(Q, Q_st)
-            save(state, state_st)
             # Reset the frame of the qubit in order not to accumulate rotations
             reset_frame("qubit")
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        I_st.buffer(len(taus)).average().save("I")
-        Q_st.buffer(len(taus)).average().save("Q")
-        state_st.boolean_to_int().buffer(len(taus)).average().save("state")
         n_st.save("iteration")
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

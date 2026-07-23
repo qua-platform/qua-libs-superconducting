@@ -176,7 +176,9 @@ with program() as PROGRAM:
             # Only played the depth corresponding to target_depth
 
             with if_((depth == 1) | (depth == depth_target)):
-                with for_(n, 0, n < n_avg, n + 1):  # Averaging loop
+                for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
                     wait(thermalization_time * u.ns)
                     # Align the two elements to play the sequence after qubit initialization
                     align()
@@ -186,7 +188,8 @@ with program() as PROGRAM:
                     play_sequence(sequence_list, depth, "q2_xy")
                     # Align the two elements to measure after playing the circuit.
                     align()
-                    multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
 
                 # Go to the next depth
                 assign(depth_target, depth_target + delta_clifford)

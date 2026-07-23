@@ -15,6 +15,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -54,18 +55,19 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as ramsey_freq_duration:
+    shots = QuaIterableRange("shots", n_avg)
+    delay_sweep = QuaIterable("delay", taus)
+    df_sweep = QuaIterable("df", dfs)
     n = declare(int)  # QUA variable for the averaging loop
-    df = declare(int)  # QUA variable for the qubit detuning
-    delay = declare(int)  # QUA variable for the idle time
-    I = declare(fixed)  # QUA variable for the measured 'I' quadrature
-    Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
-    I_st = declare_output_stream()  # Stream for the 'I' quadrature
-    Q_st = declare_output_stream()  # Stream for the 'Q' quadrature
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
-        with for_(*from_array(delay, taus)):  # QUA for_ loop for sweeping the idle time
-            with for_(*from_array(df, dfs)):  # QUA for_ loop for sweeping the qubit frequency
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for delay in delay_sweep:
+            for df in df_sweep:
+                I = declare_with_stream(fixed, "I", average_axes=["shots"])
+                Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Update the frequency of the digital oscillator linked to the qubit element
                 update_frequency("qubit", df + qubit_IF)
                 # Adjust the idle time
@@ -88,18 +90,10 @@ with program() as ramsey_freq_duration:
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns, "resonator")
                 # Save the 'I' & 'Q' quadratures to their respective streams
-                save(I, I_st)
-                save(Q, Q_st)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         # Cast the data into a 2D matrix, average the 2D matrices together and store the results on the OPX processor
-        I_st.buffer(len(dfs)).buffer(len(taus)).average().save("I")
-        Q_st.buffer(len(dfs)).buffer(len(taus)).average().save("Q")
         n_st.save("iteration")
-
-
 #####################################
 #  Open Communication with the QOP  #
 #####################################

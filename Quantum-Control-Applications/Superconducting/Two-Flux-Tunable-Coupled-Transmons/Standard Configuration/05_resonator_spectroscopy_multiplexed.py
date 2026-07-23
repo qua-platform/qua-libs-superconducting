@@ -16,6 +16,7 @@ Before proceeding to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from configuration import *
@@ -47,17 +48,20 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as multi_res_spec:
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
     n = declare(int)  # QUA variable for the averaging loop
-    df = declare(int)  # QUA variable for the readout frequency detuning around the resonance
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     # Here we define one 'I', 'Q', 'I_st' & 'Q_st' for each resonator via a python list
-    I = [declare(fixed) for _ in range(2)]
-    Q = [declare(fixed) for _ in range(2)]
-    I_st = [declare_output_stream() for _ in range(2)]
-    Q_st = [declare_output_stream() for _ in range(2)]
 
-    with for_(n, 0, n < n_avg, n + 1):  # QUA for_ loop for averaging
-        with for_(*from_array(df, dfs)):  # QUA for_ loop for sweeping the frequency
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
+            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             # wait for the resonators to deplete
             wait(depletion_time * u.ns, "rr1", "rr2")
 
@@ -68,12 +72,10 @@ with program() as multi_res_spec:
                 "readout",
                 "rr1",
                 None,
-                dual_demod.full("cos", "sin", I[0]),
-                dual_demod.full("minus_sin", "cos", Q[0]),
+                dual_demod.full("cos", "sin", I1),
+                dual_demod.full("minus_sin", "cos", Q1),
             )
             # Save the 'I' & 'Q' quadratures for rr1 to their respective streams
-            save(I[0], I_st[0])
-            save(Q[0], Q_st[0])
 
             # align("rr1", "rr2")  # Uncomment to measure sequentially
             # resonator 2
@@ -83,24 +85,14 @@ with program() as multi_res_spec:
                 "readout",
                 "rr2",
                 None,
-                dual_demod.full("cos", "sin", I[1]),
-                dual_demod.full("minus_sin", "cos", Q[1]),
+                dual_demod.full("cos", "sin", I2),
+                dual_demod.full("minus_sin", "cos", Q2),
             )
             # Save the 'I' & 'Q' quadratures for rr2 to their respective streams
-            save(I[1], I_st[1])
-            save(Q[1], Q_st[1])
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("iteration")
-        # resonator 1
-        I_st[0].buffer(len(dfs)).average().save("I1")
-        Q_st[0].buffer(len(dfs)).average().save("Q1")
 
-        # resonator 2
-        I_st[1].buffer(len(dfs)).average().save("I2")
-        Q_st[1].buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

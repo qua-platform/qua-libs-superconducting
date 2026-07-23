@@ -70,9 +70,15 @@ with program() as wigner_tomography:
     state2_st = declare_output_stream()
     n_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(aI, aIs)):
-            with for_(*from_array(aQ, aQs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for aI in aI_sweep:
+            for aQ in aQ_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Prepare the cavity in the desired state, for example Fock state=1 using SNAP
                 play("beta1", "storage")
                 align()
@@ -141,9 +147,6 @@ with program() as wigner_tomography:
 
     with stream_processing():
         # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        I1_st.buffer(len(aQs)).buffer(len(aIs)).average().save("I")
-        Q1_st.buffer(len(aQs)).buffer(len(aIs)).average().save("Q")
-        state_st.buffer(len(aQs)).buffer(len(aIs)).average().save("state")
         n_st.save("iteration")
 
 #####################################

@@ -36,7 +36,9 @@ with program() as raw_trace_prog:
     n = declare(int)  # QUA variable for the averaging loop
     adc_st = declare_output_stream(adc_trace=True)  # The stream to store the raw ADC trace
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # Reset the phase of the digital oscillator associated to the resonator element. Needed to average the cosine signal.
         reset_phase(resonator)
         # Sends the readout pulse and stores the raw ADC traces in the stream called "adc_st"

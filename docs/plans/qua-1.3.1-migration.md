@@ -82,12 +82,56 @@ with program() as node.namespace["qua_program"]:
 
 ## Phased rollout
 
-1. **Phase 0** — Pin `qm-qua>=1.3.1`, CI on Python 3.14, compile tests
-2. **Phase 1** — Qualibration Tier A nodes (~25–30)
-3. **Phase 2** — Shared stream utils (`declare_qua_variables`, readout helpers)
-4. **Phase 3** — Qualibration Tier B (partial: RB, CZ, IQ, cryoscope)
-5. **Phase 4** — Tutorial
-6. **Phase 5** — `Quantum-Control-Applications/` folder-by-folder
+1. **Phase 0** — Pin `qm-qua>=1.3.1`, CI on Python 3.14, compile tests — **done**
+2. **Phase 1** — Qualibration Tier A nodes (~25–30) — **done**
+3. **Phase 2** — Inline stream declarations in qualibration hybrids (removed `declare_qua_variables` from Tier A sweep nodes) — **done**
+4. **Phase 3** — Qualibration Tier B (RB, CZ, IQ, cryoscope keep-manual; hybrids 00, 19_zz, CZ 31–33 migrated) — **done**
+5. **Phase 4** — Tutorial (`time_of_flight.py`, `node_anatomy.ipynb` prose aligned with ToF pattern) — **done**
+6. **Phase 5** — `Quantum-Control-Applications/` folder-by-folder — **done**
+
+## Completion checklist (2026-07-22)
+
+| Criterion | Status |
+|-----------|--------|
+| No executable `.py` uses `declare_stream()` | Pass — grep gate in `test_qua_compile.py`; notebook/readme compat-only references updated |
+| Sweep scripts use `QuaIterable` + `declare_with_stream(..., average_axes=["shots"])` | Pass — all `shots × sweep × measure(I,Q) + .buffer().average()` scripts migrated |
+| Keep-manual scripts use `declare_output_stream` + manual `stream_processing()` | Pass — RB, tomography, IQ blobs, cryoscope, ADC/ToF, readout optimization, frequency tracking |
+| Qualibration nodes: no deprecated stream APIs | Pass — 39 calibration nodes syntax-checked; hybrid nodes inline `declare_with_stream` |
+| `test_qm_extensions_importable` + syntax + `declare_stream` gate | Pass locally |
+| Import/exec of calibration modules (`Quam.load()`) | Requires local QUAM state (e.g. `quam_state/state.json`); CI must provide state path |
+
+### Qualibration graph (39 nodes)
+
+| Category | Nodes | Iterable migration |
+|----------|-------|-------------------|
+| Tier A sweeps | 02a–06b, 08a–10b, 12–14, 17, 19_zz, CZ 31–33, … | **Migrated** — inline `declare_with_stream`, `n_st.save("n")` |
+| Keep-manual | 11a, 11b, 16a, 16b, 18, 30, 35, 36 | **Compat only** — still use `declare_qua_variables()` + manual buffers |
+| ADC / ToF | 01a, 01b | **Compat only** — `QuaIterableRange` for shots optional; ADC streams manual |
+| IQ blobs | 07, 15 | **Compat only** — manual `.save_all()` streaming |
+
+### Quantum-Control-Applications (187 scripts)
+
+| Folder | Sweep migration | Notes |
+|--------|----------------|-------|
+| Single-Fixed-Transmon | Done | Templates: `04a`, `05` (2D) |
+| Single-Flux-Tunable-Transmon | Done | Includes Use Case 4 phase-modulated 2D sweep |
+| Two-Fixed-Coupled-Transmons | Done | Multiplexed `I1`…`Q2` via `declare_with_stream` |
+| Two-Flux-Tunable Standard Configuration | Done | |
+| 3D-storage-cavity | Done | |
+| Use-case subfolders | Done | RB/tomography/cryoscope/IQ/ADC left manual per table above |
+
+**Keep-manual QCA patterns (~67 scripts):** filenames/content matching RB (`16*`), tomography (`19_state`, `20_state`, Use Case tomography), cryoscope (`17_cryoscope*`, Use Case cryoscope), IQ blobs (`10*readout*`, `11_IQ`), raw ADC (`02_raw_adc*`), time-of-flight (`03_time_of_flight*`), frequency tracking, readout weight optimization with custom `.map()` chains.
+
+### Permanently excluded from iterables
+
+- Randomized benchmarking (standard + interleaved + use-case RB)
+- State / process tomography
+- IQ blob calibration (`.save_all()`)
+- Cryoscope / cryoscope amplitude calibration
+- Raw ADC traces and time-of-flight (manual `.input1().average().save(...)`)
+- Readout frequency/duration/weight optimization with non-uniform stream chains
+- Cross-resonance calibration scripts with nested manual buffers
+- Google DRAG detuning sweeps (Use Case 2 — Python outer loop over config, 1D iter sweep inside)
 
 ## Testing
 

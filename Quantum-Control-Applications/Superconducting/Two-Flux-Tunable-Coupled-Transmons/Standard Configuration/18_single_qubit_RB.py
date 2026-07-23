@@ -203,7 +203,9 @@ with program() as rb:
             assign(sequence_list[depth], inv_gate_list[depth - 1])
             # Only played the depth corresponding to target_depth
             with if_(depth == depth_target):
-                with for_(n, 0, n < n_avg, n + 1):
+                for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
                     # Can replace by active reset
                     wait(thermalization_time * u.ns, f"rr{qubit}")
                     # Align the two elements to play the sequence after qubit initialization

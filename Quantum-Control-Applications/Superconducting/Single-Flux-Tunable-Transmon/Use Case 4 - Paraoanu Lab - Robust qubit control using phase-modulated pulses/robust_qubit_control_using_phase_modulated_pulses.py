@@ -1,5 +1,6 @@
 from configuration import *
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
 from qualang_tools.results import progress_counter, fetching_tool
@@ -97,22 +98,15 @@ a_array = np.linspace(0, 2 - 2**-16, n_a)  # Array of amplitude values ranging f
 
 # Define the QUA program for a Rabi amplitude and frequency sweep experiment
 with program() as rabi_amp_freq:
-    n = declare(int)  # Declare an integer variable for loop iteration
-    f = declare(int)  # Declare an integer variable for frequency detuning
-    detuning = declare(int)  # Declare an integer variable for frequency detuning
-    a = declare(fixed)  # Declare a fixed-point variable for amplitude
-    I = declare(fixed)  # Declare a fixed-point variable for the I (in-phase) component of the signal
-    Q = declare(fixed)  # Declare a fixed-point variable for the Q (quadrature) component of the signal
+    shots = QuaIterableRange("shots", n_avg)
+    a_sweep = QuaIterable("a", a_array)
+    detuning_sweep = QuaIterable("detuning", detuning_array)
 
-    I_st = declare_output_stream()  # Declare a stream to store I component data
-    Q_st = declare_output_stream()  # Declare a stream to store Q component data
-
-    # Outer loop over the number of averages
-    with for_(n, 0, n < n_avg, n + 1):
-        # Loop over each amplitude value
-        with for_each_(a, a_array.tolist()):
-            # Loop over each detuning value
-            with for_each_(detuning, detuning_array.tolist()):
+    for shot in shots:
+        for a in a_sweep:
+            for detuning in detuning_sweep:
+                I = declare_with_stream(fixed, "I", average_axes=["shots"])
+                Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Update the qubit frequency with the current detuning value
                 update_frequency("qubit", detuning + qubit_IF)
 
@@ -130,15 +124,6 @@ with program() as rabi_amp_freq:
                     dual_demod.full("rotated_cos", "rotated_sin", I),
                     dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
                 )
-
-                # Save the I and Q measurement results to their respective streams
-                save(I, I_st)
-                save(Q, Q_st)
-
-    # Stream processing block to buffer and average the measurement results
-    with stream_processing():
-        I_st.buffer(n_a, n_detuning).average().save("I")  # Buffer and average I data, then save
-        Q_st.buffer(n_a, n_detuning).average().save("Q")  # Buffer and average Q data, then save
 
 
 #####################################

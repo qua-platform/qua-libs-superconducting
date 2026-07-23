@@ -14,9 +14,8 @@ from calibration_utils.cz_conditional_phase import (
     process_raw_dataset,
 )
 from qm.qua import *
-from qm.qua.extensions import QuaIterableRange
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 
-from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
@@ -122,22 +121,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     node.namespace["tracked_qubit_pairs"] = tracked_qp_list
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        I_m, I_m_st, Q_m, Q_m_st, _, _ = node.machine.declare_qua_variables()
-        I_s, I_s_st, Q_s, Q_s_st, _, _ = node.machine.declare_qua_variables()
         n = declare(int)
         n_st = declare_output_stream()
-        amp = declare(fixed)
-        frame = declare(fixed)
-        moving_initial = declare(int)
         if node.parameters.use_state_discrimination:
             state_mq = [declare(int) for _ in range(num_qubit_pairs)]
             state_sq = [declare(int) for _ in range(num_qubit_pairs)]
-            state_mg_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_me_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_mf_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_sg_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_se_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-            state_sf_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the qubits
@@ -150,12 +138,9 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
             for shot in QuaIterableRange("shots", n_avg):
                 assign(n, shot)
                 save(n, n_st)
-                # Loop over the amplitude scale
-                with for_(*from_array(amp, amplitudes)):
-                    # Loop over the frame rotations
-                    with for_(*from_array(frame, frames)):
-                        # Loop over the initial state of the control qubit
-                        with for_(*from_array(moving_initial, [0, 1])):
+                for amp in QuaIterable("amp", amplitudes):
+                    for frame in QuaIterable("frame", frames):
+                        for moving_initial in QuaIterable("control_axis", [0, 1]):
                             for ii, qp in multiplexed_qubit_pairs.items():
                                 qubit_role = qubit_roles_map[qp.name]
                                 mq, sq = qubit_role.moving, qubit_role.stationary
@@ -179,83 +164,72 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                                 qp.align()
 
                                 if node.parameters.use_state_discrimination:
+                                    g_state_m = declare_with_stream(
+                                        int, f"g_state_moving{ii + 1}", average_axes=["shots"]
+                                    )
+                                    e_state_m = declare_with_stream(
+                                        int, f"e_state_moving{ii + 1}", average_axes=["shots"]
+                                    )
+                                    f_state_m = declare_with_stream(
+                                        int, f"f_state_moving{ii + 1}", average_axes=["shots"]
+                                    )
+                                    g_state_s = declare_with_stream(
+                                        int, f"g_state_stationary{ii + 1}", average_axes=["shots"]
+                                    )
+                                    e_state_s = declare_with_stream(
+                                        int, f"e_state_stationary{ii + 1}", average_axes=["shots"]
+                                    )
+                                    f_state_s = declare_with_stream(
+                                        int, f"f_state_stationary{ii + 1}", average_axes=["shots"]
+                                    )
                                     # measure g/e/f populations for both qubits
                                     mq.readout_state_gef(state_mq[ii])
                                     sq.readout_state_gef(state_sq[ii])
                                     with switch_(state_mq[ii]):
                                         with case_(0):
                                             wait(4)
-                                            save(1, state_mg_st[ii])
-                                            save(0, state_me_st[ii])
-                                            save(0, state_mf_st[ii])
+                                            assign(g_state_m, 1)
+                                            assign(e_state_m, 0)
+                                            assign(f_state_m, 0)
                                         with case_(1):
                                             wait(4)
-                                            save(0, state_mg_st[ii])
-                                            save(1, state_me_st[ii])
-                                            save(0, state_mf_st[ii])
+                                            assign(g_state_m, 0)
+                                            assign(e_state_m, 1)
+                                            assign(f_state_m, 0)
                                         with default_():
                                             wait(4)
-                                            save(0, state_mg_st[ii])
-                                            save(0, state_me_st[ii])
-                                            save(1, state_mf_st[ii])
+                                            assign(g_state_m, 0)
+                                            assign(e_state_m, 0)
+                                            assign(f_state_m, 1)
                                     with switch_(state_sq[ii]):
                                         with case_(0):
                                             wait(4)
-                                            save(1, state_sg_st[ii])
-                                            save(0, state_se_st[ii])
-                                            save(0, state_sf_st[ii])
+                                            assign(g_state_s, 1)
+                                            assign(e_state_s, 0)
+                                            assign(f_state_s, 0)
                                         with case_(1):
                                             wait(4)
-                                            save(0, state_sg_st[ii])
-                                            save(1, state_se_st[ii])
-                                            save(0, state_sf_st[ii])
+                                            assign(g_state_s, 0)
+                                            assign(e_state_s, 1)
+                                            assign(f_state_s, 0)
                                         with default_():
                                             wait(4)
-                                            save(0, state_sg_st[ii])
-                                            save(0, state_se_st[ii])
-                                            save(1, state_sf_st[ii])
+                                            assign(g_state_s, 0)
+                                            assign(e_state_s, 0)
+                                            assign(f_state_s, 1)
 
                                 else:
-                                    mq.resonator.measure("readout", qua_vars=(I_m[ii], Q_m[ii]))
-                                    sq.resonator.measure("readout", qua_vars=(I_s[ii], Q_s[ii]))
-                                    save(I_m[ii], I_m_st[ii])
-                                    save(Q_m[ii], Q_m_st[ii])
-                                    save(I_s[ii], I_s_st[ii])
-                                    save(Q_s[ii], Q_s_st[ii])
+                                    I_m = declare_with_stream(fixed, f"I_moving{ii + 1}", average_axes=["shots"])
+                                    Q_m = declare_with_stream(fixed, f"Q_moving{ii + 1}", average_axes=["shots"])
+                                    I_s = declare_with_stream(fixed, f"I_stationary{ii + 1}", average_axes=["shots"])
+                                    Q_s = declare_with_stream(fixed, f"Q_stationary{ii + 1}", average_axes=["shots"])
+                                    mq.resonator.measure("readout", qua_vars=(I_m, Q_m))
+                                    sq.resonator.measure("readout", qua_vars=(I_s, Q_s))
 
             align()
 
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                if node.parameters.use_state_discrimination:
-                    state_mg_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"g_state_moving{i + 1}"
-                    )
-                    state_me_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"e_state_moving{i + 1}"
-                    )
-                    state_mf_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"f_state_moving{i + 1}"
-                    )
-                    state_sg_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"g_state_stationary{i + 1}"
-                    )
-                    state_se_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"e_state_stationary{i + 1}"
-                    )
-                    state_sf_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"f_state_stationary{i + 1}"
-                    )
-                else:
-                    I_m_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(f"I_moving{i + 1}")
-                    Q_m_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(f"Q_moving{i + 1}")
-                    I_s_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"I_stationary{i + 1}"
-                    )
-                    Q_s_st[i].buffer(2).buffer(len(frames)).buffer(len(amplitudes)).average().save(
-                        f"Q_stationary{i + 1}"
-                    )
 
 
 # %% {Simulate}

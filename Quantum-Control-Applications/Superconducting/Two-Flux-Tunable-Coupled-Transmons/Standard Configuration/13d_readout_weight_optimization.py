@@ -24,6 +24,7 @@ Next steps before going to the next node:
 """
 
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
 from configuration import *
 import matplotlib.pyplot as plt
@@ -111,6 +112,7 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as opt_weights:
+    shots = QuaIterableRange("shots", n_avg)
     n = declare(int)  # QUA variable for the averaging loop
     ind = declare(int)  # QUA variable for the index used to save each element in the 'I' & 'Q' vectors
     II = [declare(fixed, size=number_of_divisions) for _ in range(2)]  # QUA variable for the partial 'II'
@@ -125,7 +127,9 @@ with program() as opt_weights:
     QQ_st = [declare_output_stream() for _ in range(2)]  # Stream for the partial 'QQ'
     n_st = declare_output_stream()
 
-    with for_(n, 0, n < n_avg, n + 1):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
         # Measure the ground state.
         wait(thermalization_time * u.ns)
         # Loop over the two resonators
@@ -174,7 +178,6 @@ with program() as opt_weights:
                 save(QI[rr][ind], QI_st[rr])
                 save(QQ[rr][ind], QQ_st[rr])
 
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("iteration")

@@ -16,6 +16,7 @@ Next steps before going to the next node:
 
 from qm import QuantumMachinesManager, SimulationConfig
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 import matplotlib.pyplot as plt
 from qualang_tools.loops import from_array
@@ -52,17 +53,25 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    t = declare(int)  # QUA variable for the idle time
-    df = declare(int)  # QUA variable for the qubit frequency
+    shots = QuaIterableRange("shots", n_avg)
+    df_sweep = QuaIterable("df", dfs)
+    t_sweep = QuaIterable("t", t_delay)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(df, dfs)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for df in df_sweep:
             # Update the frequency of the two qubit elements
             update_frequency("q1_xy", df + qubit_IF_q1)
             update_frequency("q2_xy", df + qubit_IF_q2)
 
-            with for_(*from_array(t, t_delay)):
+            for t in t_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # qubit 1
                 play("x90", "q1_xy")
                 wait(t, "q1_xy")
@@ -76,20 +85,13 @@ with program() as PROGRAM:
                 # Align the elements to measure after having waited a time "tau" after the qubit pulses.
                 align()
                 # Measure the state of the resonators
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # resonator 1
-        I_st[0].buffer(len(t_delay)).buffer(len(dfs)).average().save("I1")
-        Q_st[0].buffer(len(t_delay)).buffer(len(dfs)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(t_delay)).buffer(len(dfs)).average().save("I2")
-        Q_st[1].buffer(len(t_delay)).buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #

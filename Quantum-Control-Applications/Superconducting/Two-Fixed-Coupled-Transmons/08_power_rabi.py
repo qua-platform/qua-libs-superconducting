@@ -18,6 +18,7 @@ Next steps before going to the next node:
 
 from qm import QuantumMachinesManager, SimulationConfig
 from qm.qua import *
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
 import matplotlib.pyplot as plt
 from qualang_tools.loops import from_array
@@ -51,14 +52,22 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
-    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
-    a = declare(fixed)  # QUA variable for the qubit drive amplitude pre-factor
-    npi = declare(int)  # QUA variable for the number of qubit pulses
+    shots = QuaIterableRange("shots", n_avg)
+    npi_sweep = QuaIterable("npi", nb_of_pulses)
+    a_sweep = QuaIterable("a", scalings)
+    n = declare(int)  # QUA variable for the averaging loop
+    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
     count = declare(int)  # QUA variable for counting the qubit pulses
 
-    with for_(n, 0, n < n_avg, n + 1):
-        with for_(*from_array(npi, nb_of_pulses)):
-            with for_(*from_array(a, scalings)):
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for npi in npi_sweep:
+            for a in a_sweep:
+                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
+                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
+                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
+                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Loop for error amplification (perform many qubit pulses)
                 with for_(count, 0, count < npi, count + 1):
                     play("x180" * amp(a), "q1_xy")
@@ -66,20 +75,13 @@ with program() as PROGRAM:
                 # Align the elements to measure after playing the qubit pulses.
                 align()
                 # Start using Rotated integration weights (cf. IQ_blobs.py)
-                multiplexed_readout(I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_")
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns)
-        # Save the averaging iteration to get the progress bar
-        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
-        # resonator 1
-        I_st[0].buffer(len(scalings)).buffer(len(nb_of_pulses)).average().save("I1")
-        Q_st[0].buffer(len(scalings)).buffer(len(nb_of_pulses)).average().save("Q1")
-        # resonator 2
-        I_st[1].buffer(len(scalings)).buffer(len(nb_of_pulses)).average().save("I2")
-        Q_st[1].buffer(len(scalings)).buffer(len(nb_of_pulses)).average().save("Q2")
 
 
 #####################################
