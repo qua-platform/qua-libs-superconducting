@@ -29,5 +29,8 @@ dist/
 **/calibration_data
 **/quam_config/quam_state
 
+# Two-qubit RB circuit cache (mirrors qua-libs)
+.rb_cache/
+
 # Installer-local config (telemetry.toml, etc.)
 **/.qua-libs/
