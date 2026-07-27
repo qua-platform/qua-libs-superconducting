@@ -40,10 +40,37 @@ Do not rewrite QUA constructs as plain Python loops or NumPy when they must run 
 
 ## Related ecosystem (not QUA itself)
 
-These complement QUA but have their own docs:
+These complement QUA but have their own docs. Prefer them over assumptions when working on calibration graphs, QUAM state, or QUAlibrate nodes.
+
+### QUAM (Quantum Abstract Machine)
+
+When writing, reviewing, or debugging QUAM components, machine state, or `generate_config()` usage, consult:
+
+**https://qua-platform.github.io/quam/**
+
+Useful entry points:
+- [QUAM Components](https://qua-platform.github.io/quam/components/) — channels, pulses, qubits, Octave
+- [Gate-Level Operations](https://qua-platform.github.io/quam/features/gate_level_operations/) — macros and qubit-centric APIs
+- [Serialization and State Management](https://qua-platform.github.io/quam/features/serialization_and_state_management/) — save/load machine state
+- [Migrating to QUAM](https://qua-platform.github.io/quam/migrating_to_quam/) — from raw QUA configs
+- [quam-builder](https://github.com/qua-platform/quam-builder) — builder utilities used in calibration graphs
+
+### QUAlibrate
+
+When writing, reviewing, or debugging calibration nodes, graphs, or the web app workflow, consult:
+
+**https://qualibrate-docs.quantum-machines.co/**
+
+Useful entry points:
+- [Calibration Nodes](https://qualibrate-docs.quantum-machines.co/calibration_nodes/) — `QualibrationNode`, parameters, results
+- [Calibration Graphs](https://qualibrate-docs.quantum-machines.co/calibration_graphs/) — `QualibrationGraph`, node linking
+- [Advanced Calibration Graphs](https://qualibrate-docs.quantum-machines.co/advanced_calibration_graphs/) — loops, failure handling, subgraphs
+- [Configuration File](https://qualibrate-docs.quantum-machines.co/configuration_file/) — paths, library, runtime settings
+- [Web App](https://qualibrate-docs.quantum-machines.co/web_app/) — running nodes and graphs in the UI
+
+### Other helpers
+
 - [py-qua-tools](https://github.com/qua-platform/py-qua-tools) — helpers used heavily in scripts (`qualang_tools`)
-- [QUAM](https://qua-platform.github.io/quam/) / [quam-builder](https://github.com/qua-platform/quam-builder) — machine abstraction in calibration graphs
-- [QUAlibrate](https://qua-platform.github.io/qualibrate/) — calibration orchestration
 
 ## Conventions in this repo
 
