@@ -91,6 +91,8 @@ with program() as node.namespace["qua_program"]:
 
 ## Completion checklist (2026-07-22)
 
+Full file inventory: [`qua-1.3.1-migrated-files.md`](qua-1.3.1-migrated-files.md)
+
 | Criterion | Status |
 |-----------|--------|
 | No executable `.py` uses `declare_stream()` | Pass — grep gate in `test_qua_compile.py`; notebook/readme compat-only references updated |
