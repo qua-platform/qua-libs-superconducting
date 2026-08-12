@@ -106,8 +106,8 @@ with program() as multi_qubit_spec_vs_flux:
                 # update_frequency("rr2", resonator_freq2[index] + resonator_IF_q2)
 
                 # Saturate qubit
-                play("saturation" * amp(saturation_amp), "q1_xy", duration=saturation_len * u.ns)
-                play("saturation" * amp(saturation_amp), "q2_xy", duration=saturation_len * u.ns)
+                play("saturation", "q1_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
+                play("saturation", "q2_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
 
                 # Measure after the qubit pulses (can be commented for measuring while driving if T1 is short)
                 align()

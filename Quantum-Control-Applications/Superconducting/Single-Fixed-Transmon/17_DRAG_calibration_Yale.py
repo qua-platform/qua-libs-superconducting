@@ -71,8 +71,8 @@ with program() as drag:
             state1 = declare_with_stream(int, "state1", average_axes=["shots"])
             state2 = declare_with_stream(int, "state2", average_axes=["shots"])
             # Play the 1st sequence with varying DRAG coefficient
-            play("x180" * amp(1, 0, 0, a), "qubit")
-            play("y90" * amp(a, 0, 0, 1), "qubit")
+            play("x180", "qubit", amplitude_scale=(1, 0, 0, a))
+            play("y90", "qubit", amplitude_scale=(a, 0, 0, 1))
             # Align the two elements to measure after playing the qubit pulses.
             align("qubit", "resonator")
             # Measure the resonator and extract the qubit state
@@ -84,8 +84,8 @@ with program() as drag:
             align()  # Global align between the two sequences
 
             # Play the 2nd sequence with varying DRAG coefficient
-            play("y180" * amp(a, 0, 0, 1), "qubit")
-            play("x90" * amp(1, 0, 0, a), "qubit")
+            play("y180", "qubit", amplitude_scale=(a, 0, 0, 1))
+            play("x90", "qubit", amplitude_scale=(1, 0, 0, a))
             # Align the two elements to measure after playing the qubit pulses.
             align("qubit", "resonator")
             # Measure the resonator and extract the qubit state

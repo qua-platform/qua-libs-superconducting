@@ -70,7 +70,7 @@ with program() as rabi_amp_freq:
                 # Update the frequency of the digital oscillator linked to the qubit element
                 update_frequency("qubit", f + qubit_IF)
                 # Adjust the qubit pulse amplitude
-                play("x180" * amp(a), "qubit")
+                play("x180", "qubit", amplitude_scale=a)
                 # Align the two elements to measure after playing the qubit pulse.
                 align("qubit", "resonator")
                 # Measure the state of the resonator

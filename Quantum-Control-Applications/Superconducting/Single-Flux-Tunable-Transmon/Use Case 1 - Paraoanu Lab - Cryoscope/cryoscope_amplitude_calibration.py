@@ -82,7 +82,7 @@ with program() as cryoscope_amp:
                 play("X90", "qubit")
                 # Play truncated flux pulse with scanning amplitude
                 align("qubit", "flux_line")
-                play("cw" * amp(flux_amp), "flux_line")
+                play("cw", "flux_line", amplitude_scale=flux_amp)
                 # Play second X/2 or Y/2
                 align("qubit", "flux_line")
                 with if_(flag):

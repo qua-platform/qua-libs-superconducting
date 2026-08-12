@@ -96,8 +96,8 @@ with program() as multi_qubit_spec_vs_flux:
                 # update_frequency("rr2", resonator_freq2[index] + resonator_IF_q2)
 
                 # Saturate qubit
-                play("saturation" * amp(saturation_amp), "q1_xy", duration=saturation_len * u.ns)
-                # play("saturation" * amp(saturation_amp), "q2_xy", duration=saturation_len * u.ns)
+                play("saturation", "q1_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
+                # play("saturation", "q2_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
 
                 # Multiplexed readout, also saves the measurement outcomes
                 measure("readout", "rr1", None, dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))

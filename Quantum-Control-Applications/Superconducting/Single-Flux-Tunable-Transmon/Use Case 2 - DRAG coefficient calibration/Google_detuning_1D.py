@@ -45,8 +45,8 @@ with program() as drag_fine:
         wait(resonator_cooldown)
 
         for r in range(50):
-            play("x180" * amp(1), "qubit")
-            play("x180" * amp(-1), "qubit")
+            play("x180", "qubit", amplitude_scale=1)
+            play("x180", "qubit", amplitude_scale=-1)
 
         align("qubit", "resonator")
         measure(

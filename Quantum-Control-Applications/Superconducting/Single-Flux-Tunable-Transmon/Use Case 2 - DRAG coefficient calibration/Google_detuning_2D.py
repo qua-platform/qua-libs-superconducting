@@ -48,8 +48,8 @@ with program() as drag:
             wait(resonator_cooldown)
 
             with for_(pulses, iter_min, pulses <= it, pulses + d):
-                play("x180" * amp(1), "qubit")
-                play("x180" * amp(-1), "qubit")
+                play("x180", "qubit", amplitude_scale=1)
+                play("x180", "qubit", amplitude_scale=-1)
 
             align("qubit", "resonator")
             measure(

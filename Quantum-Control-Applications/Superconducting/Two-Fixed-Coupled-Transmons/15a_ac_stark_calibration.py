@@ -82,10 +82,10 @@ with program() as PROGRAM:
                 # Loop for error amplification (perform many qubit pulses)
 
                 with for_(count, 0, count < npi, count + 1):
-                    play("x180" * amp(1), "q1_xy")
-                    play("x180" * amp(1), "q2_xy")
-                    play("x180" * amp(-1), "q1_xy")
-                    play("x180" * amp(-1), "q2_xy")
+                    play("x180", "q1_xy", amplitude_scale=1)
+                    play("x180", "q2_xy", amplitude_scale=1)
+                    play("x180", "q1_xy", amplitude_scale=-1)
+                    play("x180", "q2_xy", amplitude_scale=-1)
 
                 # Align the elements to measure after playing the qubit pulses.
                 align()

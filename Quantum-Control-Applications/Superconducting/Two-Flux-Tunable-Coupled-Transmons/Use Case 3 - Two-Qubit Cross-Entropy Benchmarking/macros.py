@@ -55,7 +55,7 @@ def play_T_gate_set(gate, amp_matrix, qubit_el):
     with switch_(gate, unsafe=True):
         for j in range(2):  # X90, Y90
             with case_(j):
-                play("sx" * amp(*amp_matrix), qubit_el)
+                play("sx", qubit_el, amplitude_scale=(amp_matrix[0], amp_matrix[1], amp_matrix[2], amp_matrix[3]))
         with case_(2):  # T gate
             frame_rotation_2pi(0.125, qubit_el)
 
@@ -73,7 +73,7 @@ def play_SW_gate_set(gate, amp_matrix, qubit_el):
             with case_(j):
                 play(gate, qubit_el)
         with case_(2):
-            play("sx" * amp(*amp_matrix), qubit_el)
+            play("sx", qubit_el, amplitude_scale=(amp_matrix[0], amp_matrix[1], amp_matrix[2], amp_matrix[3]))
 
 
 def play_random_sq_gate(gate, amp_matrix, qubit_el, gate_dict: dict):
@@ -90,7 +90,7 @@ def play_random_sq_gate(gate, amp_matrix, qubit_el, gate_dict: dict):
     elif gate_dict[2]["gate"].label == "sw":
         play_SW_gate_set(gate, amp_matrix, qubit_el)
     else:
-        play("sx" * amp(*amp_matrix), qubit_el)
+        play("sx", qubit_el, amplitude_scale=(amp_matrix[0], amp_matrix[1], amp_matrix[2], amp_matrix[3]))
 
 
 def cz_gate(control, target, CZ_operations: dict):

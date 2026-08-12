@@ -27,7 +27,7 @@ element = "rr1"
 with program() as cw_output:
     with infinite_loop_():
         # It is best to calibrate LO leakage first and without any power played (cf. note below)
-        play("cw" * amp(0), element)
+        play("cw", element, amplitude_scale=0)
 
 #####################################
 #  Open Communication with the QOP  #
@@ -55,7 +55,7 @@ job = qm.execute(cw_output, config=logical_config)
 
 # Note that the LO leakage (DC Offset) depends on the 'I' & 'Q' powers, it is advised to run this step with no input power.
 # This will ensure that there is no LO leakage while the pulses are not played in the case where the is no switch.
-# This can be achieved by changing the line above to `play("cw" * amp(0), "qubit")`
+# This can be achieved by changing the line above to `play("cw", "qubit", amplitude_scale=0)`
 
 # Automatic LO leakage correction
 # centers = [0.5, 0]

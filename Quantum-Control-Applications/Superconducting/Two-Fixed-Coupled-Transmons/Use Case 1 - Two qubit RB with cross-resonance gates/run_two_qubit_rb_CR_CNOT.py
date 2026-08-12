@@ -202,18 +202,18 @@ def play_sequence(sequence, start, length):
             with case_(49):
                 # We use direct CR
                 align(qt_xy, qc_xy, cr_drive, cr_cancel)
-                play("square_positive" * amp(cr_drive_amp), cr_drive, duration=120)
-                play("square_positive" * amp(cr_cancel_amp), cr_cancel, duration=120)
+                play("square_positive", cr_drive, duration=120, amplitude_scale=cr_drive_amp)
+                play("square_positive", cr_cancel, duration=120, amplitude_scale=cr_cancel_amp)
 
                 # One can also use flattop envelope, which is smoother than a square envelope
-                # play("flattop_blackman" * amp(cr_drive_amp), cr_drive, duration=120)
-                # play("flattop_blackman" * amp(cr_cancel_amp), cr_cancel, duration=120)
+                # play("flattop_blackman", cr_drive, duration=120, amplitude_scale=cr_drive_amp)
+                # play("flattop_blackman", cr_cancel, duration=120, amplitude_scale=cr_cancel_amp)
 
                 # align for the next step and clear the phase shift
                 align(qt_xy, qc_xy, cr_drive, cr_cancel)
                 frame_rotation_2pi(+0.25, qc_xy)
                 # check the sign before 0.25 -- could be either way depending on cr_drive_phase
-                play("y90" * amp(0.00001), qc_xy, duration=1)
+                play("y90", qc_xy, duration=1, amplitude_scale=0.00001)
                 # this is a tricky step. the goal is to avoid face-to-face frame rotations
                 # qm only recognizes the last frame rotation before a real pulse if multiple frame rotations are stacked
                 # e.g., two CNOTs can be adjacent in a random gate sequence, and two 0.25 rotations are intended

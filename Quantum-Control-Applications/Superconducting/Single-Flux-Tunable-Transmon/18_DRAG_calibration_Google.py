@@ -79,8 +79,8 @@ with program() as drag:
                 state = declare_with_stream(int, "state", average_axes=["shots"])
                 # Loop for error amplification (perform many qubit pulses with varying DRAG coefficients)
                 with for_(pulses, iter_min, pulses <= it, pulses + d):
-                    play("x180" * amp(1, 0, 0, a), "qubit")
-                    play("x180" * amp(-1, 0, 0, -a), "qubit")
+                    play("x180", "qubit", amplitude_scale=(1, 0, 0, a))
+                    play("x180", "qubit", amplitude_scale=(-1, 0, 0, -a))
                 # Align the two elements to measure after playing the qubit pulses.
                 align("qubit", "resonator")
                 # Measure the resonator and extract the qubit state

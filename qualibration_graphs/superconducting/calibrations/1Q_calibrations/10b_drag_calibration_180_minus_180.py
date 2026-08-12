@@ -124,31 +124,13 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
                             count = declare(int)  # QUA variable for counting the qubit pulses
                             with for_(count, 0, count < npi, count + 1):
                                 if node.parameters.operation == "x180":
-                                    play(
-                                        node.parameters.operation * amp(1, 0, 0, a),
-                                        qubit.xy.name,
-                                    )
-                                    play(
-                                        node.parameters.operation * amp(-1, 0, 0, -a),
-                                        qubit.xy.name,
-                                    )
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(1, 0, 0, a))
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(-1, 0, 0, -a))
                                 elif node.parameters.operation == "x90":
-                                    play(
-                                        node.parameters.operation * amp(1, 0, 0, a),
-                                        qubit.xy.name,
-                                    )
-                                    play(
-                                        node.parameters.operation * amp(1, 0, 0, a),
-                                        qubit.xy.name,
-                                    )
-                                    play(
-                                        node.parameters.operation * amp(-1, 0, 0, -a),
-                                        qubit.xy.name,
-                                    )
-                                    play(
-                                        node.parameters.operation * amp(-1, 0, 0, -a),
-                                        qubit.xy.name,
-                                    )
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(1, 0, 0, a))
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(1, 0, 0, a))
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(-1, 0, 0, -a))
+                                    play(node.parameters.operation, qubit.xy.name, amplitude_scale=(-1, 0, 0, -a))
 
                         align()
                         for i, qubit in multiplexed_qubits.items():

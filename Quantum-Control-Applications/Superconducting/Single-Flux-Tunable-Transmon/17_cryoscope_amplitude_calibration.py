@@ -80,7 +80,7 @@ with program() as cryoscope_amp:
                 align("qubit", "flux_line")
                 # Wait some time to ensure that the flux pulse will arrive after the x90 pulse
                 wait(20 * u.ns)
-                play("const" * amp(flux_amp), "flux_line")
+                play("const", "flux_line", amplitude_scale=flux_amp)
                 align("qubit", "flux_line")
                 # Wait some time to ensure that the 2nd x90 pulse will arrive after the flux pulse
                 wait(20 * u.ns)

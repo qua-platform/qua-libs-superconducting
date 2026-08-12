@@ -145,8 +145,8 @@ with program() as PROGRAM:
                         frame_rotation_2pi(cr_cancel_phase, cr_cancel)
                         # direct + cancel
                         align(qc_xy, cr_drive, cr_cancel)
-                        play("square_positive" * amp(cr_drive_amp), cr_drive, duration=t)
-                        play("square_positive" * amp(cr_cancel_amp), cr_cancel, duration=t)
+                        play("square_positive", cr_drive, duration=t, amplitude_scale=cr_drive_amp)
+                        play("square_positive", cr_cancel, duration=t, amplitude_scale=cr_cancel_amp)
                         # align for the next step and clear the phase shift
                         align(qt_xy, cr_drive, cr_cancel)
                         reset_frame(cr_drive)
@@ -158,15 +158,15 @@ with program() as PROGRAM:
                         frame_rotation_2pi(cr_cancel_phase, cr_cancel)
                         # direct + cancel
                         align(qc_xy, cr_drive, cr_cancel)
-                        play("square_positive" * amp(cr_drive_amp), cr_drive, duration=t)
-                        play("square_positive" * amp(cr_cancel_amp), cr_cancel, duration=t)
+                        play("square_positive", cr_drive, duration=t, amplitude_scale=cr_drive_amp)
+                        play("square_positive", cr_cancel, duration=t, amplitude_scale=cr_cancel_amp)
                         # pi pulse on control
                         align(qc_xy, cr_drive, cr_cancel)
                         play("x180", qc_xy)
                         # echoed direct + cancel
                         align(qc_xy, cr_drive, cr_cancel)
-                        play("square_negative" * amp(cr_drive_amp), cr_drive, duration=t)
-                        play("square_negative" * amp(cr_cancel_amp), cr_cancel, duration=t)
+                        play("square_negative", cr_drive, duration=t, amplitude_scale=cr_drive_amp)
+                        play("square_negative", cr_cancel, duration=t, amplitude_scale=cr_cancel_amp)
                         # pi pulse on control
                         align(qc_xy, cr_drive, cr_cancel)
                         play("x180", qc_xy)

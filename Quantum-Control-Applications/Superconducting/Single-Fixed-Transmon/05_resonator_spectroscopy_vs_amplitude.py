@@ -74,12 +74,11 @@ with program() as resonator_spec_2D:
                 Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Measure the resonator (send a readout pulse whose amplitude is rescaled by the pre-factor 'a' [-2, 2)
                 # and demodulate the signals to get the 'I' & 'Q' quadratures)
-                measure(
-                    "readout" * amp(a),
-                    "resonator",
+                measure("readout", "resonator",
                     None,
                     dual_demod.full("cos", "sin", I),
                     dual_demod.full("minus_sin", "cos", Q),
+                    amplitude_scale=a,
                 )
                 # Wait for the resonator to deplete
                 wait(depletion_time * u.ns, "resonator")

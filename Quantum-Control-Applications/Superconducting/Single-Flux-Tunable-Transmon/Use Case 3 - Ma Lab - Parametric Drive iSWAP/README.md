@@ -40,9 +40,9 @@ To replicate the figure presented below, refer to the protocol in red_sideband_c
             with for_(*from_array(f, freqs)):  # Sweep the red sideband frequency
                 update_frequency("flux_line_rs", f)  # update the frequency of the flux line
                 wait(cooldown_time, "qubit1", "flux_line_rs")   # Wait for the qubit to decay
-                play("pi" * amp(q1_ge_amp), "qubit1")  # drive the qubit to the |e> state
+                play("pi", "qubit1", amplitude_scale=q1_ge_amp)  # drive the qubit to the |e> state
                 align("qubit1", "flux_line_rs")  
-                play("offset" * amp(a), "flux_line_rs", duration=tau)  # Play the red sideband after the qubit pulse with varying duration
+                play("offset", "flux_line_rs", duration=tau, amplitude_scale=a)  # Play the red sideband after the qubit pulse with varying duration
                 align("resonator1", "flux_line_rs")   # Measure the state of the resonator after the flux pulse
                 measure(
                     "readout",
@@ -56,7 +56,7 @@ To replicate the figure presented below, refer to the protocol in red_sideband_c
         save(n, n_st)
 ```
 
-In examining the code block, you'll observe three primary elements involved in the experiment: qubit1, flux_line_rs, and resonator. Within the outermost averaging loop, there are two nested loops. The pivotal instructions include updating the frequency of the tone directed to flux_line_rs and altering the duration in the command play('offset' * amp(a), 'flux_line_rs', duration=tau). This code block results in the Chevron oscillations of iSWAP between the qubit and the coupler-CPW, showcasing the parametric drive between them [1].
+In examining the code block, you'll observe three primary elements involved in the experiment: qubit1, flux_line_rs, and resonator. Within the outermost averaging loop, there are two nested loops. The pivotal instructions include updating the frequency of the tone directed to flux_line_rs and altering the duration in the command `play("offset", "flux_line_rs", duration=tau, amplitude_scale=a)`. This code block results in the Chevron oscillations of iSWAP between the qubit and the coupler-CPW, showcasing the parametric drive between them [1].
 
 
 The Chevron oscillations manifest near 275 MHz. It's worth noting that there seems to be an indication of energy exchange around 140 MHz. However, the origin of this exchange is beyond the purview of this particular use-case.
@@ -74,7 +74,7 @@ To replicate the figure presented below, refer to the protocol in blue_sideband_
                 update_frequency("flux_line_bs", f)  # update the frequency of the flux line
                 wait(cooldown_time, "qubit1", "flux_line_bs")  # Wait for the qubit to decay
                 align("qubit1", "flux_line_bs")
-                play("const" * amp(a), "flux_line_bs", duration=tau)  # Play the blue sideband after the qubit pulse with varying duration
+                play("const", "flux_line_bs", duration=tau, amplitude_scale=a)  # Play the blue sideband after the qubit pulse with varying duration
                 align("resonator1", "flux_line_bs")  # Measure the state of the resonator after the flux pulse
                 measure(
                     "readout",

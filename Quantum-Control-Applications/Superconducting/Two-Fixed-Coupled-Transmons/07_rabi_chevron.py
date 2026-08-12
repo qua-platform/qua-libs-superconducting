@@ -74,8 +74,8 @@ with program() as PROGRAM:
                 I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
                 Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Play qubit pulses simultaneously
-                play("x180" * amp(a), "q1_xy")
-                play("x180" * amp(a), "q2_xy")
+                play("x180", "q1_xy", amplitude_scale=a)
+                play("x180", "q2_xy", amplitude_scale=a)
                 # Measure after the qubit pulses
                 align()
                 # Multiplexed readout, also saves the measurement outcomes

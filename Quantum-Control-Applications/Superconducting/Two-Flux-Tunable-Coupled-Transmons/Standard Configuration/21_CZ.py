@@ -86,7 +86,7 @@ with program() as cz:
                 wait(20 * u.ns)
                 # Play a flux pulse on the qubit with the highest frequency to bring it close to the excited qubit while
                 # varying its amplitude and duration in order to observe the SWAP chevron.
-                play("const" * amp(a), f"q{qubit_to_flux_tune}_z", duration=t)
+                play("const", f"q{qubit_to_flux_tune}_z", duration=t, amplitude_scale=a)
                 align()
                 # Wait some time to ensure that the flux pulse will end before the readout pulse
                 wait(20 * u.ns)

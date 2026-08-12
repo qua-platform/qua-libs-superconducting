@@ -72,8 +72,8 @@ with program() as ac_stark_shift:
             state = declare_with_stream(int, "state", average_axes=["shots"])
             # Loop for error amplification (perform many qubit pulses with varying DRAG coefficients)
             with for_(pulses, iter_min, pulses <= it, pulses + d):
-                play("x180" * amp(1), "qubit")
-                play("x180" * amp(-1), "qubit")
+                play("x180", "qubit", amplitude_scale=1)
+                play("x180", "qubit", amplitude_scale=-1)
             # Align the two elements to measure after playing the qubit pulses.
             align("qubit", "resonator")
             # Measure the resonator and extract the qubit state

@@ -82,20 +82,18 @@ with program() as ro_amp_opt:
             # Reset both qubits to ground
             wait(thermalization_time * u.ns)
             # Measure the ground IQ blobs
-            measure(
-                "readout" * amp(a),
-                "rr1",
+            measure("readout", "rr1",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg1),
-            )
-            measure(
-                "readout" * amp(a),
-                "rr2",
+                    amplitude_scale=a,
+                )
+            measure("readout", "rr2",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg2),
-            )
+                    amplitude_scale=a,
+                )
             save(Ig1, Ig1_st)
             save(Qg1, Qg1_st)
             save(Ig2, Ig2_st)
@@ -108,20 +106,18 @@ with program() as ro_amp_opt:
             play("x180", "q1_xy")
             play("x180", "q2_xy")
             align()
-            measure(
-                "readout" * amp(a),
-                "rr1",
+            measure("readout", "rr1",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe1),
-            )
-            measure(
-                "readout" * amp(a),
-                "rr2",
+                    amplitude_scale=a,
+                )
+            measure("readout", "rr2",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe2),
-            )
+                    amplitude_scale=a,
+                )
             save(Ie1, Ie1_st)
             save(Qe1, Qe1_st)
             save(Ie2, Ie2_st)

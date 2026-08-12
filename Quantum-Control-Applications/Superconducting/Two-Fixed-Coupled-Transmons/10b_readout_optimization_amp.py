@@ -79,18 +79,20 @@ with program() as PROGRAM:
             wait(thermalization_time * u.ns)
             # Measure the ground IQ blobs
             measure(
-                "readout" * amp(a),
+                "readout",
                 "rr1",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg1),
+                amplitude_scale=a,
             )
             measure(
-                "readout" * amp(a),
+                "readout",
                 "rr2",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg2),
+                amplitude_scale=a,
             )
             save(Ig1, Ig1_st)
             save(Qg1, Qg1_st)
@@ -105,18 +107,20 @@ with program() as PROGRAM:
             play("x180", "q2_xy")
             align()
             measure(
-                "readout" * amp(a),
+                "readout",
                 "rr1",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe1),
+                amplitude_scale=a,
             )
             measure(
-                "readout" * amp(a),
+                "readout",
                 "rr2",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe2),
+                amplitude_scale=a,
             )
             save(Ie1, Ie1_st)
             save(Qe1, Qe1_st)

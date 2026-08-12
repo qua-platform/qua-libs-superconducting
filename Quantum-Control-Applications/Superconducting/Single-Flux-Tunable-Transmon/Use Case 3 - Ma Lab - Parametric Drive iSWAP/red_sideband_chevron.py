@@ -49,10 +49,10 @@ with program() as red_sideband:
                 # Wait for the qubit to decay
                 wait(cooldown_time, "qubit1", "flux_line_rs")
                 # drive the qubit to the |e> state
-                play("pi" * amp(q1_ge_amp), "qubit1")
+                play("pi", "qubit1", amplitude_scale=q1_ge_amp)
                 # Play the red sideband after the qubit pulse with varying duration
                 align("qubit1", "flux_line_rs")
-                play("offset" * amp(a), "flux_line_rs", duration=tau)
+                play("offset", "flux_line_rs", duration=tau, amplitude_scale=a)
                 # Measure the state of the resonator after the flux pulse
                 align("resonator1", "flux_line_rs")
                 measure(

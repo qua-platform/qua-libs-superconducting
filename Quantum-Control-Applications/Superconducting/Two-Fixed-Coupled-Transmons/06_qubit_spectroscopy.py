@@ -82,10 +82,10 @@ with program() as PROGRAM:
             update_frequency("q2_xy", df + qubit_IF_q2)
             # Play the saturation pulse to put the qubit in a mixed state - Can adjust the amplitude on the fly [-2; 2)
             # qubit 1
-            play("cw" * amp(saturation_scaling), "q1_xy", duration=saturation_len * u.ns)
+            play("cw", "q1_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_scaling)
             align("q1_xy", "rr1")
             # qubit 2
-            play("cw" * amp(saturation_scaling), "q2_xy", duration=saturation_len * u.ns)
+            play("cw", "q2_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_scaling)
             align("q2_xy", "rr2")
 
             # Multiplexed readout, also saves the measurement outcomes

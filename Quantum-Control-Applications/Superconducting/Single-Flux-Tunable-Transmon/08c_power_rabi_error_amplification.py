@@ -70,7 +70,7 @@ with program() as power_rabi_err:
                 Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
                 # Loop for error amplification (perform many qubit pulses with varying amplitudes)
                 with for_(n2, 0, n2 < n_rabi, n2 + 1):
-                    play("x180" * amp(a), "qubit")
+                    play("x180", "qubit", amplitude_scale=a)
                 # Align the two elements to measure after playing the qubit pulses.
                 align("qubit", "resonator")
                 # Measure the state of the resonator

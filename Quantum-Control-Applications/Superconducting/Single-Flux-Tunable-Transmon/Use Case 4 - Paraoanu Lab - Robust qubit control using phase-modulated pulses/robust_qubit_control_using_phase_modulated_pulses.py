@@ -111,7 +111,7 @@ with program() as rabi_amp_freq:
                 update_frequency("qubit", detuning + qubit_IF)
 
                 # Play the pulse with the current amplitude on the qubit
-                play("robust_op" * amp(a), "qubit")
+                play("robust_op", "qubit", amplitude_scale=a)
 
                 # Align the qubit and resonator operations
                 align("qubit", "resonator")

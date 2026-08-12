@@ -80,8 +80,8 @@ with program() as qubit_AC_stark_shift:
             # Play the saturation pulse to put the qubit in a mixed state - Can adjust the amplitude on the fly [-2; 2)
             # simultaneously with the off pump pulse to the resonator (with a detuned frequency)
             update_frequency("resonator", resonator_IF - detuning)
-            play("off_pump" * amp(off_saturation_amp), "resonator", duration=saturation_len * u.ns)
-            play("saturation" * amp(saturation_amp), "qubit", duration=saturation_len * u.ns)
+            play("off_pump", "resonator", duration=saturation_len * u.ns, amplitude_scale=off_saturation_amp)
+            play("saturation", "qubit", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
             # Align the two elements to measure after playing the storage pulse.
             # Measure the storage state by applying a selective pi-pulse to the qubit and measure the qubit state
             align("qubit", "resonator")

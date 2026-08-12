@@ -66,11 +66,12 @@ with program() as PROGRAM:
             update_frequency(resonator, f)
             # Measure the resonator (send a readout pulse and demodulate the signals to get the 'I' & 'Q' quadratures)
             measure(
-                "readout" * amp(1),
+                "readout",
                 resonator,
                 None,
                 dual_demod.full("cos", "sin", I),
                 dual_demod.full("minus_sin", "cos", Q),
+                amplitude_scale=1,
             )
             # Wait for the resonator to deplete
             wait(depletion_time * u.ns, resonator)
@@ -78,6 +79,7 @@ with program() as PROGRAM:
 
     with stream_processing():
         # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
+        n_st.save("iteration")
 
 #####################################
 #  Open Communication with the QOP  #

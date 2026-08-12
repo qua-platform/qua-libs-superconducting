@@ -51,7 +51,7 @@ with program() as blue_sideband:
                 wait(cooldown_time, "qubit1", "flux_line_bs")
                 # Play the blue sideband after the qubit pulse with varying duration
                 align("qubit1", "flux_line_bs")
-                play("const" * amp(a), "flux_line_bs", duration=tau)
+                play("const", "flux_line_bs", duration=tau, amplitude_scale=a)
                 # Measure the state of the resonator after the flux pulse
                 align("resonator1", "flux_line_bs")
                 measure(

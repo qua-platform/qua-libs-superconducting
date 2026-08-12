@@ -40,8 +40,8 @@ with program() as drag2:
                 measure("readout", "resonator", None, dual_demod.full("rotated_cos", "rotated_sin", I_g))
             align()
             wait(resonator_cooldown)
-            play("x180" * amp(1, 0, 0, a), "qubit")
-            play("y90" * amp(a, 0, 0, 1), "qubit")
+            play("x180", "qubit", amplitude_scale=(1, 0, 0, a))
+            play("y90", "qubit", amplitude_scale=(a, 0, 0, 1))
             align("qubit", "resonator")
             measure(
                 "readout",
@@ -61,8 +61,8 @@ with program() as drag2:
             align()
             wait(resonator_cooldown)
 
-            play("y180" * amp(a, 0, 0, 1), "qubit")
-            play("x90" * amp(1, 0, 0, a), "qubit")
+            play("y180", "qubit", amplitude_scale=(a, 0, 0, 1))
+            play("x90", "qubit", amplitude_scale=(1, 0, 0, a))
             align("qubit", "resonator")
             measure(
                 "readout",

@@ -88,7 +88,7 @@ with program() as wigner_tomography:
                 align()
 
                 # Play displacement pulse
-                play("cw" * amp(aI, 0, aQ, 0), "storage")
+                play("cw", "storage", amplitude_scale=(aI, 0, aQ, 0))
                 align()
                 # Ramsey sequence with idle time set to pi / chi
                 play("x90", "qubit")
@@ -118,7 +118,7 @@ with program() as wigner_tomography:
                 align()
 
                 # Play displacement pulse
-                play("cw" * amp(aI, 0, aQ, 0), "storage")
+                play("cw", "storage", amplitude_scale=(aI, 0, aQ, 0))
                 align()
                 # Ramsey sequence with idle time set to pi / chi
                 play("x90", "qubit")

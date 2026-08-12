@@ -199,7 +199,7 @@ def test_simulate_hello_qua_with_merged_split_config() -> None:
         a = declare(fixed)
         with infinite_loop_():
             with for_(a, 0, a < 1.1, a + 0.05):
-                play("pi" * amp(a), "qubit")
+                play("pi", "qubit", amplitude_scale=a)
             wait(25, "qubit")
 
     try:

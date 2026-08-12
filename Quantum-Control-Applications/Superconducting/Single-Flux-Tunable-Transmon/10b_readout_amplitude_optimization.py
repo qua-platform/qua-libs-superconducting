@@ -66,12 +66,11 @@ with program() as ro_amp_opt:
         save(counter, n_st)
         for shot in shots:
             assign(n, shot)
-            measure(
-                "readout" * amp(a),
-                "resonator",
+            measure("readout", "resonator",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_g),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g),
+                amplitude_scale=a,
             )
             wait(thermalization_time * u.ns, "resonator")
             save(I_g, I_g_st)
@@ -79,13 +78,12 @@ with program() as ro_amp_opt:
             align()
             play("x180", "qubit")
             align("qubit", "resonator")
-            measure(
-                "readout" * amp(a),
-                "resonator",
+            measure("readout", "resonator",
                 None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_e),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e),
-            )
+                    amplitude_scale=a,
+                )
             wait(thermalization_time * u.ns, "resonator")
             save(I_e, I_e_st)
             save(Q_e, Q_e_st)

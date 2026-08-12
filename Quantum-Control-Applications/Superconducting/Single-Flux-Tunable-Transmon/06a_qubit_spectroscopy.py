@@ -79,7 +79,7 @@ with program() as qubit_spec:
             # Update the frequency of the digital oscillator linked to the qubit element
             update_frequency("qubit", df + center)
             # Play the saturation pulse to put the qubit in a mixed state - Can adjust the amplitude on the fly [-2; 2)
-            play("saturation" * amp(saturation_amp), "qubit", duration=saturation_len * u.ns)
+            play("saturation", "qubit", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
             # Align the two elements to measure after playing the qubit pulse.
             # One can also measure the resonator while driving the qubit by commenting the 'align'
             align("qubit", "resonator")

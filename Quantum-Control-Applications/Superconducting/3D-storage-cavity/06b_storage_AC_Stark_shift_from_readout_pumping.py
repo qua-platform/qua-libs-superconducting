@@ -77,7 +77,7 @@ with program() as storage_AC_stark_shift:
             # Play the displacement pulse to the storage cavity and
             # the off pump pulse to the resonator (with a detuned frequency) simultaneously
             update_frequency("resonator", resonator_IF - detuning)
-            play("off_pump" * amp(off_saturation_amp), "resonator", duration=storage_const_len * u.ns)
+            play("off_pump", "resonator", duration=storage_const_len * u.ns, amplitude_scale=off_saturation_amp)
             play("cw", "storage", duration=storage_const_len * u.ns)
             align("qubit", "storage")
             # Align the two elements to measure after playing the storage pulse.

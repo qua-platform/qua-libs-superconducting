@@ -60,7 +60,7 @@ with program() as power_rabi:
             I = declare_with_stream(fixed, "I", average_axes=["shots"])
             Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
             # Play the qubit pulse with a variable amplitude (pre-factor to the pulse amplitude defined in the config)
-            play("x180" * amp(a), "qubit")
+            play("x180", "qubit", amplitude_scale=a)
             # Align the two elements to measure after playing the qubit pulse.
             align("qubit", "resonator")
             # Measure the state of the resonator

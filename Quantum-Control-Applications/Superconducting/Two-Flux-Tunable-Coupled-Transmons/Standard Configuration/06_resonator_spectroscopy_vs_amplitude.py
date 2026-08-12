@@ -80,24 +80,22 @@ with program() as multi_res_spec_vs_amp:
                 Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # resonator 1
                 wait(depletion_time * u.ns, "rr1")  # wait for the resonator to relax
-                measure(
-                    "readout" * amp(a),
-                    "rr1",
+                measure("readout", "rr1",
                     None,
                     dual_demod.full("cos", "sin", I1),
                     dual_demod.full("minus_sin", "cos", Q1),
+                    amplitude_scale=a,
                 )
 
                 # align("rr1", "rr2")  # Uncomment to measure sequentially
 
                 # resonator 2
                 wait(depletion_time * u.ns, "rr2")  # wait for the resonator to relax
-                measure(
-                    "readout" * amp(a),
-                    "rr2",
+                measure("readout", "rr2",
                     None,
                     dual_demod.full("cos", "sin", I2),
                     dual_demod.full("minus_sin", "cos", Q2),
+                    amplitude_scale=a,
                 )
 
     with stream_processing():

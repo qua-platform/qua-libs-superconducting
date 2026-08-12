@@ -27,7 +27,7 @@ element = "rr1"
 ###################
 with program() as manual_mixer_calib:
     with infinite_loop_():
-        play("cw" * amp(0), element)
+        play("cw", element, amplitude_scale=0)
 
 
 #####################################

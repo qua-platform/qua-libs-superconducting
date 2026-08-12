@@ -231,3 +231,52 @@ For `simulate_qua_program`, keep using `simulate_and_plot(qmm, config, ...)` wit
 | Simulate path: `qmm.simulate(config, ...)` without `open_qm` | Pending |
 | Qualibration nodes split `generate_config()` at execute time | Pending |
 | Grep gate in `test_config_split.py` | Pending |
+
+## `amp()` deprecation (qm-qua 1.4.0)
+
+In qm-qua **1.4.0**, the QUA `amp()` DSL function is deprecated. Use the `amplitude_scale` keyword on `play` and `measure` instead. See [qm-qua 1.4.0 release notes](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/).
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `play("pulse" * amp(x), element)` | `play("pulse", element, amplitude_scale=x)` |
+| `play("pulse" * amp(a,b,c,d), element)` | `play("pulse", element, amplitude_scale=(a,b,c,d))` |
+| `measure("op" * amp(x), el, stream, ...)` | `measure("op", el, stream, ..., amplitude_scale=x)` |
+
+**Examples:**
+
+```python
+# Scalar scaling
+play("x180" * amp(a), "qubit")
+# -> play("x180", "qubit", amplitude_scale=a)
+
+play("cw" * amp(0), element, duration=t)
+# -> play("cw", element, duration=t, amplitude_scale=0)
+
+# DRAG / mixer I-Q scaling (4 components)
+play("x180" * amp(1, 0, 0, a), "qubit")
+# -> play("x180", "qubit", amplitude_scale=(1, 0, 0, a))
+
+# Readout amplitude in measure
+measure(
+    "readout" * amp(a),
+    "resonator",
+    None,
+    dual_demod.full("cos", "sin", I),
+    dual_demod.full("minus_sin", "cos", Q),
+)
+# -> measure("readout", "resonator", None, dual_demod.full(...), ..., amplitude_scale=a)
+
+# Star-unpack (e.g. XEB gate macros)
+play("sx" * amp(*amp_matrix), qubit_el)
+# -> play("sx", qubit_el, amplitude_scale=(amp_matrix[0], amp_matrix[1], amp_matrix[2], amp_matrix[3]))
+```
+
+Bulk migration script: [`scripts/migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py). CI grep gate: `test_no_deprecated_amp.py`.
+
+### Completion checklist (`amp()` migration)
+
+| Criterion | Status |
+|-----------|--------|
+| No `* amp(` in QCA, qualibration, or Tutorials Python | Done |
+| Shared `macros.py` use `amplitude_scale` | Done |
+| Grep gate in `test_no_deprecated_amp.py` | Done |

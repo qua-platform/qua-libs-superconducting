@@ -104,7 +104,7 @@ with program() as PROGRAM:
                     # direct + cancel
                     align(qc_xy, qt_xy, cr_drive, cr_cancel)
                     play("square_positive", cr_drive, duration=t)
-                    play("square_positive" * amp(cr_cancel_amp), cr_cancel, duration=t)
+                    play("square_positive", cr_cancel, duration=t, amplitude_scale=cr_cancel_amp)
 
                     # QST on Target
                     align(qc_xy, qt_xy, cr_drive, cr_cancel)
