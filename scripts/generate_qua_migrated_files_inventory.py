@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/plans/qua-1.3.1-migrated-files.md from git history."""
+"""Generate docs/plans/qua-1.4.0-migrated-files.md from git history."""
 
 from __future__ import annotations
 
@@ -11,9 +11,24 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BASE = "135a164^"
-DEFAULT_HEAD = "21fced8"
-OUTPUT_PATH = REPO_ROOT / "docs" / "plans" / "qua-1.3.1-migrated-files.md"
-MIGRATION_GUIDE = "qua-1.3.1-migration.md"
+DEFAULT_HEAD = "6431a04"
+OUTPUT_PATH = REPO_ROOT / "docs" / "plans" / "qua-1.4.0-migrated-files.md"
+MIGRATION_GUIDE = "qua-1.4.0-migration.md"
+# Git history may list the pre-rename inventory script; map to the current path.
+HISTORICAL_PATH_ALIASES = {
+    "scripts/generate_qua_131_inventory.py": "scripts/generate_qua_migrated_files_inventory.py",
+}
+
+
+def normalize_changed_files(changed_files: list[str]) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for rel in changed_files:
+        rel = HISTORICAL_PATH_ALIASES.get(rel, rel)
+        if rel not in seen:
+            seen.add(rel)
+            normalized.append(rel)
+    return sorted(normalized)
 
 
 def group_key(rel: str) -> str:
@@ -51,14 +66,16 @@ def render_markdown(changed_files: list[str], base: str, head: str) -> str:
         groups[group_key(rel)].append(rel)
 
     lines = [
-        "# QUA 1.3.1 migrated Python files",
+        "# QUA 1.3.1 / 1.4.0 migrated Python files",
         "",
         "> Auto-generated — do not edit by hand. Regenerate with:",
-        "> `uv run python scripts/generate_qua_131_inventory.py`",
+        "> `uv run python scripts/generate_qua_migrated_files_inventory.py`",
         "",
-        "Inventory of Python files updated during the QUA 1.3.1 migration "
-        "(new streaming API and/or QUA iterables). "
-        f"See [{MIGRATION_GUIDE}]({MIGRATION_GUIDE}) for migration patterns and rationale.",
+        "Inventory of Python files touched during the QUA 1.3.1 and 1.4.0 migrations "
+        "(iterables & auto-streaming, config split, `amp()` → `amplitude_scale`). "
+        "This list is derived from git history and does not distinguish which change "
+        f"type applies to each file — see [{MIGRATION_GUIDE}]({MIGRATION_GUIDE}) "
+        "for migration patterns by version.",
         "",
         "## Summary",
         "",
@@ -95,7 +112,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        changed_files = git_changed_files(args.base, args.head)
+        changed_files = normalize_changed_files(git_changed_files(args.base, args.head))
     except RuntimeError as exc:
         print(exc, file=sys.stderr)
         return 1

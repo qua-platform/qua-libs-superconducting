@@ -210,3 +210,70 @@ def test_simulate_hello_qua_with_merged_split_config() -> None:
 
     job.wait_until("Done")
     assert job.get_simulated_samples() is not None
+
+
+QUEUE_SCAN_ROOTS = (
+    REPO_ROOT / "Quantum-Control-Applications",
+    REPO_ROOT / "qualibration_graphs",
+    REPO_ROOT / "Tutorials",
+)
+QUEUE_EXCLUDE_PATH_PARTS = (
+    "docs/plans",
+    "/.venv/",
+    "/__pycache__/",
+    "/site-packages/",
+)
+DEPRECATED_QUEUE_PATTERNS = (
+    re.compile(r"\badd_to_queue\s*\("),
+    re.compile(r"\badd_compiled\s*\("),
+)
+
+
+def _iter_queue_scan_files() -> list[Path]:
+    files: list[Path] = []
+    for root in QUEUE_SCAN_ROOTS:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*.py")):
+            rel = path.relative_to(REPO_ROOT).as_posix()
+            if any(part in rel for part in QUEUE_EXCLUDE_PATH_PARTS):
+                continue
+            files.append(path)
+    return files
+
+
+def _active_code_lines(text: str) -> list[tuple[int, str]]:
+    active: list[tuple[int, str]] = []
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        if "#" in line:
+            line = line.split("#", 1)[0]
+        active.append((line_no, line))
+    return active
+
+
+def find_deprecated_queue_usages(path: Path) -> list[str]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    hits: list[str] = []
+    for line_no, line in _active_code_lines(text):
+        if any(pattern.search(line) for pattern in DEPRECATED_QUEUE_PATTERNS):
+            hits.append(f"{path.relative_to(REPO_ROOT)}:{line_no}: {line.strip()}")
+    return hits
+
+
+@pytest.mark.parametrize(
+    "py_file",
+    _iter_queue_scan_files(),
+    ids=lambda path: str(path.relative_to(REPO_ROOT)),
+)
+def test_no_deprecated_queue_overrides(py_file: Path) -> None:
+    violations = find_deprecated_queue_usages(py_file)
+    assert not violations, (
+        "Deprecated program-queue API usage found (use qm.execute with config= instead):\n"
+        + "\n".join(violations)
+    )

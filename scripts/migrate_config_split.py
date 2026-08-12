@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Migrate QUA configs and scripts to controller/logical split."""
+"""Migrate QUA configs and scripts to controller/logical split (Part 2 of docs/plans/qua-1.4.0-migration.md)."""
 
 from __future__ import annotations
 

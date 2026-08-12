@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Migrate Quantum-Control-Applications QUA scripts to qm-qua 1.3.1."""
+"""Migrate Quantum-Control-Applications QUA scripts to qm-qua 1.3.1 (Part 1 of docs/plans/qua-1.4.0-migration.md)."""
 
 from __future__ import annotations
 

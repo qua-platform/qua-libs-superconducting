@@ -1,16 +1,16 @@
-# QUA 1.3.1 migrated Python files
+# QUA 1.3.1 / 1.4.0 migrated Python files
 
 > Auto-generated — do not edit by hand. Regenerate with:
-> `uv run python scripts/generate_qua_131_inventory.py`
+> `uv run python scripts/generate_qua_migrated_files_inventory.py`
 
-Inventory of Python files updated during the QUA 1.3.1 migration (new streaming API and/or QUA iterables). See [qua-1.3.1-migration.md](qua-1.3.1-migration.md) for migration patterns and rationale.
+Inventory of Python files touched during the QUA 1.3.1 and 1.4.0 migrations (iterables & auto-streaming, config split, `amp()` → `amplitude_scale`). This list is derived from git history and does not distinguish which change type applies to each file — see [qua-1.4.0-migration.md](qua-1.4.0-migration.md) for migration patterns by version.
 
 ## Summary
 
-- Total files: 225
-- Migration commits: `135a164^` … `21fced8`
+- Total files: 288
+- Migration commits: `135a164^` … `6431a04`
 
-## Quantum-Control-Applications / Superconducting / 3D-storage-cavity (14)
+## Quantum-Control-Applications / Superconducting / 3D-storage-cavity (16)
 
 - [`00_selective_pulse_power_rabi.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/00_selective_pulse_power_rabi.py)
 - [`01_storage_spectroscopy.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/01_storage_spectroscopy.py)
@@ -25,10 +25,14 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`07_parity_measurement.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/07_parity_measurement.py)
 - [`08_Wigner_tomography.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/08_Wigner_tomography.py)
 - [`09_swapping.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/09_swapping.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/configuration.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/macros.py)
+- [`octave_calibration.py`](../../Quantum-Control-Applications/Superconducting/3D-storage-cavity/octave_calibration.py)
 
-## Quantum-Control-Applications / Superconducting / Single-Fixed-Transmon (46)
+## Quantum-Control-Applications / Superconducting / Single-Fixed-Transmon (59)
 
+- [`00_hello_qua.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/00_hello_qua.py)
+- [`01_manual_mixer_calibration.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/01_manual_mixer_calibration.py)
 - [`02_raw_adc_traces.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/02_raw_adc_traces.py)
 - [`02_raw_adc_traces_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/02_raw_adc_traces_mw_fem.py)
 - [`03_time_of_flight.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/03_time_of_flight.py)
@@ -73,11 +77,24 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`20_frequency_tracking.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/20_frequency_tracking.py)
 - [`IQ_blobs_opt_weights_benchmark.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 2 - Optimized readout with optimal weights/IQ_blobs_opt_weights_benchmark.py)
 - [`IQ_blobs_opt_weights_train.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 2 - Optimized readout with optimal weights/IQ_blobs_opt_weights_train.py)
+- [`StateDiscriminator.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 2 - Optimized readout with optimal weights/StateDiscriminator.py)
+- [`TimeDiffCalibrator.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 2 - Optimized readout with optimal weights/TimeDiffCalibrator.py)
+- [`advanced_calibration_prototype.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/advanced_calibration_prototype.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 2 - Optimized readout with optimal weights/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/configuration.py)
+- [`configuration_with_lf_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/configuration_with_lf_fem.py)
+- [`configuration_with_lf_fem_and_octave.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/configuration_with_lf_fem_and_octave.py)
+- [`configuration_with_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/configuration_with_mw_fem.py)
+- [`configuration_with_octave.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/configuration_with_octave.py)
+- [`frequency_tracking.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 1 - Schuster Lab - Qubit Frequency Tracking/frequency_tracking.py)
 - [`frequency_tracking_class.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/Use Case 1 - Schuster Lab - Qubit Frequency Tracking/frequency_tracking_class.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/macros.py)
+- [`octave_calibration.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/octave_calibration.py)
 
-## Quantum-Control-Applications / Superconducting / Single-Flux-Tunable-Transmon (50)
+## Quantum-Control-Applications / Superconducting / Single-Flux-Tunable-Transmon (63)
 
+- [`00_hello_qua.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/00_hello_qua.py)
+- [`01_manual_mixer_calibration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/01_manual_mixer_calibration.py)
 - [`02_raw_adc_traces.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/02_raw_adc_traces.py)
 - [`02_raw_adc_traces_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/02_raw_adc_traces_mw_fem.py)
 - [`03_time_of_flight.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/03_time_of_flight.py)
@@ -121,16 +138,29 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`Google_detuning_1D.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 2 - DRAG coefficient calibration/Google_detuning_1D.py)
 - [`Google_detuning_2D.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 2 - DRAG coefficient calibration/Google_detuning_2D.py)
 - [`Yale_DRAG.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 2 - DRAG coefficient calibration/Yale_DRAG.py)
+- [`advanced_calibration_prototype.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/advanced_calibration_prototype.py)
 - [`blue_sideband_chevron.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 3 - Ma Lab - Parametric Drive iSWAP/blue_sideband_chevron.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 2 - DRAG coefficient calibration/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 3 - Ma Lab - Parametric Drive iSWAP/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 4 - Paraoanu Lab - Robust qubit control using phase-modulated pulses/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/configuration.py)
+- [`configuration_SSB.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 1 - Paraoanu Lab - Cryoscope/configuration_SSB.py)
+- [`configuration_with_lf_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/configuration_with_lf_fem.py)
+- [`configuration_with_lf_fem_and_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/configuration_with_lf_fem_and_mw_fem.py)
+- [`configuration_with_lf_fem_and_octave.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/configuration_with_lf_fem_and_octave.py)
+- [`configuration_with_octave.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/configuration_with_octave.py)
 - [`cryoscope.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 1 - Paraoanu Lab - Cryoscope/cryoscope.py)
 - [`cryoscope_amplitude_calibration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 1 - Paraoanu Lab - Cryoscope/cryoscope_amplitude_calibration.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/macros.py)
+- [`octave_calibration.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/octave_calibration.py)
 - [`rb.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 2 - DRAG coefficient calibration/rb.py)
 - [`red_sideband_chevron.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 3 - Ma Lab - Parametric Drive iSWAP/red_sideband_chevron.py)
 - [`robust_qubit_control_using_phase_modulated_pulses.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use Case 4 - Paraoanu Lab - Robust qubit control using phase-modulated pulses/robust_qubit_control_using_phase_modulated_pulses.py)
 
-## Quantum-Control-Applications / Superconducting / Two-Fixed-Coupled-Transmons (34)
+## Quantum-Control-Applications / Superconducting / Two-Fixed-Coupled-Transmons (43)
 
+- [`00_hello_qua.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/00_hello_qua.py)
+- [`01a_manual_mixer_calibration.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/01a_manual_mixer_calibration.py)
 - [`02_time_of_flight.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/02_time_of_flight.py)
 - [`03_resonator_spectroscopy_single.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/03_resonator_spectroscopy_single.py)
 - [`04_resonator_spectroscopy_multiplexed.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/04_resonator_spectroscopy_multiplexed.py)
@@ -162,12 +192,21 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`19e_CR_calib_cr_cancel_amplitude.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/19e_CR_calib_cr_cancel_amplitude.py)
 - [`19f_CR_calib_cr_driven_ramsey_RCVersion.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/19f_CR_calib_cr_driven_ramsey_RCVersion.py)
 - [`20_CNOT.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/20_CNOT.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/Use Case 1 - Two qubit RB with cross-resonance gates/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/configuration.py)
+- [`configuration_lf_fem.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/configuration_lf_fem.py)
+- [`configuration_lf_fem_and_octave.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/configuration_lf_fem_and_octave.py)
+- [`configuration_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/configuration_mw_fem.py)
+- [`configuration_with_octave.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/configuration_with_octave.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/Use Case 1 - Two qubit RB with cross-resonance gates/macros.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/macros.py)
+- [`octave_calibration.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/octave_calibration.py)
 - [`run_two_qubit_rb_CR_CNOT.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/Use Case 1 - Two qubit RB with cross-resonance gates/run_two_qubit_rb_CR_CNOT.py)
 
-## Quantum-Control-Applications / Superconducting / Two-Flux-Tunable-Coupled-Transmons (42)
+## Quantum-Control-Applications / Superconducting / Two-Flux-Tunable-Coupled-Transmons (55)
 
+- [`00_hello_qua.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/00_hello_qua.py)
+- [`01_manual_mixer_calibration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/01_manual_mixer_calibration.py)
 - [`02_raw_adc_traces.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/02_raw_adc_traces.py)
 - [`02_raw_adc_traces_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/02_raw_adc_traces_mw_fem.py)
 - [`03_time_of_flight.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/03_time_of_flight.py)
@@ -202,26 +241,47 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`21_CZ_1ns.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/21_CZ_1ns.py)
 - [`SWAP_spectroscopy.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 1 - Two qubit gate optimization with cryoscope/SWAP_spectroscopy.py)
 - [`TwoQubitRB.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 2 - Two-Qubit-Randomized-Benchmarking/two_qubit_rb/TwoQubitRB.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 1 - Two qubit gate optimization with cryoscope/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 2 - Two-Qubit-Randomized-Benchmarking/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 2 - Two-Qubit-Randomized-Benchmarking/two_qubit_rb/test/configuration.py)
+- [`configuration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 4 - Single- and Two-Qubit State and Process Tomography/configuration.py)
+- [`configuration_with_lf_fem.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/configuration_with_lf_fem.py)
+- [`configuration_with_lf_fem_and_mw_fem.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/configuration_with_lf_fem_and_mw_fem.py)
+- [`configuration_with_lf_fem_and_octave.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/configuration_with_lf_fem_and_octave.py)
+- [`configuration_with_octave.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/configuration_with_octave.py)
 - [`cryoscope.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 1 - Two qubit gate optimization with cryoscope/cryoscope.py)
 - [`gateset.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 3 - Two-Qubit Cross-Entropy Benchmarking/gateset.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/macros.py)
 - [`macros.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 3 - Two-Qubit Cross-Entropy Benchmarking/macros.py)
+- [`octave_calibration.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/octave_calibration.py)
 - [`single-qubit-process-tomography.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 4 - Single- and Two-Qubit State and Process Tomography/single-qubit-process-tomography.py)
 - [`single-qubit-state-tomography.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 4 - Single- and Two-Qubit State and Process Tomography/single-qubit-state-tomography.py)
 - [`two-qubit-process-tomography.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 4 - Single- and Two-Qubit State and Process Tomography/two-qubit-process-tomography.py)
 - [`two-qubit-state-tomography.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 4 - Single- and Two-Qubit State and Process Tomography/two-qubit-state-tomography.py)
+- [`two_qubit_rb_example.py`](../../Quantum-Control-Applications/Superconducting/Two-Flux-Tunable-Coupled-Transmons/Use Case 2 - Two-Qubit-Randomized-Benchmarking/two_qubit_rb_example.py)
 
-## Tutorials (1)
+## Quantum-Control-Applications / Superconducting / qua_config_split.py (1)
 
+- [`qua_config_split.py`](../../Quantum-Control-Applications/Superconducting/qua_config_split.py)
+
+## Tutorials (2)
+
+- [`configuration_with_lf_fem_and_mw_fem.py`](../../Tutorials/intro-to-QUAlibrate/configuration/configuration_with_lf_fem_and_mw_fem.py)
 - [`time_of_flight.py`](../../Tutorials/intro-to-QUAlibrate/calibrations/time_of_flight.py)
+
+## qualibration_graphs / superconducting / calibration_utils / qua_config_split.py (1)
+
+- [`qua_config_split.py`](../../qualibration_graphs/superconducting/calibration_utils/qua_config_split.py)
 
 ## qualibration_graphs / superconducting / calibration_utils / readout_optimization_3d (1)
 
 - [`make_qua_streams_per_qubit.py`](../../qualibration_graphs/superconducting/calibration_utils/readout_optimization_3d/make_qua_streams_per_qubit.py)
 
-## qualibration_graphs / superconducting / calibrations / 1Q_calibrations (31)
+## qualibration_graphs / superconducting / calibrations / 1Q_calibrations (33)
 
 - [`00_hello_qua.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/00_hello_qua.py)
+- [`01a_mixer_calibration.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/01a_mixer_calibration.py)
 - [`01a_time_of_flight.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/01a_time_of_flight.py)
 - [`01b_time_of_flight_mw_fem.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/01b_time_of_flight_mw_fem.py)
 - [`02a_resonator_spectroscopy.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/02a_resonator_spectroscopy.py)
@@ -249,21 +309,36 @@ Inventory of Python files updated during the QUA 1.3.1 migration (new streaming 
 - [`14_gef_readout_frequency_optimization.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/14_gef_readout_frequency_optimization.py)
 - [`15_iq_blobs_gef.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/15_iq_blobs_gef.py)
 - [`16a_xyz_delay.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/16a_xyz_delay.py)
+- [`16b_xy_coupler_z_delay.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/16b_xy_coupler_z_delay.py)
 - [`17_pi_vs_flux_long_distortions.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/17_pi_vs_flux_long_distortions.py)
 - [`18_cryoscope.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/18_cryoscope.py)
 - [`19_zz_off_jazz.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/19_zz_off_jazz.py)
 
-## qualibration_graphs / superconducting / calibrations / CZ_calibrations (4)
+## qualibration_graphs / superconducting / calibrations / CZ_calibrations (7)
 
+- [`30_cz_iswap_flux_bootstrap.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/30_cz_iswap_flux_bootstrap.py)
 - [`31_chevron_11_20.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/31_chevron_11_20.py)
 - [`32a_cz_conditional_phase.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/32a_cz_conditional_phase.py)
 - [`32b_cz_conditional_phase_error_amp.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/32b_cz_conditional_phase_error_amp.py)
 - [`33_cz_phase_compensation.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/33_cz_phase_compensation.py)
+- [`35_two_qubit_confusion_matrix.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/35_two_qubit_confusion_matrix.py)
+- [`36_bell_state_tomography.py`](../../qualibration_graphs/superconducting/calibrations/CZ_calibrations/36_bell_state_tomography.py)
+
+## qualibration_graphs / superconducting / tests / test_config_split.py (1)
+
+- [`test_config_split.py`](../../qualibration_graphs/superconducting/tests/test_config_split.py)
+
+## qualibration_graphs / superconducting / tests / test_no_deprecated_amp.py (1)
+
+- [`test_no_deprecated_amp.py`](../../qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py)
 
 ## qualibration_graphs / superconducting / tests / test_qua_compile.py (1)
 
 - [`test_qua_compile.py`](../../qualibration_graphs/superconducting/tests/test_qua_compile.py)
 
-## scripts (1)
+## scripts (4)
 
+- [`generate_qua_migrated_files_inventory.py`](../../scripts/generate_qua_migrated_files_inventory.py)
+- [`migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py)
+- [`migrate_config_split.py`](../../scripts/migrate_config_split.py)
 - [`migrate_qca_qua_131.py`](../../scripts/migrate_qca_qua_131.py)

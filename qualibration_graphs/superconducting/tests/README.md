@@ -1,6 +1,6 @@
 # Tests — superconducting-calibrations
 
-Static gate for the [QUA 1.3.1 migration](../../../docs/plans/qua-1.3.1-migration.md) of
+Static gate for the [QUA 1.3.1 / 1.4.0 migration](../../../docs/plans/qua-1.4.0-migration.md) of
 **calibration nodes** under `calibrations/`.
 
 Despite the filename, `test_qua_compile.py` does **not** call the QM compiler (`qm.compile()`).
@@ -12,6 +12,8 @@ It checks Python syntax, module imports, qm-qua 1.3.1 API availability, and that
 | File | Path | Role |
 |------|------|------|
 | `test_qua_compile.py` | `qualibration_graphs/superconducting/tests/test_qua_compile.py` | QUA 1.3.1 migration gate (main suite) |
+| `test_config_split.py` | `qualibration_graphs/superconducting/tests/test_config_split.py` | QUA 1.4.0 config split + queue deprecation gates |
+| `test_no_deprecated_amp.py` | `qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py` | QUA 1.4.0 `amp()` deprecation grep gate |
 | `test_smoke.py` | `qualibration_graphs/superconducting/tests/test_smoke.py` | Package import smoke test |
 
 ## Tests in `test_qua_compile.py`

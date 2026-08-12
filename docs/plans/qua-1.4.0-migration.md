@@ -1,11 +1,15 @@
-# QUA 1.3.1 Migration Guide
+# QUA 1.3.1 / 1.4.0 Migration Guide
 
-Living reference for migrating this repository to **qm-qua 1.3.1** with
-[Iterables & Auto-Streaming](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/).
+Living reference for migrating this repository to **qm-qua 1.4.0** (repo pin), covering changes introduced in **1.3.1** and **1.4.0**:
 
-Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releases/qm_qua_releases/)
+- **1.3.1** — [Iterables & Auto-Streaming](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/), stream API renames
+- **1.4.0** — controller / logical config split, `amp()` deprecation, program-queue `overrides` deprecation
 
-## Baseline audit
+Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releases/qm_qua_releases/) · [qm-qua 1.4.0](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/)
+
+## Part 1 — QUA 1.3.1 (iterables & auto-streaming)
+
+### Baseline audit
 
 | Metric | Count |
 |--------|------:|
@@ -17,7 +21,7 @@ Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releas
 | Nested `for_` loop migration candidates | ~180 |
 | Shared `macros.py` helpers | 7 |
 
-## Compatibility (1.3.1)
+### Compatibility (1.3.1)
 
 | Old API | Replacement |
 |---------|-------------|
@@ -28,7 +32,7 @@ Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releas
 
 Use `PythonIterable` / `PythonIterableRange` (not deprecated `NativeIterable*`).
 
-## When to migrate vs keep manual streams
+### When to migrate vs keep manual streams
 
 | Pattern | Action |
 |---------|--------|
@@ -38,7 +42,7 @@ Use `PythonIterable` / `PythonIterableRange` (not deprecated `NativeIterable*`).
 | IQ blobs (`.save_all()`) | **Keep manual** |
 | Cryoscope / ADC streams | **Keep manual** |
 
-## Tier A migration template
+### Tier A migration template
 
 Reference node: [`02a_resonator_spectroscopy.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/02a_resonator_spectroscopy.py)
 
@@ -80,7 +84,7 @@ with program() as node.namespace["qua_program"]:
         n_st.save("n")
 ```
 
-## Phased rollout
+### Phased rollout
 
 1. **Phase 0** — Pin `qm-qua>=1.3.1`, CI on Python 3.14, compile tests — **done**
 2. **Phase 1** — Qualibration Tier A nodes (~25–30) — **done**
@@ -89,9 +93,9 @@ with program() as node.namespace["qua_program"]:
 5. **Phase 4** — Tutorial (`time_of_flight.py`, `node_anatomy.ipynb` prose aligned with ToF pattern) — **done**
 6. **Phase 5** — `Quantum-Control-Applications/` folder-by-folder — **done**
 
-## Completion checklist (2026-07-22)
+### Completion checklist (2026-07-22)
 
-Full file inventory: [`qua-1.3.1-migrated-files.md`](qua-1.3.1-migrated-files.md)
+Full file inventory: [`qua-1.4.0-migrated-files.md`](qua-1.4.0-migrated-files.md) — single git-derived list spanning both migration phases; per-file change types are documented in the guide parts below, not in the inventory.
 
 | Criterion | Status |
 |-----------|--------|
@@ -135,19 +139,19 @@ Full file inventory: [`qua-1.3.1-migrated-files.md`](qua-1.3.1-migrated-files.md
 - Cross-resonance calibration scripts with nested manual buffers
 - Google DRAG detuning sweeps (Use Case 2 — Python outer loop over config, 1D iter sweep inside)
 
-## Testing
+### Testing
 
 - **Compile gate:** `qualibration_graphs/superconducting/tests/test_qua_compile.py`
 - **Simulation smoke:** enable `node.parameters.simulate` locally
 - **CI:** `.github/workflows/ci.yml` — `qua-compile` job after `uv sync`
 
-## Risks
+### Risks
 
 - `PythonIterable` may suffix stream names (`I_0` vs `I1`) — use explicit stream names in `declare_with_stream`
 - Multiplexed qubits: keep Python batch loop; declare per-qubit streams with `f"I{i+1}"`
 - `XarrayDataFetcher` expects stream `"n"` for progress — declare `n = declare(int)` and `n_st = declare_output_stream()`, then `assign(n, shot)` / `save(n, n_st)` each shot
 
-## Controller / logical config split (qm-qua 1.4.0)
+## Part 2 — QUA 1.4.0 (controller / logical config split)
 
 Since QOP 3.5, the QUA configuration is split into a **controller config** (physical hardware) and a **logical config** (elements, pulses, waveforms). See [Configuration](https://docs.quantum-machines.co/latest/docs/Introduction/config/) and [qm-qua 1.4.0 release notes](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/).
 
@@ -232,7 +236,7 @@ For `simulate_qua_program`, keep using `simulate_and_plot(qmm, config, ...)` wit
 | Qualibration nodes split `generate_config()` at execute time | Pending |
 | Grep gate in `test_config_split.py` | Pending |
 
-## `amp()` deprecation (qm-qua 1.4.0)
+## Part 3 — QUA 1.4.0 (`amp()` deprecation)
 
 In qm-qua **1.4.0**, the QUA `amp()` DSL function is deprecated. Use the `amplitude_scale` keyword on `play` and `measure` instead. See [qm-qua 1.4.0 release notes](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/).
 
@@ -280,3 +284,30 @@ Bulk migration script: [`scripts/migrate_amp_to_amplitude_scale.py`](../../scrip
 | No `* amp(` in QCA, qualibration, or Tutorials Python | Done |
 | Shared `macros.py` use `amplitude_scale` | Done |
 | Grep gate in `test_no_deprecated_amp.py` | Done |
+
+## Part 4 — QUA 1.4.0 (program queue `overrides` deprecation)
+
+In qm-qua **1.4.0**, the `overrides` argument of `add_to_queue()` (and the deprecated
+`queue.add_compiled()`) emits a `DeprecationWarning`; the API is expected to change in 2.0.0.
+See [qm-qua 1.4.0 release notes](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/).
+
+| Deprecated | Guidance |
+|------------|----------|
+| `add_to_queue(..., overrides=...)` | Avoid `overrides`; prefer per-job `config=` on `execute` / `compile` |
+| `queue.add_compiled(..., overrides=...)` | Same; do not use in new code |
+
+**Repo status:** No tracked Python in this repository currently calls these APIs.
+Execution uses `qm.execute(program, config=logical_config)` (QCA scripts and qualibration
+nodes via `qm_session`).
+
+**If adding queue-based workflows later:** Do not pass `overrides`; pass logical config per job
+via the 1.4.0 execute/compile API documented in Part 2.
+
+Bulk migration script: none (not used in this repo). CI grep gate: `test_no_deprecated_queue_overrides` in `test_config_split.py`.
+
+### Completion checklist (queue `overrides`)
+
+| Criterion | Status |
+|-----------|--------|
+| No `add_to_queue(` / `add_compiled(` in QCA, qualibration, or Tutorials | Pass — grep gate in `test_config_split.py` |
+| New queue code avoids deprecated `overrides` API | N/A until queue usage is added |

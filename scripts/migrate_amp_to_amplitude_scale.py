@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Migrate deprecated QUA amp() pulse multiplication to amplitude_scale on play/measure."""
+"""Migrate deprecated QUA amp() to amplitude_scale on play/measure (Part 3 of docs/plans/qua-1.4.0-migration.md)."""
 
 from __future__ import annotations
 
