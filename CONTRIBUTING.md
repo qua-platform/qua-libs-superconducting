@@ -17,6 +17,10 @@ example, ask a question, or propose something to add.
 4. Open a Pull Request back to the main repository.
 5. A maintainer reviews it and merges once it's ready. Ask for help at any step.
 
+### Changelog
+
+Notable changes belong in [CHANGELOG.md](CHANGELOG.md) under `## [Unreleased]`, following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Include changelog updates in the same PR or commit as the change they describe.
+
 ## Development
 
 This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
