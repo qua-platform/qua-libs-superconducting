@@ -4446,7 +4446,7 @@ wheels = [
 
 [[package]]
 name = "qm-qua"
-version = "1.3.1"
+version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datadog-api-client" },
@@ -4464,9 +4464,9 @@ dependencies = [
     { name = "tinydb" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/12/17/90ab8107a546cd9a9e8fec3ff713515490670d0d309b0be87d1e18857e72/qm_qua-1.3.1.tar.gz", hash = "sha256:9b874087ef35a464904e7a59a8db9c87e1189c07853871191e39108fd5c60339", size = 433752, upload-time = "2026-06-18T08:29:17.141Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9d/5d/4ee7063e619180963671ec3b3f9ed2fa701e9329532dcba4dfba9ab68b82/qm_qua-1.4.0.tar.gz", hash = "sha256:77fc7c18bb73e94176d373df2065c1c59922160fb5ff6f8f886d9ecd30da8ab1", size = 476573, upload-time = "2026-08-12T07:23:57.571Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/4b/4022d189c87a3e7c9a96dbac95935e2e6114f76973ad014045b8e8e97f76/qm_qua-1.3.1-py3-none-any.whl", hash = "sha256:e102000a5aff2c93beb8f52a55d731b3bc50cfcdfa9f0b0e0f6e0e2bfb0500ef", size = 533329, upload-time = "2026-06-18T08:29:15.873Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/73/09626d545b8a4ec3df7b7e12c4f99d346e966b9ad6896356112b6eaf7151/qm_qua-1.4.0-py3-none-any.whl", hash = "sha256:829cc490d8fa33ea8f039f54accdb093fb1d42a0a38f5592a84ab2412b0d816c", size = 595280, upload-time = "2026-08-12T07:23:56.105Z" },
 ]
 
 [[package]]
@@ -4546,7 +4546,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.2.2" },
     { name = "numpy", specifier = ">=1.18.5" },
     { name = "plotly", specifier = ">=5.24.1" },
-    { name = "qm-qua", specifier = ">=1.3.1,<2.0" },
+    { name = "qm-qua", specifier = "==1.4.0" },
     { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
@@ -5584,7 +5584,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "qiskit", specifier = ">=2.3,<3.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
-    { name = "qm-qua", specifier = ">=1.3.1,<2.0" },
+    { name = "qm-qua", specifier = ">=1.4.0,<2.0" },
     { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.5.0" },
