@@ -160,9 +160,9 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM)
+        job = qm.execute(PROGRAM, config=logical_config)
         # Get results from QUA program
         data_list = ["Ig_avg", "Qg_avg", "Ie_avg", "Qe_avg", "Ig_var", "Qg_var", "Ie_var", "Qe_var", "iteration"]
         results = fetching_tool(

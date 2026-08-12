@@ -160,9 +160,9 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM)
+        job = qm.execute(PROGRAM, config=logical_config)
         results = fetching_tool(job, data_list=["iteration"], mode="live")
         # Get progress counter to monitor runtime of the program
         while results.is_processing():

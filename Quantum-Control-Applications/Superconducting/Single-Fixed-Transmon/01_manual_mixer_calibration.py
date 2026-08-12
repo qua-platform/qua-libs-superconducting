@@ -34,9 +34,9 @@ with program() as cw_output:
 #  Open Communication with the QOP  #
 #####################################
 qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
-job = qm.execute(cw_output)
+job = qm.execute(cw_output, config=logical_config)
 
 # When done, the halt command can be called and the offsets can be written directly into the config file.
 

@@ -5,6 +5,7 @@ from qualang_tools.multi_user import qm_session
 from qualibrate import QualibrationNode
 from quam_config import Quam
 from qualibration_libs.parameters import get_qubits
+from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.mixer_calibration import (
     Parameters,
     extract_relevant_fit_parameters,
@@ -41,7 +42,9 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Get the active qubits from the node and organize them by batches
     node.namespace["qubits"] = qubits = get_qubits(node)
     # Execute the QUA program only if the quantum machine is available (this is to avoid interrupting running jobs).
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
+    controller_config, logical_config = split_qua_config(config)
+
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
         node.namespace["calibration_results"] = {}
         for qubit in qubits:
             calibration_results = qubit.calibrate_octave(

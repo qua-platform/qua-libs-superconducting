@@ -327,9 +327,9 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(rb)
+    job = qm.execute(rb, config=logical_config)
     # Get results from QUA program
     results = fetching_tool(job, data_list=["state1_avg", "state2_avg", "iteration", "state1"], mode="live")
 

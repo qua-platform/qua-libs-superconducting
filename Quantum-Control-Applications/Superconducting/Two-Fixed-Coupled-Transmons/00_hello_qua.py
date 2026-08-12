@@ -41,7 +41,7 @@ if simulate:
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 else:
     # Open a quantum machine to execute the QUA program
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
 
     # Send the QUA program to the OPX, which compiles and executes it - Execute does not block python!
-    job = qm.execute(PROGRAM)
+    job = qm.execute(PROGRAM, config=logical_config)

@@ -2,6 +2,9 @@
 QUA-Config supporting OPX1000 w/ LF-FEM + MW-FEM
 """
 
+def merge_qua_config(controller_config, logical_config):
+    return {**controller_config, **logical_config}
+
 from pathlib import Path
 
 import numpy as np
@@ -190,8 +193,7 @@ ge_threshold = 0.0
 #############################################
 #                  Config                   #
 #############################################
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         con: {
             "type": "opx1000",
@@ -287,6 +289,8 @@ config = {
             },
         },
     },
+}
+logical_config = {
     "elements": {
         "q1": {
             # MWInput corresponds to an OPX physical output port
@@ -557,3 +561,4 @@ config = {
         },
     },
 }
+config = merge_qua_config(controller_config, logical_config)

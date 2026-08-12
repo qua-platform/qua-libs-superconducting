@@ -2,6 +2,11 @@
 QUA-Config supporting OPX1000 w/ LF-FEM & Octave
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from qua_config_split import merge_qua_config
 from pathlib import Path
 
 import numpy as np
@@ -191,8 +196,7 @@ ge_threshold = 0.0
 #############################################
 
 
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         con: {
             "type": "opx1000",
@@ -252,6 +256,33 @@ config = {
             },
         }
     },
+    "octaves": {
+        "octave1": {
+            "RF_outputs": {
+                1: {
+                    "LO_frequency": resonator_LO,
+                    "LO_source": "internal",
+                    "output_mode": "always_on",
+                    "gain": 0,
+                },
+                2: {
+                    "LO_frequency": qubit_LO,
+                    "LO_source": "internal",
+                    "output_mode": "always_on",
+                    "gain": 0,
+                },
+            },
+            "RF_inputs": {
+                1: {
+                    "LO_frequency": resonator_LO,
+                    "LO_source": "internal",
+                },
+            },
+            "connectivity": (con, fem),
+        }
+    },
+}
+logical_config = {
     "elements": {
         "qubit": {
             "RF_inputs": {"port": ("oct1", 2)},
@@ -280,31 +311,6 @@ config = {
             "time_of_flight": time_of_flight,
             "smearing": 0,
         },
-    },
-    "octaves": {
-        "octave1": {
-            "RF_outputs": {
-                1: {
-                    "LO_frequency": resonator_LO,
-                    "LO_source": "internal",
-                    "output_mode": "always_on",
-                    "gain": 0,
-                },
-                2: {
-                    "LO_frequency": qubit_LO,
-                    "LO_source": "internal",
-                    "output_mode": "always_on",
-                    "gain": 0,
-                },
-            },
-            "RF_inputs": {
-                1: {
-                    "LO_frequency": resonator_LO,
-                    "LO_source": "internal",
-                },
-            },
-            "connectivity": (con, fem),
-        }
     },
     "pulses": {
         "const_pulse": {
@@ -467,3 +473,4 @@ config = {
         },
     },
 }
+config = merge_qua_config(controller_config, logical_config)

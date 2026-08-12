@@ -247,8 +247,8 @@ if simulation:
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 
 else:
-    qm = qmm.open_qm(config)
-    job = qm.execute(active_reset_prog)
+    qm = qmm.open_qm(controller_config)
+    job = qm.execute(active_reset_prog, config=logical_config)
     # Creates a result handle to fetch data from the OPX
     res_handles = job.result_handles
     # Waits (blocks the Python console) until all results have been acquired

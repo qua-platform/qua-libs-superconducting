@@ -2,6 +2,11 @@
 QUA-Config supporting OPX1000 w/ MW-FEM
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from qua_config_split import merge_qua_config
 from pathlib import Path
 
 import numpy as np
@@ -179,8 +184,7 @@ ge_threshold = 0.0
 #############################################
 #                  Config                   #
 #############################################
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         con: {
             "type": "opx1000",
@@ -220,6 +224,8 @@ config = {
             },
         },
     },
+}
+logical_config = {
     "elements": {
         "resonator": {
             "MWInput": {
@@ -418,3 +424,4 @@ config = {
         },
     },
 }
+config = merge_qua_config(controller_config, logical_config)

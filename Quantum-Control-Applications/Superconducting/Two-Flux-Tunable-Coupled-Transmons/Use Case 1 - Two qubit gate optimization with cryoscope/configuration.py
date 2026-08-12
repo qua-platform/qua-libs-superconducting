@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from qua_config_split import merge_qua_config
 import numpy as np
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.results import progress_counter, fetching_tool
@@ -204,8 +209,7 @@ iir1 = [0.95138406]
 # fir1 = []
 # iir1 = []
 
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         "con1": {
             "analog_outputs": {
@@ -225,6 +229,38 @@ config = {
             },
         },
     },
+    "mixers": {
+        "mixer_qubit": [
+            {
+                "intermediate_frequency": qubit_IF,
+                "lo_frequency": qubit_LO,
+                "correction": IQ_imbalance(mixer_qubit_g, mixer_qubit_phi),
+            }
+        ],
+        "mixer_qubit1": [
+            {
+                "intermediate_frequency": qubit1_IF,
+                "lo_frequency": qubit_LO,
+                "correction": IQ_imbalance(mixer_qubit_g, mixer_qubit_phi),
+            }
+        ],
+        "mixer_resonator": [
+            {
+                "intermediate_frequency": resonator_IF,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(mixer_resonator_g, mixer_resonator_phi),
+            }
+        ],
+        "mixer_resonator1": [
+            {
+                "intermediate_frequency": resonator1_IF,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(mixer_resonator_g, mixer_resonator_phi),
+            }
+        ],
+    },
+}
+logical_config = {
     "elements": {
         "qubit0": {
             "mixInputs": {
@@ -449,34 +485,5 @@ config = {
             "sine": [(-np.cos(rotation_angle1), readout_len1)],
         },
     },
-    "mixers": {
-        "mixer_qubit": [
-            {
-                "intermediate_frequency": qubit_IF,
-                "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(mixer_qubit_g, mixer_qubit_phi),
-            }
-        ],
-        "mixer_qubit1": [
-            {
-                "intermediate_frequency": qubit1_IF,
-                "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(mixer_qubit_g, mixer_qubit_phi),
-            }
-        ],
-        "mixer_resonator": [
-            {
-                "intermediate_frequency": resonator_IF,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(mixer_resonator_g, mixer_resonator_phi),
-            }
-        ],
-        "mixer_resonator1": [
-            {
-                "intermediate_frequency": resonator1_IF,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(mixer_resonator_g, mixer_resonator_phi),
-            }
-        ],
-    },
 }
+config = merge_qua_config(controller_config, logical_config)

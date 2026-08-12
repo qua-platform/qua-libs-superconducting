@@ -2,6 +2,11 @@
 Octave configuration working for QOP244 and qm-qua==1.2.1 and newer.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from qua_config_split import merge_qua_config
 from pathlib import Path
 
 import numpy as np
@@ -304,8 +309,7 @@ ge_threshold_q2 = 0.0
 #############################################
 #                  Config                   #
 #############################################
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         con: {
             "type": "opx1000",
@@ -379,6 +383,46 @@ config = {
             },
         }
     },
+    "mixers": {
+        "mixer_qubit_q1": [
+            {
+                "intermediate_frequency": qubit_IF_q1,
+                "lo_frequency": qubit_LO_q1,
+                "correction": IQ_imbalance(mixer_qubit_g_q1, mixer_qubit_phi_q1),
+            },
+            {
+                "intermediate_frequency": cr_drive_IF_c1t2,
+                "lo_frequency": qubit_LO_q1,
+                "correction": IQ_imbalance(mixer_cr_drive_c1t2_g, mixer_cr_drive_c1t2_phi),
+            },
+        ],
+        "mixer_qubit_q2": [
+            {
+                "intermediate_frequency": qubit_IF_q2,
+                "lo_frequency": qubit_LO_q2,
+                "correction": IQ_imbalance(mixer_qubit_g_q2, mixer_qubit_phi_q2),
+            },
+            {
+                "intermediate_frequency": cr_drive_IF_c2t1,
+                "lo_frequency": qubit_LO_q2,
+                "correction": IQ_imbalance(mixer_cr_drive_c2t1_g, mixer_cr_drive_c2t1_phi),
+            },
+        ],
+        "mixer_resonator": [
+            {
+                "intermediate_frequency": resonator_IF_q1,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(mixer_resonator_g_q1, mixer_resonator_phi_q1),
+            },
+            {
+                "intermediate_frequency": resonator_IF_q2,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(mixer_resonator_g_q2, mixer_resonator_phi_q2),
+            },
+        ],
+    },
+}
+logical_config = {
     "elements": {
         "rr1": {
             "mixInputs": {
@@ -800,44 +844,7 @@ config = {
             "sine": opt_weights_minus_real_q2,
         },
     },
-    "mixers": {
-        "mixer_qubit_q1": [
-            {
-                "intermediate_frequency": qubit_IF_q1,
-                "lo_frequency": qubit_LO_q1,
-                "correction": IQ_imbalance(mixer_qubit_g_q1, mixer_qubit_phi_q1),
-            },
-            {
-                "intermediate_frequency": cr_drive_IF_c1t2,
-                "lo_frequency": qubit_LO_q1,
-                "correction": IQ_imbalance(mixer_cr_drive_c1t2_g, mixer_cr_drive_c1t2_phi),
-            },
-        ],
-        "mixer_qubit_q2": [
-            {
-                "intermediate_frequency": qubit_IF_q2,
-                "lo_frequency": qubit_LO_q2,
-                "correction": IQ_imbalance(mixer_qubit_g_q2, mixer_qubit_phi_q2),
-            },
-            {
-                "intermediate_frequency": cr_drive_IF_c2t1,
-                "lo_frequency": qubit_LO_q2,
-                "correction": IQ_imbalance(mixer_cr_drive_c2t1_g, mixer_cr_drive_c2t1_phi),
-            },
-        ],
-        "mixer_resonator": [
-            {
-                "intermediate_frequency": resonator_IF_q1,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(mixer_resonator_g_q1, mixer_resonator_phi_q1),
-            },
-            {
-                "intermediate_frequency": resonator_IF_q2,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(mixer_resonator_g_q2, mixer_resonator_phi_q2),
-            },
-        ],
-    },
 }
+config = merge_qua_config(controller_config, logical_config)
 
 # %%

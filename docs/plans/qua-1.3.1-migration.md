@@ -146,3 +146,88 @@ Full file inventory: [`qua-1.3.1-migrated-files.md`](qua-1.3.1-migrated-files.md
 - `PythonIterable` may suffix stream names (`I_0` vs `I1`) — use explicit stream names in `declare_with_stream`
 - Multiplexed qubits: keep Python batch loop; declare per-qubit streams with `f"I{i+1}"`
 - `XarrayDataFetcher` expects stream `"n"` for progress — declare `n = declare(int)` and `n_st = declare_output_stream()`, then `assign(n, shot)` / `save(n, n_st)` each shot
+
+## Controller / logical config split (qm-qua 1.4.0)
+
+Since QOP 3.5, the QUA configuration is split into a **controller config** (physical hardware) and a **logical config** (elements, pulses, waveforms). See [Configuration](https://docs.quantum-machines.co/latest/docs/Introduction/config/) and [qm-qua 1.4.0 release notes](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/).
+
+**Requirements:** qm-qua **1.4.0** + QOP **≥ 3.5.1** for per-job logical config on execute/compile.
+
+| Part | Keys |
+|------|------|
+| Controller config | `controllers`, `octaves`, `mixers` |
+| Logical config | `elements`, `pulses`, `waveforms`, `digital_waveforms`, `integration_weights`, `oscillators` |
+
+Helpers: [`qua_config_split.py`](../../Quantum-Control-Applications/Superconducting/qua_config_split.py) (QCA) and [`calibration_utils/qua_config_split.py`](../../qualibration_graphs/superconducting/calibration_utils/qua_config_split.py) (qualibration).
+
+### configuration.py template
+
+```python
+from qua_config_split import merge_qua_config
+
+controller_config = {
+    "controllers": { ... },
+    "mixers": { ... },
+    # "octaves": { ... },  # when present
+}
+logical_config = {
+    "elements": { ... },
+    "pulses": { ... },
+    "waveforms": { ... },
+    "digital_waveforms": { ... },
+    "integration_weights": { ... },
+}
+config = merge_qua_config(controller_config, logical_config)  # transitional alias for simulate / data export
+```
+
+Do not include a top-level `"version"` key (removed in qm-qua 1.2.3).
+
+### Runtime — execute / compile
+
+Open the QM with the controller config only; pass logical config per job:
+
+```python
+qm = qmm.open_qm(controller_config)
+job = qm.execute(program, config=logical_config)
+program_id = qm.compile(program, config=logical_config)
+```
+
+### Runtime — simulation (no open_qm)
+
+Per the [OPX Simulator](https://docs.quantum-machines.co/latest/docs/Guides/simulator/), call `simulate()` on the manager — **do not** open a QM (avoids reserving OPX ports on shared clusters):
+
+```python
+job = qmm.simulate(config, program, SimulationConfig(duration=...))  # config = merge_qua_config(...)
+job.wait_until("Done")
+```
+
+### Qualibration node template
+
+```python
+from calibration_utils.qua_config_split import split_qua_config
+
+config = node.machine.generate_config()
+controller_config, logical_config = split_qua_config(config)
+with qm_session(qmm, controller_config, timeout=...) as qm:
+    job = qm.execute(node.namespace["qua_program"], config=logical_config)
+```
+
+For `simulate_qua_program`, keep using `simulate_and_plot(qmm, config, ...)` with the merged config (no `open_qm`).
+
+### Runtime config mutations
+
+| Target | Sub-dict |
+|--------|----------|
+| DC offsets, port filters | `controller_config["controllers"]` |
+| Mixer corrections | `controller_config["mixers"]` |
+| Elements, pulses, IF in elements | `logical_config` |
+
+### Completion checklist (config split)
+
+| Criterion | Status |
+|-----------|--------|
+| All `configuration*.py` export `controller_config` + `logical_config` | Pending |
+| Execute path: `open_qm(controller_config)` + `execute(..., config=logical_config)` | Pending |
+| Simulate path: `qmm.simulate(config, ...)` without `open_qm` | Pending |
+| Qualibration nodes split `generate_config()` at execute time | Pending |
+| Grep gate in `test_config_split.py` | Pending |

@@ -103,7 +103,7 @@ qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_na
 # Run Program #
 ###############
 # Open the quantum machine
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
 # Calibrate the element for each LO frequency of the sweep and the central intermediate frequency
 calibrate = True
@@ -113,7 +113,7 @@ if calibrate:
         qm.calibrate_element("qubit", {lo: (IFs[len(IFs) // 2],)})
 
 # Send the QUA program to the OPX, which compiles and executes it. It will stop at the 'pause' statement.
-job = qm.execute(qubit_spec)
+job = qm.execute(qubit_spec, config=logical_config)
 # Creates results handles to fetch the data
 res_handles = job.result_handles
 # Initialize empty vectors to store the global 'I' & 'Q' results

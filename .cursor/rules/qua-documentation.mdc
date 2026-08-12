@@ -89,3 +89,12 @@ Prefer **iterables + auto-streaming** for sweep experiments:
 
 Use `declare_output_stream()` instead of deprecated `declare_stream()`.
 Use native QUA 1.3.1 iterables and `declare_with_stream` directly in calibration nodes (see migration plan template).
+
+## Controller / logical config split (qm-qua 1.4.0)
+
+When editing configuration files or QM open/execute call sites, follow the **Controller / logical config split** section in [docs/plans/qua-1.3.1-migration.md](../../docs/plans/qua-1.3.1-migration.md).
+
+- [Configuration split overview](https://docs.quantum-machines.co/latest/docs/Introduction/config/) — controller vs logical keys
+- **Execute / compile:** `open_qm(controller_config)`; pass `logical_config` to `execute` / `compile`
+- **Simulate:** `qmm.simulate(merge_qua_config(...), ...)` on the manager — **never** `open_qm` before simulate ([OPX Simulator](https://docs.quantum-machines.co/latest/docs/Guides/simulator/))
+- `mixers` belongs to **controller** config (not logical)

@@ -129,9 +129,9 @@ with program() as cryoscope:
 #####################################
 qmm = QuantumMachinesManager()
 # Open quantum machine
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 # Execute QUA program
-job = qm.execute(cryoscope)
+job = qm.execute(cryoscope, config=logical_config)
 # Get results from QUA program
 results = fetching_tool(job, data_list=["state", "iteration"], mode="live")
 # Live plotting

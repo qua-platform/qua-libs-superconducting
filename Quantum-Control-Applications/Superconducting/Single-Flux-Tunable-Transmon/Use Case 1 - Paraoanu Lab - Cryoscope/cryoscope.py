@@ -168,8 +168,8 @@ if simulation:
     job = qmm.simulate(config, cryoscope, simulation_config)
     job.get_simulated_samples().con1.plot()
 else:
-    qm = qmm.open_qm(config)
-    job = qm.execute(cryoscope)
+    qm = qmm.open_qm(controller_config)
+    job = qm.execute(cryoscope, config=logical_config)
     res_handles = job.result_handles
     I_handles = res_handles.get("I")
     Q_handles = res_handles.get("Q")

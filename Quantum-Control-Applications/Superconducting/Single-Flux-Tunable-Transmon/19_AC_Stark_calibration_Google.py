@@ -133,9 +133,9 @@ else:
         config["waveforms"]["x180_I_wf"]["samples"] = x180_I_wf.tolist()
         config["waveforms"]["x180_Q_wf"]["samples"] = x180_Q_wf.tolist()
         # Open the quantum machine with the updated config
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(ac_stark_shift)
+        job = qm.execute(ac_stark_shift, config=logical_config)
         # Get results from QUA program
         results = fetching_tool(job, data_list=["I", "Q", "state"])
         # Fetch results

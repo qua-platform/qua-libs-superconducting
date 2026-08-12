@@ -144,9 +144,9 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(single_qubit_state_tomography)
+    job = qm.execute(single_qubit_state_tomography, config=logical_config)
     # Get results from QUA program
     results = fetching_tool(job, data_list=["probs", "iteration"], mode="live")
 

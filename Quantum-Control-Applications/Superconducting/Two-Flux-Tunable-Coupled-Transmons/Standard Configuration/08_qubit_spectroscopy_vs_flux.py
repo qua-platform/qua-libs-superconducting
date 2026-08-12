@@ -139,9 +139,9 @@ if simulate:
     plt.show()
 else:
     # Open a quantum machine to execute the QUA program
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(multi_qubit_spec_vs_flux)
+    job = qm.execute(multi_qubit_spec_vs_flux, config=logical_config)
     # Prepare the figure for live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)

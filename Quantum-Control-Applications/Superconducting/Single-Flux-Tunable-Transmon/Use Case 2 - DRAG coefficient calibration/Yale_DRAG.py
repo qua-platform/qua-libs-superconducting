@@ -80,9 +80,9 @@ with program() as drag2:
 #####################################
 qmm = QuantumMachinesManager(host="192.168.88.10", port=80)
 # Open quantum machine
-qm = qmm.open_qm(config, close_other_machines=False)
+qm = qmm.open_qm(controller_config, close_other_machines=False)
 # Execute QUA program
-job = qm.execute(drag2)
+job = qm.execute(drag2, config=logical_config)
 # Get results from QUA program
 results = fetching_tool(job, data_list=["state", "state2", "iteration"], mode="live")
 # Live plotting

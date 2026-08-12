@@ -85,9 +85,9 @@ for j in range(-50, 50):
     config["waveforms"]["x180_wf"]["samples"] = x180_wf.tolist()
     config["waveforms"]["x180_der_wf"]["samples"] = x180_der_wf.tolist()
 
-    qm = qmm.open_qm(config, close_other_machines=False)
+    qm = qmm.open_qm(controller_config, close_other_machines=False)
 
-    job = qm.execute(drag_fine)
+    job = qm.execute(drag_fine, config=logical_config)
     res_handles = job.result_handles
     I_handle = res_handles.get("I")
     Q_handle = res_handles.get("Q")

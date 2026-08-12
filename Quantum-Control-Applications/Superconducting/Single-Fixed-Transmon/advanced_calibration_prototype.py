@@ -61,7 +61,7 @@ scans_ramsey = [
 # Open communication with QOP
 #############################################################
 qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
 # Run calibrations
 options = {

@@ -120,9 +120,9 @@ with program() as SWAP_spectroscopy:
 #####################################
 qmm = QuantumMachinesManager(host="192.168.88.10", port="80")
 # Open quantum machine
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 # Execute QUA program
-job = qm.execute(SWAP_spectroscopy)
+job = qm.execute(SWAP_spectroscopy, config=logical_config)
 # Get results from QUA program
 results = fetching_tool(job, data_list=["state", "iteration"], mode="live")
 # Live plotting

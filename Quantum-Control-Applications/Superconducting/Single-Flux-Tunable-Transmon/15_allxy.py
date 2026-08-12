@@ -165,9 +165,9 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(ALL_XY)
+    job = qm.execute(ALL_XY, config=logical_config)
     # Get results from QUA program
     data_list = ["iteration"] + list(np.concatenate([[f"I{i}", f"Q{i}"] for i in range(len(sequence))]))
     results = fetching_tool(job, data_list, mode="live")

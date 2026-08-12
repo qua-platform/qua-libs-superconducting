@@ -8,6 +8,7 @@ from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 from qualibrate import QualibrationNode
 from quam_config import Quam
+from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.ramsey_vs_coupler_flux import (
     Parameters,
     fit_raw_data,
@@ -164,8 +165,10 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """Connect, execute QUA program, fetch raw data and store as dataset 'ds_raw'."""
     qmm = node.machine.connect()
     config = node.machine.generate_config()
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(

@@ -14,7 +14,7 @@ from qualang_tools.results.data_handler import DataHandler
 qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 # Open quantum machine
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
 # Initialize object
 freq_track_obj = qubit_frequency_tracking("qubit", "resonator", qubit_IF, ge_threshold, frame_rotation_flag=False)
@@ -38,7 +38,7 @@ for arg in ["Pe_initial", "Pe_corrected"]:
         with stream_processing():
             freq_track_obj.state_estimation_st[0].buffer(len(tau_vec)).average().save(arg)
     # Execute the program
-    job = qm.execute(prog)
+    job = qm.execute(prog, config=logical_config)
     # Wait until processing is done before fetching results
     job.result_handles.wait_for_all_values()
     # Plot raw data + fit
@@ -78,7 +78,7 @@ with program() as prog:
         freq_track_obj.state_estimation_st[0].buffer(len(f_vec)).average().save("Pe_fd")
 
 # Execute the program
-job = qm.execute(prog)
+job = qm.execute(prog, config=logical_config)
 # Wait until processing is done before fetching results
 job.result_handles.wait_for_all_values()
 # Plot raw data + fit
@@ -124,7 +124,7 @@ with program() as prog:
         freq_track_obj.corr_st.save_all("corr")
 
 # Execute the program
-job = qm.execute(prog)
+job = qm.execute(prog, config=logical_config)
 # Handle results
 results = fetching_tool(job, ["Pe_td_ref", "Pe_td_corr", "iteration", "f_res_corr", "corr"], mode="live")
 

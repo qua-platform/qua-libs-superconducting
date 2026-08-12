@@ -87,7 +87,7 @@ class TimeDiffCalibrator:
 
         qm = qmm.open_qm(TimeDiffCalibrator._default_config(freq, con_name))
 
-        job = qm.execute(cal_phase)
+        job = qm.execute(cal_phase, config=logical_config)
 
         job.result_handles.wait_for_all_values()
         adc1 = job.result_handles.adc_input1.fetch_all()["value"]

@@ -6,7 +6,7 @@ from qm import QuantumMachinesManager
 from configuration import *
 
 qmm = QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name, log_level="ERROR")
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
 elements = ["rr1", "rr2", "q1_xy", "q2_xy"]
 for element in elements:

@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from qua_config_split import merge_qua_config
 # %%
 """
 Octave configuration working for QOP244 and qm-qua==1.2.1 and newer.
@@ -288,8 +293,7 @@ ge_threshold_q2 = 0.0
 #############################################
 #                  Config                   #
 #############################################
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         "con1": {
             "type": "opx1000",
@@ -348,6 +352,8 @@ config = {
             },
         },
     },
+}
+logical_config = {
     "elements": {
         "rr1": {
             "MWInput": {
@@ -752,5 +758,6 @@ config = {
         },
     },
 }
+config = merge_qua_config(controller_config, logical_config)
 
 # %%

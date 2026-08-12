@@ -74,9 +74,9 @@ with program() as benchmark:
         I_st.save_all("I")
         Q_st.save_all("Q")
 
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 
-job = qm.execute(benchmark)
+job = qm.execute(benchmark, config=logical_config)
 
 result_handles = job.result_handles
 result_handles.wait_for_all_values()

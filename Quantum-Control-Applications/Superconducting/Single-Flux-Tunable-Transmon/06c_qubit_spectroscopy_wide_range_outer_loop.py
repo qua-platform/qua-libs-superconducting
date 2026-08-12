@@ -115,9 +115,9 @@ def wait_until_job_is_paused(current_job):
 # Run Program #
 ###############
 # Open the quantum machine
-qm = qmm.open_qm(config)
+qm = qmm.open_qm(controller_config)
 # Send the QUA program to the OPX, which compiles and executes it. It will stop at the 'pause' statement.
-job = qm.execute(qubit_spec)
+job = qm.execute(qubit_spec, config=logical_config)
 # Creates results handles to fetch the data
 res_handles = job.result_handles
 I_handle = res_handles.get("I")

@@ -440,9 +440,9 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(rb)
+    job = qm.execute(rb, config=logical_config)
     # Get results from QUA program
     if state_discrimination:
         results = fetching_tool(job, data_list=["state_avg", "iteration"], mode="live")

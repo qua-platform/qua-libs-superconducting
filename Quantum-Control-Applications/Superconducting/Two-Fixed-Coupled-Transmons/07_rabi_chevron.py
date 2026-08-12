@@ -117,9 +117,9 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM)
+        job = qm.execute(PROGRAM, config=logical_config)
         fig = plt.figure()
         interrupt_on_close(fig, job)
         # Tool to easily fetch results from the OPX (results_handle used in it)

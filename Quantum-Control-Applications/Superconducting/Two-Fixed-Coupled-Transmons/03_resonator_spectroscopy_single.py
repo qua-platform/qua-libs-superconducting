@@ -107,9 +107,9 @@ if simulate:
 else:
     try:
         # Open a quantum machine to execute the QUA program
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM)
+        job = qm.execute(PROGRAM, config=logical_config)
         # Get results from QUA program
         results = fetching_tool(job, data_list=["I", "Q"])  # this one already waits for all values
         # plotting

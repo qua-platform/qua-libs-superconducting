@@ -7,6 +7,7 @@ from sklearn import mixture
 from scipy import signal
 
 from TimeDiffCalibrator import TimeDiffCalibrator
+from qua_config_split import split_qua_config
 
 
 class StateDiscriminator:
@@ -105,8 +106,11 @@ class StateDiscriminator:
         return np.array(weights)
 
     def _execute_and_fetch(self, program, **execute_args):
-        qm = self.qmm.open_qm(self.config)
-        job = qm.execute(program, duration_limit=0, data_limit=0, **execute_args)
+        controller_config, logical_config = split_qua_config(self.config)
+        qm = self.qmm.open_qm(controller_config)
+        job = qm.execute(
+            program, duration_limit=0, data_limit=0, config=logical_config, **execute_args
+        )
         res_handles = job.result_handles
         res_handles.wait_for_all_values()
         I_res = res_handles.get("I").fetch_all()["value"]

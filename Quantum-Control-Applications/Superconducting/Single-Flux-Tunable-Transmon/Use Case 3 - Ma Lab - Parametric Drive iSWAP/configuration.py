@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from qua_config_split import merge_qua_config
 from scipy.signal.windows import gaussian
 import numpy as np
 
@@ -103,8 +108,7 @@ minus_square_flux_amp = -square_flux_amp
 # Rotation angle:
 rotation_angle = (-73 / 180) * np.pi
 
-config = {
-    "version": 1,
+controller_config = {
     "controllers": {
         "con1": {
             "type": "opx1",
@@ -124,6 +128,47 @@ config = {
             },
         },
     },
+    "mixers": {
+        "mixer_flux1": [
+            {
+                "intermediate_frequency": blue_sideband,
+                "lo_frequency": qubit_LO,
+                "correction": IQ_imbalance(0.004, 0.088),
+            },
+        ],
+        "mixer_qubit1": [
+            {"intermediate_frequency": qubit1_if, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.01, 0.082)},
+        ],
+        "mixer_qubit1ef": [
+            {
+                "intermediate_frequency": qubit1_if_ef,
+                "lo_frequency": qubit_LO,
+                "correction": IQ_imbalance(0.006, 0.061),
+            },
+        ],
+        "mixer_qubit2": [
+            {"intermediate_frequency": qubit2_if, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.005, 0.05)},
+        ],
+        "mixer_qubit2ef": [
+            {"intermediate_frequency": qubit2_if_ef, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.005, 0.05)},
+        ],
+        "mixer_resonator1": [
+            {
+                "intermediate_frequency": resonator1_if,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(0.006, 0.017),
+            },
+        ],
+        "mixer_resonator2": [
+            {
+                "intermediate_frequency": resonator2_if,
+                "lo_frequency": resonator_LO,
+                "correction": IQ_imbalance(0.006, 0.017),
+            },
+        ],
+    },
+}
+logical_config = {
     "elements": {
         "qubit1": {
             "mixInputs": {
@@ -358,43 +403,5 @@ config = {
             "sine": [(-np.cos(rotation_angle), readout_len)],
         },
     },
-    "mixers": {
-        "mixer_flux1": [
-            {
-                "intermediate_frequency": blue_sideband,
-                "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(0.004, 0.088),
-            },
-        ],
-        "mixer_qubit1": [
-            {"intermediate_frequency": qubit1_if, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.01, 0.082)},
-        ],
-        "mixer_qubit1ef": [
-            {
-                "intermediate_frequency": qubit1_if_ef,
-                "lo_frequency": qubit_LO,
-                "correction": IQ_imbalance(0.006, 0.061),
-            },
-        ],
-        "mixer_qubit2": [
-            {"intermediate_frequency": qubit2_if, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.005, 0.05)},
-        ],
-        "mixer_qubit2ef": [
-            {"intermediate_frequency": qubit2_if_ef, "lo_frequency": qubit_LO, "correction": IQ_imbalance(0.005, 0.05)},
-        ],
-        "mixer_resonator1": [
-            {
-                "intermediate_frequency": resonator1_if,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(0.006, 0.017),
-            },
-        ],
-        "mixer_resonator2": [
-            {
-                "intermediate_frequency": resonator2_if,
-                "lo_frequency": resonator_LO,
-                "correction": IQ_imbalance(0.006, 0.017),
-            },
-        ],
-    },
 }
+config = merge_qua_config(controller_config, logical_config)

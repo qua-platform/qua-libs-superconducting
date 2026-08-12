@@ -18,6 +18,7 @@ from calibration_utils.time_of_flight import (
     plot_averaged_run_with_fit,
 )
 
+from calibration_utils.qua_config_split import split_qua_config
 from qualibration_libs.runtime import simulate_and_plot
 
 # %% {Node initialisation}
@@ -114,10 +115,11 @@ def execute_qua_program(node: QualibrationNode[Parameters, None]):
     """Connect to the QOP, execute the QUA program and fetch the raw data and store it in a xarray dataset called "ds_raw"."""
     # Connect to the QOP
     qmm = QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name)
+    controller_config, logical_config = split_qua_config(config)
     # Execute the QUA program only if the quantum machine is available (this is to avoid interrupting running jobs).
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # The job is stored in the node namespace to be reused in the fetching_data run_action
-    node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
     # Names and values mapping
     keys = []
 

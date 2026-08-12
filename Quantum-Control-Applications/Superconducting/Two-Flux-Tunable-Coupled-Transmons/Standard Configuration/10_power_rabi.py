@@ -114,9 +114,9 @@ if simulate:
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(rabi)
+    job = qm.execute(rabi, config=logical_config)
     # Prepare the figure for live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)

@@ -217,9 +217,9 @@ if simulate:
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = qmm.open_qm(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(opt_weights)
+    job = qm.execute(opt_weights, config=logical_config)
     # Get results from QUA program
     results = fetching_tool(job, data_list=["iteration"], mode="live")
     # Live plotting

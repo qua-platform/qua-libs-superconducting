@@ -173,9 +173,9 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(config)
+        qm = qmm.open_qm(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM)
+        job = qm.execute(PROGRAM, config=logical_config)
         # Prepare the figure for live plotting
         fig, axss = plt.subplots(3, 2, figsize=(8, 8), sharex=True)
         interrupt_on_close(fig, job)
