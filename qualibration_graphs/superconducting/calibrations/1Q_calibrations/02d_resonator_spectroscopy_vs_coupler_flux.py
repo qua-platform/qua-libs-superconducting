@@ -95,7 +95,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # The frequency sweep around the resonator resonance frequency
     span = node.parameters.frequency_span_in_mhz * u.MHz
     step = node.parameters.frequency_step_in_mhz * u.MHz
-    dfs = np.arange(-span / 2, +span / 2, step)
+    dfs = np.arange(-span / 2, +span / 2, step).astype(int)
 
     # Buffer time for flux to wait (in unit of clock cycle)
     settle_time = node.parameters.settle_time_in_ns // 4

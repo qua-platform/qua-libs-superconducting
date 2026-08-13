@@ -90,7 +90,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Qubit detuning sweep with respect to their resonance frequencies
     span = node.parameters.frequency_span_in_mhz * u.MHz
     step = node.parameters.frequency_step_in_mhz * u.MHz
-    dfs = np.arange(-span // 2, +span // 2, step)
+    dfs = np.arange(-span // 2, +span // 2, step).astype(int)
 
     # Register the sweep axes to be added to the dataset when fetching data
     node.namespace["sweep_axes"] = {

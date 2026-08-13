@@ -52,8 +52,7 @@ tau_max = 1250  # Maximum tau in clock cycles (5 us)
 d_tau = 50  # Step size in clock cycles
 taus = np.arange(tau_min, tau_max + 0.1, d_tau).astype(int)
 # For logarithmic sweep, uncomment below:
-# taus = np.logspace(np.log10(tau_min), np.log10(tau_max), 29).astype(int)
-
+# taus = np.logspace(np.log10(tau_min), np.log10(tau_max), 29)
 # Number of XY8 repetitions (N) to sweep
 # Each XY8 cycle contains 8 pi pulses
 # Common values: 1, 2, 4, 8, 16...

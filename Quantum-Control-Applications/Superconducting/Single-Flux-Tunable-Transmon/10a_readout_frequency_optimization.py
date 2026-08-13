@@ -35,7 +35,7 @@ n_avg = 100  # The number of averages
 # The frequency sweep parameters
 span = 10 * u.MHz
 df = 200 * u.kHz
-dfs = np.arange(-span, +span + 0.1, df)
+dfs = np.arange(-span, +span + 0.1, df).astype(int)
 
 # Data to save
 save_data_dict = {

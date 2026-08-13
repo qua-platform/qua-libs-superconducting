@@ -35,7 +35,7 @@ n_avg = 1000  # The number of averages
 # The frequency sweep parameters (for both resonators)
 span = 12 * u.MHz  # the span around the resonant frequencies
 step = 100 * u.kHz
-dfs = np.arange(-span, span, step)
+dfs = np.arange(-span, span, step).astype(int)
 
 # Data to save
 save_data_dict = {

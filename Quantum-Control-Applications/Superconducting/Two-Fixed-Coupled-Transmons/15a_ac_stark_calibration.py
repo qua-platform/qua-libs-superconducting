@@ -41,7 +41,7 @@ max_nb_of_pulses = 80  # Maximum number of qubit pulses
 nb_of_pulses = np.arange(
     0, max_nb_of_pulses + 0.1, 1
 )  # Always play an odd/even number of pulses to end up in the same state
-detunings = np.arange(-5e6, 5e6, 0.1e6)  # Detuning to compensate for the AC STark-shift
+detunings = np.arange(-5e6, 5e6, 0.1e6).astype(int)  # Detuning to compensate for the AC STark-shift
 
 # Data to save
 save_data_dict = {

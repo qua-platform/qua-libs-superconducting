@@ -82,7 +82,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Qubit detuning sweep with respect to their resonance frequencies
     span = node.parameters.frequency_span_in_mhz * u.MHz
     step = node.parameters.frequency_step_in_mhz * u.MHz
-    dfs = np.arange(-span / 2, +span / 2, step)
+    dfs = np.arange(-span / 2, +span / 2, step).astype(int)
     # Flux bias sweep in V
     span = node.parameters.flux_offset_span_in_v * u.V
     num = node.parameters.num_flux_points

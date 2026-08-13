@@ -33,7 +33,7 @@ from qualang_tools.results.data_handler import DataHandler
 # Parameters Definition
 n_avg = 4000
 # The frequency sweep around the resonators' frequency "resonator_IF_q"
-dfs = np.arange(-10e6, 10e6, 0.1e6)
+dfs = np.arange(-10e6, 10e6, 0.1e6).astype(int)
 
 # Data to save
 save_data_dict = {

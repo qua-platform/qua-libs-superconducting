@@ -36,7 +36,7 @@ saturation_amp = 0.5  # pre-factor to the value defined in the config - restrict
 # Frequency sweep in Hz
 span = 10 * u.MHz
 df = 100 * u.kHz
-frequencies = np.arange(-span, +span + 0.1, df)
+frequencies = np.arange(-span, +span + 0.1, df).astype(int)
 # Flux amplitude sweep (as a pre-factor of the flux amplitude)
 dc_min = -0.49
 dc_max = 0.49

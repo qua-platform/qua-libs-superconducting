@@ -35,7 +35,7 @@ n_avg = 50  # The number of averages
 # The frequency sweep parameters
 span = 20 * u.MHz
 df = 200 * u.kHz
-dfs = np.arange(-span, span + 0.1, df)
+dfs = np.arange(-span, span + 0.1, df).astype(int)
 # Pulse duration sweep (in clock cycles = 4ns) - must be larger than 4 clock cycles
 t_min = 4
 t_max = 1000

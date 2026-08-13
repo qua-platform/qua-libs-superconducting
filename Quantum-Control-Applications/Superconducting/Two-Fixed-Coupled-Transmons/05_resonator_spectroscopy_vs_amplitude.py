@@ -40,7 +40,7 @@ n_avg = 20  # The number of averages
 # The frequency sweep around the resonators' frequency
 span = 38.0 * u.MHz  # the span around the resonant frequencies
 step = 200 * u.kHz
-dfs = np.arange(-span, span, step)
+dfs = np.arange(-span, span, step).astype(int)
 # The readout amplitude sweep (as a pre-factor of the readout amplitude) - must be within [-2; 2)
 a_min = 0.01
 a_max = 1.00

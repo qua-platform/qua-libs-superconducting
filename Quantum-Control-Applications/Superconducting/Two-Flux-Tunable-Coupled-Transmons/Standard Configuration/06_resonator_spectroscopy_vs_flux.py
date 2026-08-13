@@ -41,7 +41,7 @@ n_avg = 2000
 # The frequency sweep around the resonators' frequency "resonator_IF_q"
 span = 10 * u.MHz
 df = 100 * u.kHz
-dfs = np.arange(-span, +span + 0.1, df)
+dfs = np.arange(-span, +span + 0.1, df).astype(int)
 # Flux bias sweep in V
 flux_min = -0.49
 flux_max = 0.49

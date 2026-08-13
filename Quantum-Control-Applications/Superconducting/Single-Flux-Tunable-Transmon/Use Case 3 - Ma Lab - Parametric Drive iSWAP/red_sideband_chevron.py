@@ -23,7 +23,7 @@ times = np.arange(t_min, t_max + dt / 2, dt)
 f_min = 95e6
 f_max = 110e6
 df = 0.1e6
-freqs = np.arange(f_min, f_max + df / 2, df)  # + df/2 to add f_max to freqs
+freqs = np.arange(f_min, f_max + df / 2, df).astype(int)  # + df/2 to add f_max to freqs
 
 n_avg = 50
 

@@ -34,7 +34,7 @@ n_avg = 10  # The number of averages
 # Qubit detuning sweep with respect to qubit_IF
 freq_span = 10e6
 freq_step = 0.2e6
-dfs = np.arange(-freq_span, +freq_span, freq_step)
+dfs = np.arange(-freq_span, +freq_span, freq_step).astype(int)
 
 t_max = 200
 t_min = 4

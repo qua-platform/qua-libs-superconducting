@@ -35,9 +35,9 @@ resonator = "rr1"  # The resonator element
 n_avg = 1000  # The number of averages
 # The frequency sweep parameters
 if resonator == "rr1":
-    frequencies = np.arange(47e6, 51e6, 0.1e6)
+    frequencies = np.arange(47e6, 51e6, 0.1e6).astype(int)
 else:
-    frequencies = np.arange(-135e6, -128e6, 0.1e6)
+    frequencies = np.arange(-135e6, -128e6, 0.1e6).astype(int)
 
 
 # Data to save

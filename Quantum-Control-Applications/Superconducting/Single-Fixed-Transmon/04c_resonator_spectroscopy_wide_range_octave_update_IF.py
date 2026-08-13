@@ -40,8 +40,7 @@ n_avg = 100  # The number of averages
 f_min = 21 * u.MHz
 f_max = 271 * u.MHz
 df = 500 * u.kHz
-IFs = np.arange(f_min, f_max + 0.1, df)  # The intermediate frequency vector (+ 0.1 to add f_max to IFs)
-
+IFs = np.arange(f_min, f_max + 0.1, df).astype(int)  # The intermediate frequency vector (+ 0.1 to add f_max to IFs)
 # The LO frequency sweep parameters
 f_min_lo = 4.0e9
 f_max_lo = 5.0e9

@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation, Cursor rules, and CONTRIBUTING for qm-qua 1.4.0 and the config-split pattern
 - Replaced deprecated QUA `amp()` pulse multiplication with `amplitude_scale` on `play`/`measure` across ~70 files (~150 occurrences): 68 QCA scripts, 4 shared `macros.py`, 2 qualibration files, 1 notebook, and 1 README; added `test_no_deprecated_amp.py` grep gate
 
+### Fixed
+
+- Cast frequency/detuning sweep arrays to `.astype(int)` before `QuaIterable` when used with `update_frequency` (~60 QCA scripts and qualibration nodes); fixes simulation compile error `Expected type int but got fixed`
+
 ### Deprecated
 
 - Transitional merged `config` alias in configuration files (kept for simulation and data export until a follow-up removal)

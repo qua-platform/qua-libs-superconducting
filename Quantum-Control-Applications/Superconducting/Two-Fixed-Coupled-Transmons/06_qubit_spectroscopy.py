@@ -44,7 +44,7 @@ n_avg = 1_000  # The number of averages
 # Qubit detuning sweep with respect to qubit_IF
 span = 20.0 * u.MHz
 freq_step = 100 * u.kHz
-dfs = np.arange(-span, +span, freq_step)
+dfs = np.arange(-span, +span, freq_step).astype(int)
 saturation_len = 10 * u.us  # In ns
 saturation_scaling = 0.5  # pre-factor to the value defined in the config - restricted to [-2; 2)
 

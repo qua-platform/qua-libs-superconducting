@@ -46,8 +46,7 @@ tau_max = 2500  # Maximum tau in clock cycles (10 us)
 d_tau = 100  # Step size in clock cycles
 taus = np.arange(tau_min, tau_max + 0.1, d_tau).astype(int)
 # For logarithmic sweep, uncomment below:
-# taus = np.logspace(np.log10(tau_min), np.log10(tau_max), 29).astype(int)
-
+# taus = np.logspace(np.log10(tau_min), np.log10(tau_max), 29)
 # Number of pi pulses (N) to sweep - CPMG order
 # Common values: 1 (Hahn echo), 2, 4, 8, 16, 32...
 n_pi_values = np.array([1, 2, 4, 8, 16], dtype=int)

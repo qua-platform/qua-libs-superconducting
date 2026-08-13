@@ -35,7 +35,7 @@ n_avg = 10  # The number of averages
 # Qubit detuning sweep with respect to qubit_IF
 freq_span = 40e6
 freq_step = 0.1e6
-dfs = np.arange(-freq_span, +freq_span, freq_step)
+dfs = np.arange(-freq_span, +freq_span, freq_step).astype(int)
 # Qubit pulse amplitude sweep (as a pre-factor of the qubit pulse amplitude) - must be within [-2; 2)
 scaling_max = 1.00
 scaling_min = 0

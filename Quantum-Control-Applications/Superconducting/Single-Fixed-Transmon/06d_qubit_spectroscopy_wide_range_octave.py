@@ -33,7 +33,7 @@ n_avg = 100  # The number of averages
 f_min = 1 * u.MHz
 f_max = 251 * u.MHz
 df = 500 * u.kHz
-IFs = np.arange(f_min, f_max + 0.1, df)  # The intermediate frequency vector (+ 0.1 to add f_max to IFs)
+IFs = np.arange(f_min, f_max + 0.1, df).astype(int)  # The intermediate frequency vector (+ 0.1 to add f_max to IFs)
 # This is to make sure that the center IF is the one used in the config for the correction parameters to be updated.
 config["elements"]["qubit"]["intermediate_frequency"] = IFs[len(IFs) // 2]
 

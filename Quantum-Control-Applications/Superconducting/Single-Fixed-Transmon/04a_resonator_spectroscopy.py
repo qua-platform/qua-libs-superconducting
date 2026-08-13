@@ -36,8 +36,7 @@ n_avg = 1000  # The number of averages
 f_min = 30 * u.MHz
 f_max = 70 * u.MHz
 df = 100 * u.kHz
-frequencies = np.arange(f_min, f_max + 0.1, df)  # The frequency vector (+ 0.1 to add f_max to frequencies)
-
+frequencies = np.arange(f_min, f_max + 0.1, df).astype(int)  # The frequency vector (+ 0.1 to add f_max to frequencies)
 # Data to save
 save_data_dict = {
     "n_avg": n_avg,

@@ -34,8 +34,8 @@ resonator_LO = resonator_LO
 
 n_avg = 200  # The number of averages
 frequencies = {
-    "rr1": np.arange(-50e6, +50e6, 100e3),
-    "rr2": np.arange(-50e6, +50e6, 100e3),
+    "rr1": np.arange(-50e6, +50e6, 100e3).astype(int),
+    "rr2": np.arange(-50e6, +50e6, 100e3).astype(int),
 }
 
 # Data to save

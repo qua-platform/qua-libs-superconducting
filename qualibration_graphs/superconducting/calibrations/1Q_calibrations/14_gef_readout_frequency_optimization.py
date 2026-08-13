@@ -112,7 +112,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         -node.parameters.frequency_span_in_mhz * u.MHz / 2,
         node.parameters.frequency_span_in_mhz * u.MHz / 2,
         node.parameters.frequency_step_in_mhz * u.MHz,
-    )
+    ).astype(int)
     # Register the sweep axes to be added to the dataset when fetching data
     node.namespace["sweep_axes"] = {
         "qubit": xr.DataArray(qubits.get_names()),

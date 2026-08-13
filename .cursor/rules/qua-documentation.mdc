@@ -88,6 +88,7 @@ When updating QUA programs, follow [docs/plans/qua-1.4.0-migration.md](../../doc
 
 Use `declare_output_stream()` instead of deprecated `declare_stream()`.
 Use native QUA 1.3.1 iterables and `declare_with_stream` directly in calibration nodes (see migration plan template).
+Frequency/detuning sweep arrays passed to `QuaIterable` and used with `update_frequency` must be **`.astype(int)`** (Hz integers); `coerce_to_integer=True` on `unit()` is not enough when `np.arange` stop/step promotes float dtype.
 
 **Part 2 (1.4.0)** — controller / logical config split. When editing configuration files or QM open/execute call sites, follow the **Controller / logical config split** section in the guide.
 

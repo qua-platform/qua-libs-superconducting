@@ -88,7 +88,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Frequency sweep
     span = node.parameters.frequency_span_in_mhz * u.MHz
     step = node.parameters.frequency_step_in_mhz * u.MHz
-    dfs = np.arange(-span // 2, span // 2, step, dtype=np.int32)
+    dfs = np.arange(-span // 2, span // 2, step, dtype=np.int32).astype(int)
 
     # Time sweep linear of log scale
     if node.parameters.time_axis == "linear":

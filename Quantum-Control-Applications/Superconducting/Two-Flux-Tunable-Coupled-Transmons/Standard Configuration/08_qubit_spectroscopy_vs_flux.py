@@ -42,7 +42,7 @@ n_avg = 1000  # The number of averages
 saturation_len = 10 * u.us  # In ns
 saturation_amp = 0.5  # pre-factor to the value defined in the config - restricted to [-2; 2)
 # Qubit detuning sweep with respect to qubit_IF
-dfs = np.arange(-20e6, +20e6, 0.5e6)
+dfs = np.arange(-20e6, +20e6, 0.5e6).astype(int)
 # Flux sweep
 dcs = np.arange(-0.5, 0.49, 0.02)
 

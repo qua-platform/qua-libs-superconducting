@@ -35,7 +35,7 @@ n_avg = 100  # Number of averaging loops
 # Frequency sweep in Hz
 freq_span = 10 * u.MHz
 df = 100 * u.kHz
-dfs = np.arange(-freq_span, freq_span, df)
+dfs = np.arange(-freq_span, freq_span, df).astype(int)
 
 # Idle time sweep (Needs to be a list of integers) - in clock cycles (4ns)
 tau_max = 2000 // 4

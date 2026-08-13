@@ -42,7 +42,7 @@ n_avg = 100  # The number of averages
 f_min = 1 * u.MHz
 f_max = 251 * u.MHz
 df = 2000 * u.kHz
-IFs = np.arange(f_min, f_max + 0.1, df)
+IFs = np.arange(f_min, f_max + 0.1, df).astype(int)
 
 # The LO frequency sweep parameters
 f_min_external = 5.001e9 - f_min

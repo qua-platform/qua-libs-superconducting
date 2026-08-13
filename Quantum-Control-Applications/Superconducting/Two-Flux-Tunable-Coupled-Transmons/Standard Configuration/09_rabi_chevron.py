@@ -35,7 +35,7 @@ from qualang_tools.results.data_handler import DataHandler
 # Parameters Definition
 n_avg = 1000  # The number of averages
 # Qubit detuning sweep with respect to qubit_IF
-dfs = np.arange(-14e6, +14e6, 0.2e6)
+dfs = np.arange(-14e6, +14e6, 0.2e6).astype(int)
 # Qubit pulse amplitude sweep (as a pre-factor of the qubit pulse amplitude) - must be within [-2; 2)
 amps = np.arange(0.0, 1, 0.02)
 

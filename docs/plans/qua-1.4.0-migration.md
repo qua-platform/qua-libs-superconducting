@@ -29,8 +29,27 @@ Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releas
 | `declare_external_stream()` | `declare_input_stream()` / `declare_output_stream()` |
 | `send_to_external_stream()` | `send_to_stream()` |
 | `receive_from_external_stream()` | `receive_from_stream()` |
+| `declare(int)` + `from_array(df, dfs)` for frequency sweeps | `QuaIterable("detuning", dfs)` with **`dfs = ... .astype(int)`** before `with program()` |
 
 Use `PythonIterable` / `PythonIterableRange` (not deprecated `NativeIterable*`).
+
+### Integer frequency sweeps
+
+`update_frequency()` expects **integer Hz**. With iterables, the loop variable type comes from the Python sweep array dtype — float arrays from `np.arange(..., stop + 0.1, ...)` become QUA `fixed` and compile-fail.
+
+**Rule:** any array passed to `QuaIterable("f" | "df" | "detuning" | "frequency", ...)` that is used with `update_frequency()` / `.update_frequency()` must be **int Hz**. Cast at array definition in Python (outside `with program()`):
+
+```python
+# Before (compile error after iterable migration)
+frequencies = np.arange(f_min, f_max + 0.1, df)
+
+# After
+frequencies = np.arange(f_min, f_max + 0.1, df).astype(int)
+```
+
+`unit(coerce_to_integer=True)` alone does not guarantee int dtype when `np.arange` stop/step promotes float. Do **not** cast amplitude, flux, time, or frame sweeps — those correctly use `fixed`.
+
+Reference: [`robust_qubit_control_using_phase_modulated_pulses.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use%20Case%204%20-%20Paraoanu%20Lab%20-%20Robust%20qubit%20control%20using%20phase-modulated%20pulses/robust_qubit_control_using_phase_modulated_pulses.py).
 
 ### When to migrate vs keep manual streams
 
@@ -65,6 +84,8 @@ with stream_processing():
 ```python
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 
+dfs = np.arange(-span / 2, +span / 2, step).astype(int)
+
 with program() as node.namespace["qua_program"]:
     n = declare(int)
     n_st = declare_output_stream()
@@ -78,6 +99,7 @@ with program() as node.namespace["qua_program"]:
                 for i, qubit in multiplexed_qubits.items():
                     I = declare_with_stream(fixed, f"I{i + 1}", average_axes=["shots"])
                     Q = declare_with_stream(fixed, f"Q{i + 1}", average_axes=["shots"])
+                    rr.update_frequency(df + rr.intermediate_frequency)
                     ...
 
     with stream_processing():
@@ -150,6 +172,7 @@ Full file inventory: [`qua-1.4.0-migrated-files.md`](qua-1.4.0-migrated-files.md
 - `PythonIterable` may suffix stream names (`I_0` vs `I1`) — use explicit stream names in `declare_with_stream`
 - Multiplexed qubits: keep Python batch loop; declare per-qubit streams with `f"I{i+1}"`
 - `XarrayDataFetcher` expects stream `"n"` for progress — declare `n = declare(int)` and `n_st = declare_output_stream()`, then `assign(n, shot)` / `save(n, n_st)` each shot
+- Frequency/detuning iterables used with `update_frequency` must be integer arrays; float sweep vectors compile-fail with `Expected type int but got fixed`
 
 ## Part 2 — QUA 1.4.0 (controller / logical config split)
 

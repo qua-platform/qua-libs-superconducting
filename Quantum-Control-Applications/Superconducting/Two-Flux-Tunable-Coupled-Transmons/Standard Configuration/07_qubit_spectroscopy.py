@@ -48,7 +48,7 @@ saturation_amp = 0.5  # pre-factor to the value defined in the config - restrict
 # Qubit detuning sweep with respect to qubit_IF
 span = 10 * u.MHz
 df = 100 * u.kHz
-dfs = np.arange(-span, +span + 0.1, df)
+dfs = np.arange(-span, +span + 0.1, df).astype(int)
 
 
 # Data to save

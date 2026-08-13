@@ -37,7 +37,7 @@ from qualang_tools.results.data_handler import DataHandler
 # Parameters Definition
 n_avg = 100
 # Detuning to compensate for the AC STark-shift
-detunings = np.arange(-10e6, 10e6, 1e6)
+detunings = np.arange(-10e6, 10e6, 1e6).astype(int)
 # Scan the number of pulses
 iter_min = 0
 iter_max = 25
