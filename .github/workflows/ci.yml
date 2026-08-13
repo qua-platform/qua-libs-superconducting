@@ -78,3 +78,21 @@ jobs:
         run: uv sync --python 3.14
       - name: Compile QUA programs
         run: uv run pytest tests/test_qua_compile.py -q
+
+  qca-migration-gates:
+    name: QCA migration grep gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install workspace dependencies
+        run: uv sync --python 3.14
+      - name: Run portable QCA migration gates
+        env:
+          QCA_MODALITY: Superconducting
+        run: uv run pytest tests/test_qca_migration_gates.py -q

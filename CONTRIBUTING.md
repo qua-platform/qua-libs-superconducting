@@ -26,7 +26,9 @@ Notable changes belong in [CHANGELOG.md](CHANGELOG.md) under `## [Unreleased]`, 
 This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
 (uv will fetch a suitable interpreter). **CI uses Python 3.14.** QUA code targets
 **qm-qua 1.4.0**; see [docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md)
-for iterables, auto-streaming, config split, and other migration conventions.
+for iterables, auto-streaming, config split, and other migration conventions, and
+[docs/plans/qua-1.4.0-migration-runbook.md](docs/plans/qua-1.4.0-migration-runbook.md)
+for the step-by-step playbook (all QCA modalities, new-repo bootstrap).
 
 Create a local environment — installs the runtime dependencies and dev tools into `.venv`:
 
@@ -62,7 +64,13 @@ The installable calibration package has its own build and tests:
 ```
 cd qualibration_graphs/superconducting
 uv build        # build sdist + wheel
-uvx pytest -q   # run the test suite
+uv run pytest -q
+```
+
+Portable QCA migration grep gates (repo root):
+
+```
+uv run pytest tests/test_qca_migration_gates.py -q
 ```
 
 Note: a full test run that imports the package installs `quam-builder` and

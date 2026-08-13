@@ -26,6 +26,14 @@ It includes:
   The [qualibration-libs](https://github.com/qua-platform/qualibration-libs) repository provides a set of utility functions supporting calibration nodes and graphs.
 * The ["Tutorials"](./Tutorials) folder contains an introductory QUAlibrate tutorial.
 
+## QUA 1.4.0 migration (all modalities)
+
+Superconducting examples here are the **reference implementation** of the qm-qua 1.4.0 migration. The same patterns apply to other [qua-libs](https://github.com/qua-platform/qua-libs) modalities (Quantum-Dots, AMO, optically addressable spin qubits).
+
+- [Migration guide](./docs/plans/qua-1.4.0-migration.md) — API reference and code templates
+- [Migration runbook](./docs/plans/qua-1.4.0-migration-runbook.md) — audit, scripts, validation, new-repo bootstrap
+- [Bootstrap manifest](./docs/bootstrap/MANIFEST.md) — copy checklist for modality forks (e.g. `qua-libs-amo`)
+
 ## Support and Contribution
 This is a beta version of the repo, and thus, if you see quirks and inaccuracies please tell us!
 Love to see some example that's not yet included? tell us! Have a request for a general purpose procedure? tell us!

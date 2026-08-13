@@ -3,13 +3,17 @@
 
 from __future__ import annotations
 
+import argparse
 import ast
 import re
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-QCA_ROOT = REPO_ROOT / "Quantum-Control-Applications" / "Superconducting"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from migration_paths import add_modality_args, repo_root, resolve_qca_root
+from migration_paths import modality_anchor as _modality_anchor
+
+REPO_ROOT = repo_root()
 QUAL_ROOT = REPO_ROOT / "qualibration_graphs" / "superconducting"
 
 CONTROLLER_KEYS = frozenset({"controllers", "octaves", "mixers"})
@@ -17,23 +21,15 @@ LOGICAL_KEYS = frozenset({"oscillators", "elements", "integration_weights", "wav
 SKIP_CONFIG_KEYS = frozenset({"version"})
 
 
-def _superconducting_path(config_path: Path) -> Path:
-    for parent in config_path.parents:
-        if parent.name == "Superconducting":
-            return parent
-    raise ValueError(f"No Superconducting ancestor for {config_path}")
-
-
 def _import_block(config_path: Path) -> str:
     try:
-        sc = _superconducting_path(config_path)
+        anchor = _modality_anchor(config_path)
     except ValueError:
-        # Tutorial / out-of-tree configs: inline merge helper
         return (
             "def merge_qua_config(controller_config, logical_config):\n"
             "    return {**controller_config, **logical_config}\n\n"
         )
-    depth = len(config_path.parent.relative_to(sc).parts)
+    depth = len(config_path.parent.relative_to(anchor).parts)
     return (
         "import sys\n"
         "from pathlib import Path\n\n"
@@ -129,9 +125,9 @@ def split_configuration_file(path: Path) -> bool:
     return True
 
 
-def migrate_qca_scripts() -> int:
+def migrate_qca_scripts(qca_root: Path) -> int:
     count = 0
-    for py in QCA_ROOT.rglob("*.py"):
+    for py in qca_root.rglob("*.py"):
         if py.name.startswith("configuration") or py.name == "qua_config_split.py":
             continue
         text = py.read_text(encoding="utf-8")
@@ -241,16 +237,27 @@ def migrate_tutorial() -> None:
 
 
 def main() -> None:
-    config_paths = list(QCA_ROOT.rglob("configuration*.py"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_modality_args(parser)
+    parser.add_argument(
+        "--skip-qualibration",
+        action="store_true",
+        help="Do not migrate qualibration_graphs nodes (modality-only repos).",
+    )
+    args = parser.parse_args()
+    qca_root = resolve_qca_root(modality=args.modality, qca_root=args.qca_root)
+
+    config_paths = list(qca_root.rglob("configuration*.py"))
     tutorial_cfg = REPO_ROOT / "Tutorials" / "intro-to-QUAlibrate" / "configuration" / "configuration_with_lf_fem_and_mw_fem.py"
     if tutorial_cfg.exists():
         config_paths.append(tutorial_cfg)
 
     n_cfg = sum(split_configuration_file(p) for p in sorted(config_paths))
-    n_scripts = migrate_qca_scripts()
-    n_nodes = migrate_qualibration_nodes()
-    migrate_tutorial()
-    print(f"\nDone: {n_cfg} configs, {n_scripts} QCA scripts, {n_nodes} qualibration nodes")
+    n_scripts = migrate_qca_scripts(qca_root)
+    n_nodes = 0 if args.skip_qualibration else migrate_qualibration_nodes()
+    if not args.skip_qualibration:
+        migrate_tutorial()
+    print(f"\nDone ({qca_root.relative_to(REPO_ROOT)}): {n_cfg} configs, {n_scripts} QCA scripts, {n_nodes} qualibration nodes")
 
 
 if __name__ == "__main__":

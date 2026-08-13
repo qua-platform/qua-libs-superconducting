@@ -80,7 +80,9 @@ Useful entry points:
 
 ## QUA 1.3.1 / 1.4.0 migration
 
-When updating QUA programs, follow [docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md).
+When updating QUA programs, follow [docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md) (API reference) and [docs/plans/qua-1.4.0-migration-runbook.md](../../docs/plans/qua-1.4.0-migration-runbook.md) (step-by-step playbook for all QCA modalities).
+
+**Cross-modality / new repo:** Migration scripts accept `--modality` (e.g. `Quantum-Dots`, `AMO`, `Optically addressable spin qubits`) or `--qca-root`. Bootstrap a modality fork via [docs/bootstrap/MANIFEST.md](../../docs/bootstrap/MANIFEST.md) and `scripts/bootstrap_modality_repo.sh`.
 
 **Part 1 (1.3.1)** — prefer **iterables + auto-streaming** for sweep experiments:
 - [Iterables & Auto-Streaming (1.3.1)](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/)

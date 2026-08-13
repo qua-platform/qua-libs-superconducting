@@ -9,10 +9,13 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-QCA_ROOT = REPO_ROOT / "Quantum-Control-Applications" / "Superconducting"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from migration_paths import DEFAULT_MODALITY, add_modality_args, repo_root, resolve_modality, resolve_qca_root
 
-PRIORITY_FOLDERS = [
+REPO_ROOT = repo_root()
+
+# Superconducting rollout order; ignored for other modalities (all subfolders scanned).
+PRIORITY_FOLDERS_SC = [
     "Single-Fixed-Transmon",
     "Single-Flux-Tunable-Transmon",
     "Two-Fixed-Coupled-Transmons",
@@ -62,7 +65,7 @@ class MigrationReport:
     errors: list[str] = field(default_factory=list)
 
 
-def ordered_folders() -> list[Path]:
+def ordered_folders(qca_root: Path, modality: str) -> list[Path]:
     """Return migration folders in rollout order, de-duplicated."""
     folders: list[Path] = []
     processed_dirs: set[Path] = set()
@@ -77,15 +80,23 @@ def ordered_folders() -> list[Path]:
             if child.is_dir():
                 processed_dirs.add(child.resolve())
 
-    for rel in PRIORITY_FOLDERS:
-        add_folder(QCA_ROOT / rel)
+    priority = PRIORITY_FOLDERS_SC if modality == DEFAULT_MODALITY else []
+    for rel in priority:
+        add_folder(qca_root / rel)
 
-    for folder in sorted(QCA_ROOT.rglob("*")):
-        if not folder.is_dir() or folder.resolve() == QCA_ROOT.resolve():
+    for folder in sorted(qca_root.iterdir()):
+        if not folder.is_dir():
             continue
         if folder.resolve() in processed_dirs:
             continue
-        if any(parent.resolve() in processed_dirs for parent in folder.parents if parent != QCA_ROOT):
+        add_folder(folder)
+
+    for folder in sorted(qca_root.rglob("*")):
+        if not folder.is_dir() or folder.resolve() == qca_root.resolve():
+            continue
+        if folder.resolve() in processed_dirs:
+            continue
+        if any(parent.resolve() in processed_dirs for parent in folder.parents if parent != qca_root):
             continue
         add_folder(folder)
 
@@ -360,11 +371,12 @@ def migrate_folder(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    add_modality_args(parser)
     parser.add_argument(
         "--folder",
         action="append",
         dest="folders",
-        help="Restrict migration to one or more folders under Superconducting/ (relative path).",
+        help="Restrict migration to one or more folders under the modality root (relative path).",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print planned changes without writing files.")
     return parser.parse_args(argv)
@@ -372,16 +384,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    qca_root = resolve_qca_root(modality=args.modality, qca_root=args.qca_root)
+    modality = resolve_modality(args.modality)
     report = MigrationReport()
     processed_files: set[Path] = set()
 
     if args.folders:
-        folders = [QCA_ROOT / rel for rel in args.folders]
+        folders = [qca_root / rel for rel in args.folders]
     else:
-        folders = ordered_folders()
+        folders = ordered_folders(qca_root, modality)
 
     for folder in folders:
-        rel = folder.relative_to(QCA_ROOT) if folder.is_relative_to(QCA_ROOT) else folder
+        rel = folder.relative_to(qca_root) if folder.is_relative_to(qca_root) else folder
         print(f"Migrating {rel}...")
         migrate_folder(folder, report, processed_files, dry_run=args.dry_run)
 

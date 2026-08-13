@@ -1,6 +1,8 @@
 # QUA 1.3.1 / 1.4.0 Migration Guide
 
-Living reference for migrating this repository to **qm-qua 1.4.0** (repo pin), covering changes introduced in **1.3.1** and **1.4.0**:
+Living reference for migrating QUA code to **qm-qua 1.4.0**, covering changes introduced in **1.3.1** and **1.4.0**. The **reference implementation** in this repo is **Superconducting** (`Quantum-Control-Applications/Superconducting/`); the same four pillars apply to all modalities under [qua-libs `Quantum-Control-Applications/`](https://github.com/qua-platform/qua-libs/tree/main/Quantum-Control-Applications) (AMO, Optically addressable spin qubits, Quantum-Dots, Superconducting).
+
+**Executable playbook (audit, scripts, bootstrap, validation):** [qua-1.4.0-migration-runbook.md](qua-1.4.0-migration-runbook.md)
 
 - **1.3.1** — [Iterables & Auto-Streaming](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/), stream API renames
 - **1.4.0** — controller / logical config split, `amp()` deprecation, program-queue `overrides` deprecation
@@ -51,6 +53,37 @@ frequencies = np.arange(f_min, f_max + 0.1, df).astype(int)
 
 Reference: [`robust_qubit_control_using_phase_modulated_pulses.py`](../../Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon/Use%20Case%204%20-%20Paraoanu%20Lab%20-%20Robust%20qubit%20control%20using%20phase-modulated%20pulses/robust_qubit_control_using_phase_modulated_pulses.py).
 
+## Universal keep-manual vs migrate (all modalities)
+
+Detailed per-modality notes: [runbook appendices](qua-1.4.0-migration-runbook.md#f-modality-appendices).
+
+### Migrate to iterables (Tier A)
+
+| Pattern | Signal in code |
+|---------|----------------|
+| 1D frequency/amplitude/time sweep | `for_(n, …)` + `for_(*from_array(x, xs))` + `save(I,Q)` + `.buffer().average()` |
+| 2D aligned sweeps | Nested `from_array` or two axes with `.buffer(n1).buffer(n2).average()` |
+| Multiplexed IQ | `I1`…`Q2` with per-qubit `.buffer().average()` |
+
+### Keep manual (compat-only: `declare_stream` → `declare_output_stream`)
+
+| Pattern | Signal | Modalities |
+|---------|--------|------------|
+| Randomized benchmarking | `16*`, `*RB*`, `randomized_benchmarking` | SC, QD, OASQ |
+| State/process tomography | `*tomography*`, QST | SC, QD |
+| IQ blobs | `.save_all()`, `09*IQ*`, `11_IQ` | SC, QD |
+| Cryoscope | `17_cryoscope*`, `cryoscope` | SC |
+| Raw ADC / time-of-flight | `02_raw_adc*`, `03_time_of_flight*` | SC, QD, OASQ |
+| Readout optimization w/ custom `.map()` | `10*readout*`, `13*readout*` | SC |
+| Frequency tracking | `frequency_tracking` | SC |
+| `pause()` + external instrument | `pause()`, QDAC/DC API in Python loop | QD, AMO |
+| Algorithmic / custom 2D | Spiral, atom-sorting grid | QD, AMO |
+| Real-time feedback / PID | Integrator streams, sticky elements | AMO |
+| Photon counting / time-tagging | `time_tagging.analog`, custom `.map()` chains | OASQ |
+| Macro-returned streams | `I, Q, I_st, Q_st = SomeMacro()` | QD |
+| Baking hybrids | `*baking*` | QD |
+| Non-QUA scripts | No `with program()` | QD `DC calibrations with QDAC/` |
+
 ### When to migrate vs keep manual streams
 
 | Pattern | Action |
@@ -61,7 +94,9 @@ Reference: [`robust_qubit_control_using_phase_modulated_pulses.py`](../../Quantu
 | IQ blobs (`.save_all()`) | **Keep manual** |
 | Cryoscope / ADC streams | **Keep manual** |
 
-### Tier A migration template
+Cross-modality keep-manual patterns (QD pause+external, AMO PID, OASQ photon counting, etc.) are listed in [Universal keep-manual vs migrate (all modalities)](#universal-keep-manual-vs-migrate-all-modalities) and the [runbook appendices](qua-1.4.0-migration-runbook.md#f-modality-appendices).
+
+### Tier A migration template (qualibration node)
 
 Reference node: [`02a_resonator_spectroscopy.py`](../../qualibration_graphs/superconducting/calibrations/1Q_calibrations/02a_resonator_spectroscopy.py)
 
@@ -105,6 +140,118 @@ with program() as node.namespace["qua_program"]:
     with stream_processing():
         n_st.save("n")
 ```
+
+### Standalone QCA 1D sweep template
+
+Reference: [`04a_resonator_spectroscopy.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/04a_resonator_spectroscopy.py)
+
+**Before:**
+
+```python
+with program() as spec:
+    f = declare(int)
+    n = declare(int)
+    I = declare(fixed)
+    Q = declare(fixed)
+    I_st = declare_stream()
+    Q_st = declare_stream()
+    n_st = declare_stream()
+    with for_(n, 0, n < n_avg, n + 1):
+        save(n, n_st)
+        with for_(*from_array(f, frequencies)):
+            update_frequency("resonator", f)
+            measure("readout", "resonator", None, dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
+            save(I, I_st)
+            save(Q, Q_st)
+    with stream_processing():
+        I_st.buffer(len(frequencies)).average().save("I")
+        Q_st.buffer(len(frequencies)).average().save("Q")
+        n_st.save("iteration")
+```
+
+**After:**
+
+```python
+from qm.qua.extensions import QuaIterable, QuaIterableRange
+
+frequencies = np.arange(f_min, f_max + 0.1, df).astype(int)
+
+with program() as spec:
+    shots = QuaIterableRange("shots", n_avg)
+    f_sweep = QuaIterable("f", frequencies)
+    n = declare(int)
+    n_st = declare_output_stream()
+    for shot in shots:
+        assign(n, shot)
+        save(n, n_st)
+        for f in f_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            update_frequency("resonator", f)
+            measure("readout", "resonator", None, dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
+    with stream_processing():
+        n_st.save("iteration")
+```
+
+Execute path after Part 2: `qm = qmm.open_qm(controller_config)` and `job = qm.execute(spec, config=logical_config)`.
+
+### 2D nested iterables template
+
+Reference: [`05_resonator_spectroscopy_vs_amplitude.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/05_resonator_spectroscopy_vs_amplitude.py)
+
+```python
+shots = QuaIterableRange("shots", n_avg)
+df_sweep = QuaIterable("df", dfs)          # dfs.astype(int) when used with update_frequency
+a_sweep = QuaIterable("a", amplitudes)     # amplitudes stay float
+
+for shot in shots:
+    assign(n, shot)
+    save(n, n_st)
+    for df in df_sweep:
+        update_frequency("resonator", df + resonator_IF)
+        for a in a_sweep:
+            I = declare_with_stream(fixed, "I", average_axes=["shots"])
+            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
+            measure("readout", "resonator", None, dual_demod.full(...), dual_demod.full(...), amplitude_scale=a)
+```
+
+### Compat-only macro (stream rename only)
+
+Reference: Quantum-Dots `RF_reflectometry_macro` in qua-libs — rename streams inside macros, keep manual `save` / `buffer()` in callers. Superconducting example: [`macros.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/macros.py).
+
+```python
+# Before
+I_st = declare_stream()
+
+# After (keep-manual scripts — no declare_with_stream in macro)
+I_st = declare_output_stream()
+```
+
+### Modular `configuration/__init__.py` split
+
+When config is assembled from submodules (e.g. Quantum-Dots Fast 2D Scans), split the **assembled** dict in `__init__.py`:
+
+```python
+from qua_config_split import merge_qua_config
+
+controller_config = {
+    "controllers": controllers,
+}
+logical_config = {
+    "elements": elements,
+    "pulses": pulses,
+    "waveforms": waveforms,
+    "digital_waveforms": digital_waveforms,
+    "integration_weights": integration_weights,
+}
+config = merge_qua_config(controller_config, logical_config)
+```
+
+Remove top-level `"version"` key (deprecated in qm-qua 1.2.3).
+
+### Photon-counting compat-only (OASQ)
+
+For RB / readout with `time_tagging.analog(...)` and custom `.map(FUNCTIONS.average()).buffer(...)` chains: rename `declare_stream` → `declare_output_stream`; **do not** migrate to `declare_with_stream`. Reference: NV center RB scripts in qua-libs.
 
 ### Phased rollout
 
@@ -163,9 +310,15 @@ Full file inventory: [`qua-1.4.0-migrated-files.md`](qua-1.4.0-migrated-files.md
 
 ### Testing
 
-- **Compile gate:** `qualibration_graphs/superconducting/tests/test_qua_compile.py`
-- **Simulation smoke:** enable `node.parameters.simulate` locally
-- **CI:** `.github/workflows/ci.yml` — `qua-compile` job after `uv sync`
+| Gate | Scope |
+|------|-------|
+| [`tests/test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py) | QCA scripts under `Quantum-Control-Applications/{Modality}/` (`QCA_MODALITY` env) |
+| [`test_qua_compile.py`](../../qualibration_graphs/superconducting/tests/test_qua_compile.py) | Qualibration nodes only — not QCA scripts |
+| [`test_config_split.py`](../../qualibration_graphs/superconducting/tests/test_config_split.py) | SC QCA config split + qualibration execute paths |
+| [`test_no_deprecated_amp.py`](../../qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py) | Amp deprecation across QCA, qualibration, tutorials |
+
+- **Simulation smoke:** `simulate = True` in QCA scripts; compare waveform report to qua-libs baseline ([`VALIDATION.md`](../../VALIDATION.md))
+- **CI:** `.github/workflows/ci.yml` — qualibration tests + optional `tests/test_qca_migration_gates.py`
 
 ### Risks
 
@@ -185,7 +338,7 @@ Since QOP 3.5, the QUA configuration is split into a **controller config** (phys
 | Controller config | `controllers`, `octaves`, `mixers` |
 | Logical config | `elements`, `pulses`, `waveforms`, `digital_waveforms`, `integration_weights`, `oscillators` |
 
-Helpers: [`qua_config_split.py`](../../Quantum-Control-Applications/Superconducting/qua_config_split.py) (QCA) and [`calibration_utils/qua_config_split.py`](../../qualibration_graphs/superconducting/calibration_utils/qua_config_split.py) (qualibration).
+Helpers: [`qua_config_split.py`](../../Quantum-Control-Applications/Superconducting/qua_config_split.py) at **modality root** (copy per fork; see [runbook bootstrap](qua-1.4.0-migration-runbook.md#g-repository-bootstrap-new-modality-fork)) and [`calibration_utils/qua_config_split.py`](../../qualibration_graphs/superconducting/calibration_utils/qua_config_split.py) (qualibration).
 
 ### configuration.py template
 
@@ -253,11 +406,11 @@ For `simulate_qua_program`, keep using `simulate_and_plot(qmm, config, ...)` wit
 
 | Criterion | Status |
 |-----------|--------|
-| All `configuration*.py` export `controller_config` + `logical_config` | Pending |
-| Execute path: `open_qm(controller_config)` + `execute(..., config=logical_config)` | Pending |
-| Simulate path: `qmm.simulate(config, ...)` without `open_qm` | Pending |
-| Qualibration nodes split `generate_config()` at execute time | Pending |
-| Grep gate in `test_config_split.py` | Pending |
+| All `configuration*.py` export `controller_config` + `logical_config` | Pass — SC QCA + tutorial configs; grep in `test_config_split.py` / `test_qca_migration_gates.py` |
+| Execute path: `open_qm(controller_config)` + `execute(..., config=logical_config)` | Pass — SC QCA scripts |
+| Simulate path: `qmm.simulate(config, ...)` without `open_qm` | Pass — SC QCA simulate branches |
+| Qualibration nodes split `generate_config()` at execute time | Pass — `test_config_split.py` |
+| Grep gate in `test_config_split.py` + portable `tests/test_qca_migration_gates.py` | Pass |
 
 ## Part 3 — QUA 1.4.0 (`amp()` deprecation)
 

@@ -14,6 +14,7 @@ It checks Python syntax, module imports, qm-qua 1.3.1 API availability, and that
 | `test_qua_compile.py` | `qualibration_graphs/superconducting/tests/test_qua_compile.py` | QUA 1.3.1 migration gate (main suite) |
 | `test_config_split.py` | `qualibration_graphs/superconducting/tests/test_config_split.py` | QUA 1.4.0 config split + queue deprecation gates |
 | `test_no_deprecated_amp.py` | `qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py` | QUA 1.4.0 `amp()` deprecation grep gate |
+| `test_qca_migration_gates.py` | `tests/test_qca_migration_gates.py` | Portable QCA migration gates (`QCA_MODALITY` env) |
 | `test_smoke.py` | `qualibration_graphs/superconducting/tests/test_smoke.py` | Package import smoke test |
 | `conftest.py` | `qualibration_graphs/superconducting/tests/conftest.py` | Stubs QualibrationNode run_actions and hardware I/O during import checks; redirects `Quam.load()` to the calibration package directory |
 
@@ -76,6 +77,7 @@ See [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml).
 |-----|---------|-------|
 | `test` | `uv sync --python 3.14` then `uv run pytest -q` | All tests in `tests/` |
 | `qua-compile` | `uv sync --python 3.14` then `uv run pytest tests/test_qua_compile.py -q` | `test_qua_compile.py` only |
+| `qca-migration-gates` | `uv sync --python 3.14` then `QCA_MODALITY=Superconducting uv run pytest tests/test_qca_migration_gates.py -q` | Portable QCA grep gates (repo root) |
 
 Both jobs install workspace dependencies from the repo root, then run pytest from
 `qualibration_graphs/superconducting/`.

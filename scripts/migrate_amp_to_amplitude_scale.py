@@ -6,10 +6,13 @@ from __future__ import annotations
 import argparse
 import ast
 import re
+import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-QCA_ROOT = REPO_ROOT / "Quantum-Control-Applications" / "Superconducting"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from migration_paths import add_modality_args, repo_root, resolve_qca_root
+
+REPO_ROOT = repo_root()
 QUAL_ROOT = REPO_ROOT / "qualibration_graphs" / "superconducting"
 TUTORIAL_ROOT = REPO_ROOT / "Tutorials"
 
@@ -204,9 +207,12 @@ def migrate_file(path: Path, dry_run: bool = False) -> bool:
     return True
 
 
-def iter_targets() -> list[Path]:
+def iter_targets(qca_root: Path, *, include_qualibration: bool = True) -> list[Path]:
+    roots = [qca_root]
+    if include_qualibration:
+        roots.extend([QUAL_ROOT, TUTORIAL_ROOT])
     paths: list[Path] = []
-    for root in (QCA_ROOT, QUAL_ROOT, TUTORIAL_ROOT):
+    for root in roots:
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*.py")):
@@ -218,10 +224,18 @@ def iter_targets() -> list[Path]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    add_modality_args(parser)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--skip-qualibration",
+        action="store_true",
+        help="Scan only the QCA modality tree (modality-only repos).",
+    )
     args = parser.parse_args()
-    count = sum(1 for p in iter_targets() if migrate_file(p, dry_run=args.dry_run))
-    print(f"\nMigrated {count} files")
+    qca_root = resolve_qca_root(modality=args.modality, qca_root=args.qca_root)
+    targets = iter_targets(qca_root, include_qualibration=not args.skip_qualibration)
+    count = sum(1 for p in targets if migrate_file(p, dry_run=args.dry_run))
+    print(f"\nMigrated {count} files (scope: {qca_root.relative_to(REPO_ROOT)})")
 
 
 if __name__ == "__main__":
