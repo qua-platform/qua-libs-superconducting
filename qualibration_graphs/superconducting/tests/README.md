@@ -15,6 +15,7 @@ It checks Python syntax, module imports, qm-qua 1.3.1 API availability, and that
 | `test_config_split.py` | `qualibration_graphs/superconducting/tests/test_config_split.py` | QUA 1.4.0 config split + queue deprecation gates |
 | `test_no_deprecated_amp.py` | `qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py` | QUA 1.4.0 `amp()` deprecation grep gate |
 | `test_smoke.py` | `qualibration_graphs/superconducting/tests/test_smoke.py` | Package import smoke test |
+| `conftest.py` | `qualibration_graphs/superconducting/tests/conftest.py` | Stubs QualibrationNode run_actions and hardware I/O during import checks |
 
 ## Tests in `test_qua_compile.py`
 
@@ -25,7 +26,7 @@ Discovery scans `calibrations/` recursively for `.py` files that contain `create
 |------|----------------|
 | `test_qm_extensions_importable` | qm-qua 1.3.1 APIs import: `declare_output_stream`, `declare_with_stream`, `QuaIterable`, `QuaIterableRange` |
 | `test_calibration_module_syntax` | Parametrized: `ast.parse()` on each discovered calibration file |
-| `test_calibration_module_imports` | Parametrized: `exec_module()` on each file; skips individual files on missing optional deps |
+| `test_calibration_module_imports` | Parametrized: `exec_module()` on each file; skips individual files on missing optional deps. [`conftest.py`](conftest.py) stubs `QualibrationNode.run_action` and hardware helpers so import checks do not connect to a QOP or run analysis |
 | `test_no_deprecated_declare_stream_in_calibrations` | Fails if any calibration file still contains `declare_stream(` |
 
 **Scope limits:**
@@ -57,10 +58,6 @@ uv run pytest qualibration_graphs/superconducting/tests/ -q
 
 # Compile gate only
 uv run pytest qualibration_graphs/superconducting/tests/test_qua_compile.py -q
-
-# Fast gate: skip heavy import test (syntax + API + deprecation only)
-uv run pytest qualibration_graphs/superconducting/tests/test_qua_compile.py -q \
-  --deselect qualibration_graphs/superconducting/tests/test_qua_compile.py::test_calibration_module_imports
 ```
 
 From the calibration package directory:
