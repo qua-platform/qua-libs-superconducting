@@ -15,7 +15,7 @@ It checks Python syntax, module imports, qm-qua 1.3.1 API availability, and that
 | `test_config_split.py` | `qualibration_graphs/superconducting/tests/test_config_split.py` | QUA 1.4.0 config split + queue deprecation gates |
 | `test_no_deprecated_amp.py` | `qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py` | QUA 1.4.0 `amp()` deprecation grep gate |
 | `test_smoke.py` | `qualibration_graphs/superconducting/tests/test_smoke.py` | Package import smoke test |
-| `conftest.py` | `qualibration_graphs/superconducting/tests/conftest.py` | Stubs QualibrationNode run_actions and hardware I/O during import checks |
+| `conftest.py` | `qualibration_graphs/superconducting/tests/conftest.py` | Stubs QualibrationNode run_actions and hardware I/O during import checks; redirects `Quam.load()` to the calibration package directory |
 
 ## Tests in `test_qua_compile.py`
 
