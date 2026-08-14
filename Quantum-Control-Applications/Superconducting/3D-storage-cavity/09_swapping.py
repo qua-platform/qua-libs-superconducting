@@ -98,6 +98,7 @@ with program() as swap:
             align()
             # Measure the state of the resonator
             state, I, Q = macros.readout_macro(threshold=ge_threshold, state=state, I=I, Q=Q)
+            save(state, state_st)
 
             # Wait for the storage to decay to the ground state
             align()

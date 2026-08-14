@@ -20,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `generate_qua_migrated_files_inventory.py`
 - Config-split helpers: `qua_config_split.py` (QCA and qualibration)
 - `.python-version` pinning Python 3.14 for local development
+- Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py))
 
 ### Changed
 
 - Changed VALIDATION.md script matrix to drop ≥90% duplicate flux-tunable scripts and add flux-specific / coupled-gate calibrations for more robust migration validation
+- Completed 3D-storage-cavity simulation validation (5 scripts vs qua-libs baseline); documented dual runtime environments (`uv` migrated, Poetry baseline) in VALIDATION.md
 - Extended migration guide with universal keep-manual rules, standalone QCA templates, and Part 2 completion status; migration scripts accept `--modality` / `--qca-root`
 - Pinned `qm-qua==1.4.0`; bumped `qualibrate>=1.5.0` and Qiskit `>=2.3,<3.0`; extended `requires-python` to `<3.15`
 - CI runs on Python 3.14
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed duplicate QUA output stream tags in 10 Superconducting QCA scripts where `declare_with_stream` overlapped legacy manual `.save()` tags; added a migration grep gate
 - Fixed 3D-storage-cavity scripts that used `declare_with_stream(bool, ..., average_axes=...)` (simulation error: average can't operate on bool items); state streams now use `int`, matching upstream `boolean_to_int().average()` behavior; `readout_macro` stores 0/1 for int or bool state variables
+- Fixed `09_swapping.py` missing `save(state, state_st)` after readout (empty stream compile error under iterables + manual `state_st`)
 - Cast frequency/detuning sweep arrays to `.astype(int)` before `QuaIterable` when used with `update_frequency` (~60 QCA scripts and qualibration nodes); fixes simulation compile error `Expected type int but got fixed`
 - `test_calibration_module_imports` no longer fails in CI: [`conftest.py`](qualibration_graphs/superconducting/tests/conftest.py) stubs QualibrationNode run-actions and hardware I/O during module import checks; redirects `Quam.load()` to the calibration package dir so repo-root pytest runs do not pick up incompatible QUAM state files
 

@@ -29,6 +29,9 @@ dist/
 **/calibration_data
 **/quam_config/quam_state
 
+# Simulation validation artifacts (scripts/validate_simulation_baseline.py)
+validation_results/
+
 # Installer-local config (telemetry.toml, etc.)
 **/.qua-libs/
 

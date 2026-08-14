@@ -27,12 +27,35 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 ## How to run
 
 1. Set `simulate = True` in the script (most default to `False`; the 3D-storage-cavity folder and some `00_hello_qua.py` scripts default to `True`).
-2. Run from the script’s directory so `from configuration import *` resolves (e.g. `cd Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon && uv run python 05b_resonator_spectroscopy_vs_flux.py`).
+2. Run each side from **its own** script directory so `from configuration import *` resolves, using the runtime in **Runtime environments** below (do not run baseline scripts through the migrated `uv` env or vice versa).
 3. Compare the compiled job / waveform report structure against the baseline script at the same relative path.
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
-5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1_con1` at IP `172.16.33.101`).
+5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1` at IP `172.16.33.101`).
 
-The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after manual simulation.
+Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly, compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse).
+
+The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
+
+## Runtime environments
+
+Each baseline comparison uses **two separate Python environments** — one per repo:
+
+| Side | Repo | Runner | QUA version |
+|------|------|--------|-------------|
+| **Migrated** | `qua-libs-superconducting` | `uv run python <script>` from script directory | `qm-qua==1.4.0` (repo pin) |
+| **Baseline** | `../qua-libs` | `poetry run python <script>` from same relative script directory | `qm-qua>=1.2.0` (qua-libs Poetry env) |
+
+Each side uses its own `configuration.py` and `macros.py`. Example harness invocation:
+
+```bash
+cd qua-libs-superconducting
+uv run python scripts/validate_simulation_baseline.py \
+  --baseline-root ../qua-libs/Quantum-Control-Applications/Superconducting/3D-storage-cavity \
+  --baseline-repo ../qua-libs \
+  --baseline-runner "poetry run python" \
+  --migrated-root Quantum-Control-Applications/Superconducting/3D-storage-cavity \
+  --migrated-runner "uv run python"
+```
 
 ## Results
 
@@ -50,13 +73,15 @@ For these tests we used the OPX `CS_1_con1` (IP: 172.16.33.101).
 
 ### 3D-storage-cavity
 
+For these tests we used the OPX `CS_1` (IP: 172.16.33.101).
+
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `3D-storage-cavity/01_storage_spectroscopy.py` | yes | yes | yes | — | pending | |
-| `3D-storage-cavity/00_selective_pulse_power_rabi.py` | yes | yes | yes | yes (`play`) | pending | |
-| `3D-storage-cavity/06a_qubit_AC_Stark_shift_from_readout_pumping.py` | yes | yes | yes | yes (`play`) | pending | |
-| `3D-storage-cavity/03a_number_splitting_spectroscopy_w_displacement.py` | yes | yes | yes | — | pending | |
-| `3D-storage-cavity/09_swapping.py` | yes | yes | yes | — | pending | |
+| `3D-storage-cavity/01_storage_spectroscopy.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (6 analog, 1 digital, 2 ADC); 0 diff lines |
+| `3D-storage-cavity/00_selective_pulse_power_rabi.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
+| `3D-storage-cavity/06a_qubit_AC_Stark_shift_from_readout_pumping.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 0 digital, 0 ADC); 0 diff lines |
+| `3D-storage-cavity/03a_number_splitting_spectroscopy_w_displacement.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (6 analog, 1 digital, 2 ADC); 0 diff lines |
+| `3D-storage-cavity/09_swapping.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (14 analog, 1 digital, 2 ADC); 0 diff lines |
 
 ### Single-Flux-Tunable-Transmon
 
