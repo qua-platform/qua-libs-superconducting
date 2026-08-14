@@ -19,6 +19,7 @@ cp "$SOURCE/scripts/migration_paths.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/migrate_amp_to_amplitude_scale.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/migrate_config_split.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/migrate_qca_qua_131.py" "$TARGET/scripts/"
+cp "$SOURCE/scripts/migrate_measure_none.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/generate_qua_migrated_files_inventory.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/bootstrap_modality_repo.sh" "$TARGET/scripts/"
 

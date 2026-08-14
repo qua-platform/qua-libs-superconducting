@@ -67,16 +67,17 @@ rg -l 'declare_stream\(' "$ROOT" | wc -l
 rg -l 'open_qm\(config\)' "$ROOT" | wc -l
 rg -l '\* amp\(' "$ROOT" | wc -l
 rg -l 'from_array' "$ROOT" | wc -l
+rg -l 'measure\s*\([^)]*,\s*None\b' "$ROOT" | wc -l
 find "$ROOT" -name 'configuration*.py' | wc -l
 ```
 
-**Expected after full migration:** zero `declare_stream(`, zero `open_qm(config)`, zero `* amp(` in active code; Tier A sweeps use `QuaIterable` / `declare_with_stream`.
+**Expected after full migration:** zero `declare_stream(`, zero `open_qm(config)`, zero `* amp(`, zero `measure(..., None, ...)` in active code; Tier A sweeps use `QuaIterable` / `declare_with_stream`. (Multiline `None` on its own line inside `measure(...)` is caught by `test_no_measure_none_adc_placeholder_in_qca`.)
 
 ---
 
 ## D. Execution order
 
-Apply in this order for every modality (same four pillars):
+Apply in this order for every modality (five migration pillars + validation):
 
 | Step | Part | Script / action |
 |------|------|-----------------|
@@ -84,10 +85,13 @@ Apply in this order for every modality (same four pillars):
 | 2 | **2 — config split** | `uv run python scripts/migrate_config_split.py --modality "$MODALITY"` |
 | 3 | **1 — iterables & streams** | `uv run python scripts/migrate_qca_qua_131.py --modality "$MODALITY" --dry-run` then apply |
 | 4 | **Manual pass** | Keep-manual files (see guide + appendix F below); hand-migrate edge cases |
-| 5 | **Compat-only** | Rename `declare_stream` → `declare_output_stream` in skipped files/macros |
-| 6 | **Validation** | Grep gates + simulation smoke (sections H–I) |
+| 5 | **5 — `measure()` ADC placeholder** | `uv run python scripts/migrate_measure_none.py --modality "$MODALITY" --dry-run` then apply |
+| 6 | **Compat-only** | Rename `declare_stream` → `declare_output_stream` in skipped files/macros |
+| 7 | **Validation** | Grep gates + simulation smoke (sections H–I) |
 
 **Why Part 3 before Part 1?** `migrate_amp_to_amplitude_scale.py` is AST-safe and independent. Config split (Part 2) must land before you fix execute paths during manual work. Part 1 script only handles **simple 1D** sweeps — expect **manual migration for ~30–40%** of files.
+
+**Part 5 timing:** Run after manual pass so `measure(...)` calls are in final form. Safe to re-run; removes literal `None` inside `measure(...)` only — real ADC streams (`adc_st`, etc.) are unchanged.
 
 ### Bulk script limits (`migrate_qca_qua_131.py`)
 
@@ -121,15 +125,35 @@ uv run python scripts/migrate_qca_qua_131.py --modality "$MODALITY"
 
 # Optional: restrict to one subfolder
 uv run python scripts/migrate_qca_qua_131.py --modality "$MODALITY" --folder Single_Spin_EDSR --dry-run
+
+# Part 5 — measure(None) ADC placeholder (qm-qua 1.4.0 DeprecationWarning)
+uv run python scripts/migrate_measure_none.py --modality "$MODALITY" --dry-run
+uv run python scripts/migrate_measure_none.py --modality "$MODALITY"
 ```
 
 Explicit path (modality fork with non-standard layout):
 
 ```bash
 uv run python scripts/migrate_config_split.py --qca-root /path/to/Quantum-Control-Applications/AMO
+uv run python scripts/migrate_measure_none.py --qca-root /path/to/Quantum-Control-Applications/AMO --dry-run
 ```
 
 Place [`qua_config_split.py`](../Quantum-Control-Applications/Superconducting/qua_config_split.py) at the **modality root** (same directory as example subfolders). Configuration files import it via `sys.path` (handled by `migrate_config_split.py`).
+
+### Scripts inventory
+
+| Script | Purpose |
+|--------|---------|
+| [`migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py) | Part 3 — `amp()` → `amplitude_scale` |
+| [`migrate_config_split.py`](../../scripts/migrate_config_split.py) | Part 2 — controller / logical config split |
+| [`migrate_qca_qua_131.py`](../../scripts/migrate_qca_qua_131.py) | Part 1 — simple 1D iterables + auto-streaming |
+| [`migrate_measure_none.py`](../../scripts/migrate_measure_none.py) | Part 5 — remove `measure(..., None, ...)` placeholder |
+| [`generate_qua_migrated_files_inventory.py`](../../scripts/generate_qua_migrated_files_inventory.py) | Optional git-derived inventory |
+| [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) | SC reference: automated waveform baseline compare |
+| [`validation_matrix.py`](../../scripts/validation_matrix.py) | Folder presets for [`VALIDATION.md`](../../VALIDATION.md) |
+| [`simulate_waveform_runner.py`](../../scripts/simulate_waveform_runner.py) | Headless simulate helper used by the harness |
+
+The validation harness (`validate_simulation_baseline.py`, `validation_matrix.py`, `simulate_waveform_runner.py`) is **Superconducting reference-repo** tooling — it expects a sibling [`../qua-libs`](https://github.com/qua-platform/qua-libs) baseline. Modality forks can skip copying it unless they maintain their own `VALIDATION.md`.
 
 ---
 
@@ -141,7 +165,9 @@ Universal keep-manual rules live in the [migration guide — Universal patterns]
 
 - **Status:** Migrated in `qua-libs-superconducting`; tracked in [`VALIDATION.md`](../../VALIDATION.md)
 - **Unique patterns:** flux sweeps, Octave wide-range IF updates, multiplexed transmons, cross-resonance calibration
-- **Validation samples:** `Single-Fixed-Transmon/` — `00_hello_qua.py`, `04a_resonator_spectroscopy.py`, `05_resonator_spectroscopy_vs_amplitude.py`, `08b_power_rabi.py`, `08c_power_rabi_error_amplification.py`
+- **Simulation validation (automated):** `uv run python scripts/validate_simulation_baseline.py --folder FOLDER --print-notes` (see `--list-folders`); dual runtime: `uv` migrated + Poetry baseline from `../qua-libs`
+- **Validated folders (10 scripts):** `Single-Fixed-Transmon` (5), `3D-storage-cavity` (5) — all pass vs qua-libs baseline
+- **Pending folders:** `Single-Flux-Tunable-Transmon`, `Two-Fixed-Coupled-Transmons`, `Two-Flux-Tunable-Coupled-Transmons` (5 scripts each in [`validation_matrix.py`](../../scripts/validation_matrix.py))
 
 ### Quantum-Dots
 
@@ -280,6 +306,7 @@ Use Superconducting migrated examples only as read-only reference if a second wo
 | **2 — Config split** | All `configuration*.py` export `controller_config`, `logical_config`, merged `config`; `open_qm(controller_config)` + `execute(..., config=logical_config)` |
 | **3 — amp** | No `* amp(` in QCA Python; `amplitude_scale=` on `play`/`measure` |
 | **4 — Queue** | No `add_to_queue(` / `add_compiled(` with `overrides` |
+| **5 — measure ADC placeholder** | No `measure(..., None, ...)` in active QCA code; real ADC streams (`adc_st`, etc.) unchanged |
 
 ### Automated gates
 
@@ -293,14 +320,24 @@ cd qualibration_graphs/superconducting && uv run pytest tests/test_qua_compile.p
 
 | Test file | Scope |
 |-----------|-------|
-| `tests/test_qca_migration_gates.py` | QCA scripts under `Quantum-Control-Applications/{Modality}/` |
+| `tests/test_qca_migration_gates.py` | QCA scripts under `Quantum-Control-Applications/{Modality}/` — includes `test_no_measure_none_adc_placeholder_in_qca` |
 | `qualibration_graphs/.../test_qua_compile.py` | Qualibration nodes only (`declare_stream`, syntax) |
 | `qualibration_graphs/.../test_config_split.py` | SC QCA + qualibration config split + queue deprecation |
 | `qualibration_graphs/.../test_no_deprecated_amp.py` | SC qualibration + tutorials amp gate |
 
 ### Simulation smoke
 
-Per subfolder: pick ~5 scripts (hello, spectroscopy, rabi/T1, one 2D or flux, one compat-only). Set `simulate = True`, run from script directory, compare waveform report structure to **qua-libs** baseline at pinned commit. Document in `VALIDATION.md`.
+**Modality forks:** Per subfolder, pick ~5 scripts (hello, spectroscopy, rabi/T1, one 2D or flux, one compat-only). Set `simulate = True`, run from script directory, compare waveform report structure to **qua-libs** baseline at pinned commit. Document in `VALIDATION.md`.
+
+**Superconducting reference repo (`qua-libs-superconducting`):** Use the automated harness (requires sibling `../qua-libs` and QOP access for simulation):
+
+```bash
+uv run python scripts/validate_simulation_baseline.py --list-folders
+uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --print-notes
+uv run python scripts/validate_simulation_baseline.py --folder 3D-storage-cavity --print-notes
+```
+
+Update `VALIDATION.md` Status/Notes from `--print-notes` output. Artifacts land under `validation_results/{folder}/`.
 
 ---
 
@@ -321,6 +358,7 @@ Baseline: qua-libs @ `<commit>` — same relative paths under `Quantum-Control-A
 | `declare_stream(` | |
 | `open_qm(config)` | |
 | `* amp(` | |
+| `measure(..., None` | |
 
 ## Migration pillars
 
@@ -330,6 +368,11 @@ Baseline: qua-libs @ `<commit>` — same relative paths under `Quantum-Control-A
 | Streaming API (1.3.1) | `declare_output_stream` / `declare_with_stream` |
 | Config split (1.4.0) | `test_qca_migration_gates.py` |
 | `amplitude_scale` (1.4.0) | grep gate |
+| measure ADC placeholder (1.4.0) | `test_no_measure_none_adc_placeholder_in_qca` |
+
+## Automated baseline comparison (optional — SC reference repo)
+
+Uses [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) with folder presets from [`validation_matrix.py`](../../scripts/validation_matrix.py). Requires sibling `../qua-libs` baseline repo.
 
 ## Simulation samples
 

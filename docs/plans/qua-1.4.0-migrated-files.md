@@ -336,9 +336,13 @@ Inventory of Python files touched during the QUA 1.3.1 and 1.4.0 migrations (ite
 
 - [`test_qua_compile.py`](../../qualibration_graphs/superconducting/tests/test_qua_compile.py)
 
-## scripts (4)
+## scripts (8)
 
 - [`generate_qua_migrated_files_inventory.py`](../../scripts/generate_qua_migrated_files_inventory.py)
 - [`migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py)
 - [`migrate_config_split.py`](../../scripts/migrate_config_split.py)
+- [`migrate_measure_none.py`](../../scripts/migrate_measure_none.py)
 - [`migrate_qca_qua_131.py`](../../scripts/migrate_qca_qua_131.py)
+- [`simulate_waveform_runner.py`](../../scripts/simulate_waveform_runner.py)
+- [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py)
+- [`validation_matrix.py`](../../scripts/validation_matrix.py)

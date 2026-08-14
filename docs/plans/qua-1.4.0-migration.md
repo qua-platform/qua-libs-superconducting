@@ -1,11 +1,11 @@
 # QUA 1.3.1 / 1.4.0 Migration Guide
 
-Living reference for migrating QUA code to **qm-qua 1.4.0**, covering changes introduced in **1.3.1** and **1.4.0**. The **reference implementation** in this repo is **Superconducting** (`Quantum-Control-Applications/Superconducting/`); the same four pillars apply to all modalities under [qua-libs `Quantum-Control-Applications/`](https://github.com/qua-platform/qua-libs/tree/main/Quantum-Control-Applications) (AMO, Optically addressable spin qubits, Quantum-Dots, Superconducting).
+Living reference for migrating QUA code to **qm-qua 1.4.0**, covering changes introduced in **1.3.1** and **1.4.0**. The **reference implementation** in this repo is **Superconducting** (`Quantum-Control-Applications/Superconducting/`); the same five migration pillars apply to all modalities under [qua-libs `Quantum-Control-Applications/`](https://github.com/qua-platform/qua-libs/tree/main/Quantum-Control-Applications) (AMO, Optically addressable spin qubits, Quantum-Dots, Superconducting).
 
 **Executable playbook (audit, scripts, bootstrap, validation):** [qua-1.4.0-migration-runbook.md](qua-1.4.0-migration-runbook.md)
 
 - **1.3.1** — [Iterables & Auto-Streaming](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/), stream API renames
-- **1.4.0** — controller / logical config split, `amp()` deprecation, program-queue `overrides` deprecation
+- **1.4.0** — controller / logical config split, `amp()` deprecation, program-queue `overrides` deprecation, `measure()` ADC-stream placeholder removal
 
 Release notes: [qm-qua 1.3.1](https://docs.quantum-machines.co/1.3.1/docs/Releases/qm_qua_releases/) · [qm-qua 1.4.0](https://docs.quantum-machines.co/1.4.0/docs/Releases/qm_qua_releases/)
 
@@ -316,8 +316,9 @@ Full file inventory: [`qua-1.4.0-migrated-files.md`](qua-1.4.0-migrated-files.md
 | [`test_qua_compile.py`](../../qualibration_graphs/superconducting/tests/test_qua_compile.py) | Qualibration nodes only — not QCA scripts |
 | [`test_config_split.py`](../../qualibration_graphs/superconducting/tests/test_config_split.py) | SC QCA config split + qualibration execute paths |
 | [`test_no_deprecated_amp.py`](../../qualibration_graphs/superconducting/tests/test_no_deprecated_amp.py) | Amp deprecation across QCA, qualibration, tutorials |
+| `test_no_measure_none_adc_placeholder_in_qca` in [`test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py) | `measure(..., None, ...)` ADC placeholder in QCA scripts |
 
-- **Simulation smoke:** `simulate = True` in QCA scripts; compare waveform report to qua-libs baseline ([`VALIDATION.md`](../../VALIDATION.md))
+- **Simulation smoke:** manual `simulate = True` in modality forks; Superconducting reference repo uses [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) — see [`VALIDATION.md`](../../VALIDATION.md)
 - **CI:** `.github/workflows/ci.yml` — qualibration tests + optional `tests/test_qca_migration_gates.py`
 
 ### Risks
@@ -440,7 +441,6 @@ play("x180" * amp(1, 0, 0, a), "qubit")
 measure(
     "readout" * amp(a),
     "resonator",
-    None,
     dual_demod.full("cos", "sin", I),
     dual_demod.full("minus_sin", "cos", Q),
 )
@@ -487,3 +487,51 @@ Bulk migration script: none (not used in this repo). CI grep gate: `test_no_depr
 |-----------|--------|
 | No `add_to_queue(` / `add_compiled(` in QCA, qualibration, or Tutorials | Pass — grep gate in `test_config_split.py` |
 | New queue code avoids deprecated `overrides` API | N/A until queue usage is added |
+
+## Part 5 — QUA 1.4.0 (`measure()` ADC-stream placeholder)
+
+In qm-qua **1.4.0**, passing literal `None` as the third argument to `measure()` to mean “no raw ADC streaming” is deprecated:
+
+> Putting `None` to indicate no adc streaming is no longer required, please remove it from the measure call
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `measure("readout", "resonator", None, dual_demod.full(...), ...)` | `measure("readout", "resonator", dual_demod.full(...), ...)` |
+| `measure("readout", "rr2", None)` | `measure("readout", "rr2")` |
+
+**Do not change** real ADC streaming — keep the stream variable as the third argument:
+
+```python
+measure("readout", "resonator", adc_st)  # raw ADC traces — unchanged
+```
+
+**Examples:**
+
+```python
+# Before (deprecated)
+measure(
+    "readout",
+    "resonator",
+    None,
+    dual_demod.full("cos", "sin", I),
+    dual_demod.full("minus_sin", "cos", Q),
+)
+
+# After
+measure(
+    "readout",
+    "resonator",
+    dual_demod.full("cos", "sin", I),
+    dual_demod.full("minus_sin", "cos", Q),
+)
+```
+
+Bulk migration script: [`scripts/migrate_measure_none.py`](../../scripts/migrate_measure_none.py). CI grep gate: `test_no_measure_none_adc_placeholder_in_qca` in [`tests/test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py).
+
+### Completion checklist (`measure()` ADC placeholder)
+
+| Criterion | Status |
+|-----------|--------|
+| No `measure(..., None, ...)` in Superconducting QCA Python | Done |
+| Real ADC stream calls (`adc_st`, etc.) unchanged | Done |
+| Grep gate in `test_no_measure_none_adc_placeholder_in_qca` | Done |

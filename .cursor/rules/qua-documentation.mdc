@@ -102,3 +102,7 @@ Frequency/detuning sweep arrays passed to `QuaIterable` and used with `update_fr
 **Part 3 (1.4.0)** — do **not** use `pulse * amp(scale)` in new QUA code. Pass `amplitude_scale=` to `play` and `measure` instead. See the **`amp()` deprecation** section in the guide.
 
 **Part 4 (1.4.0)** — do **not** use `add_to_queue(..., overrides=...)` or `queue.add_compiled()`. Prefer `qm.execute(program, config=logical_config)`.
+
+**Part 5 (1.4.0)** — do **not** pass literal `None` as the third argument to `measure()` to mean “no ADC streaming”; omit it. Keep real stream variables (e.g. `adc_st`) when streaming raw ADC. Bulk fix: [`scripts/migrate_measure_none.py`](../../scripts/migrate_measure_none.py); gate: `test_no_measure_none_adc_placeholder_in_qca`.
+
+**Superconducting validation (this repo):** automated simulation baseline comparison via [`scripts/validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) (`--folder`, `--list-folders`) — see [`VALIDATION.md`](../../VALIDATION.md).

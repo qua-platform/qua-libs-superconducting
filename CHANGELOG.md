@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modality fork bootstrap manifest ([docs/bootstrap/MANIFEST.md](docs/bootstrap/MANIFEST.md)) and `scripts/bootstrap_modality_repo.sh`
 - Portable QCA migration grep gates ([tests/test_qca_migration_gates.py](tests/test_qca_migration_gates.py)); CI job `qca-migration-gates`
 - `scripts/migration_paths.py` — shared `--modality` / `--qca-root` resolution for bulk migration scripts
-- QUA 1.3.1 / 1.4.0 migration guide ([docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md)), covering iterables, config split, `amp()` deprecation, and program-queue `overrides` deprecation
+- QUA 1.3.1 / 1.4.0 migration guide ([docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md)), covering iterables, config split, `amp()` deprecation, program-queue `overrides` deprecation, and `measure()` ADC placeholder removal
 - Auto-generated migrated-file inventory ([docs/plans/qua-1.4.0-migrated-files.md](docs/plans/qua-1.4.0-migrated-files.md))
 - Cursor rules for QUA, QUAM, and QUAlibrate ([.cursor/rules/qua-documentation.mdc](.cursor/rules/qua-documentation.mdc))
 - CI and static test gates: `test_qua_compile.py`, `test_config_split.py`, `test_no_deprecated_amp.py`, and [qualibration tests README](qualibration_graphs/superconducting/tests/README.md)
@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated migration runbook, migration guide, bootstrap manifest, and Cursor rules for `migrate_measure_none.py`, measure-None grep gate, and Superconducting simulation validation harness
 - Generalized simulation baseline validation harness with `--folder` presets from VALIDATION.md ([scripts/validation_matrix.py](scripts/validation_matrix.py)); reran Single-Fixed-Transmon simulation baseline comparison (5 scripts, all pass)
 - Changed VALIDATION.md script matrix to drop ≥90% duplicate flux-tunable scripts and add flux-specific / coupled-gate calibrations for more robust migration validation
 - Completed 3D-storage-cavity simulation validation (5 scripts vs qua-libs baseline); documented dual runtime environments (`uv` migrated, Poetry baseline) in VALIDATION.md
