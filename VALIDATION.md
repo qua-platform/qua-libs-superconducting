@@ -32,7 +32,7 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
 5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1` at IP `172.16.33.101`).
 
-Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly, compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse).
+Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly, compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse). Folder presets and script lists live in [scripts/validation_matrix.py](scripts/validation_matrix.py) (see `--list-folders`).
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
 
@@ -45,10 +45,17 @@ Each baseline comparison uses **two separate Python environments** — one per r
 | **Migrated** | `qua-libs-superconducting` | `uv run python <script>` from script directory | `qm-qua==1.4.0` (repo pin) |
 | **Baseline** | `../qua-libs` | `poetry run python <script>` from same relative script directory | `qm-qua>=1.2.0` (qua-libs Poetry env) |
 
-Each side uses its own `configuration.py` and `macros.py`. Example harness invocation:
+Each side uses its own `configuration.py` and `macros.py`. Example harness invocation (any VALIDATION folder):
 
 ```bash
 cd qua-libs-superconducting
+uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --print-notes
+uv run python scripts/validate_simulation_baseline.py --list-folders
+```
+
+Legacy ad-hoc paths (same as `--folder 3D-storage-cavity`):
+
+```bash
 uv run python scripts/validate_simulation_baseline.py \
   --baseline-root ../qua-libs/Quantum-Control-Applications/Superconducting/3D-storage-cavity \
   --baseline-repo ../qua-libs \
@@ -65,11 +72,11 @@ For these tests we used the OPX `CS_1_con1` (IP: 172.16.33.101).
 
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Single-Fixed-Transmon/00_hello_qua.py` | — | — | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (758 analog waveforms) |
-| `Single-Fixed-Transmon/04a_resonator_spectroscopy.py` | yes | yes | yes | — | pass | After `.astype(int)` on frequency sweep; sim compiles (12 analog, 6 digital, 12 ADC acquisitions) |
-| `Single-Fixed-Transmon/05_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pass | After `.astype(int)` on `dfs`; sim compiles (12 analog, 6 digital, 12 ADC acquisitions) |
-| `Single-Fixed-Transmon/08b_power_rabi.py` | yes | yes | yes | yes (`play`) | pass | Waveform report structure matches baseline (4 analog, 1 digital, 2 ADC acquisitions) |
-| `Single-Fixed-Transmon/08c_power_rabi_error_amplification.py` | yes | yes | yes | yes (`play`) | pass | Waveform report structure matches baseline (2 analog, 1 digital, 2 ADC acquisitions) |
+| `Single-Fixed-Transmon/00_hello_qua.py` | — | — | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (758 analog, 0 digital, 0 ADC); 0 diff lines |
+| `Single-Fixed-Transmon/04a_resonator_spectroscopy.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (12 analog, 6 digital, 12 ADC); 0 diff lines |
+| `Single-Fixed-Transmon/05_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (12 analog, 6 digital, 12 ADC); 0 diff lines |
+| `Single-Fixed-Transmon/08b_power_rabi.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
+| `Single-Fixed-Transmon/08c_power_rabi_error_amplification.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (2 analog, 1 digital, 2 ADC); 0 diff lines |
 
 ### 3D-storage-cavity
 

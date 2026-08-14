@@ -9,22 +9,19 @@ import os
 import shlex
 import subprocess
 import sys
-from pathlib import Path
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
+
+from validation_matrix import (
+    VALIDATION_FOLDERS,
+    default_baseline_repo,
+    list_folders,
+    resolve_paths,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RUNNER = REPO_ROOT / "scripts" / "simulate_waveform_runner.py"
-
-DEFAULT_3D_SCRIPTS = (
-    "01_storage_spectroscopy.py",
-    "00_selective_pulse_power_rabi.py",
-    "06a_qubit_AC_Stark_shift_from_readout_pumping.py",
-    "03a_number_splitting_spectroscopy_w_displacement.py",
-    "09_swapping.py",
-)
-
-SKIP_KEYS = frozenset({"pulser", "chirp_info", "iq_info"})
 
 
 def _round_value(value: Any, precision: int = 6) -> Any:
@@ -269,30 +266,55 @@ def validate_script(
     return summary
 
 
-def format_notes(summary: dict[str, Any]) -> str:
+def format_notes(summary: dict[str, Any], results_dir: Path) -> str:
     bc = summary["baseline_counts"]
     if summary["passed"]:
         return (
             f"simulate=True; waveform report matches baseline "
             f"({bc['analog']} analog, {bc['digital']} digital, {bc['adc']} ADC); 0 diff lines"
         )
-    diff_path = f"validation_results/3D-storage-cavity/{Path(summary['script']).stem}/diff.txt"
+    rel = results_dir / Path(summary["script"]).stem / "diff.txt"
+    try:
+        diff_path = rel.relative_to(REPO_ROOT)
+    except ValueError:
+        diff_path = rel
     return f"simulate=True; waveform mismatch — see {diff_path}"
+
+
+def _print_folder_catalog() -> None:
+    total = 0
+    for key in list_folders():
+        folder = VALIDATION_FOLDERS[key]
+        count = len(folder.scripts)
+        total += count
+        print(f"  {key} ({count} scripts)")
+    print(f"\nTotal: {len(list_folders())} folders, {total} scripts")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--folder",
+        choices=list_folders(),
+        default=None,
+        help="VALIDATION.md folder preset (sets paths and script list)",
+    )
+    parser.add_argument(
+        "--list-folders",
+        action="store_true",
+        help="List VALIDATION.md folder presets and exit",
+    )
+    parser.add_argument(
         "--baseline-root",
         type=Path,
-        required=True,
-        help="Baseline script folder (e.g. qua-libs .../3D-storage-cavity)",
+        default=None,
+        help="Baseline script folder (required unless --folder is set)",
     )
     parser.add_argument(
         "--baseline-repo",
         type=Path,
-        default=Path("/Users/brunogiacomazzo/qua-libs"),
-        help="qua-libs repo root for poetry run cwd",
+        default=None,
+        help="qua-libs repo root for poetry run cwd (default: ../qua-libs)",
     )
     parser.add_argument(
         "--baseline-runner",
@@ -302,8 +324,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--migrated-root",
         type=Path,
-        default=REPO_ROOT / "Quantum-Control-Applications/Superconducting/3D-storage-cavity",
-        help="Migrated script folder",
+        default=None,
+        help="Migrated script folder (default from --folder or 3D-storage-cavity)",
     )
     parser.add_argument(
         "--migrated-repo",
@@ -318,14 +340,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--scripts",
-        default=",".join(DEFAULT_3D_SCRIPTS),
-        help="Comma-separated script filenames",
+        default=None,
+        help="Comma-separated script filenames (default from --folder or 3D-storage-cavity preset)",
     )
     parser.add_argument(
         "--results-dir",
         type=Path,
-        default=REPO_ROOT / "validation_results/3D-storage-cavity",
-        help="Directory for comparison artifacts",
+        default=None,
+        help="Directory for comparison artifacts (default from --folder)",
     )
     parser.add_argument("--duration", type=int, default=10_000, help="Simulation duration (clock cycles)")
     parser.add_argument(
@@ -336,10 +358,61 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _resolve_run_config(args: argparse.Namespace) -> tuple[list[str], Path, Path, Path, Path, Path]:
+    baseline_repo = (args.baseline_repo or default_baseline_repo()).resolve()
+    migrated_repo = args.migrated_repo.resolve()
+
+    if args.folder:
+        paths = resolve_paths(args.folder, repo_root=REPO_ROOT, baseline_repo=baseline_repo)
+        scripts = list(paths.scripts)
+        baseline_root = paths.baseline_root
+        migrated_root = paths.migrated_root
+        results_dir = paths.results_dir
+    else:
+        if args.baseline_root is None:
+            raise SystemExit("Either --folder or --baseline-root is required.")
+        folder = VALIDATION_FOLDERS["3D-storage-cavity"]
+        scripts = (
+            [s.strip() for s in args.scripts.split(",") if s.strip()]
+            if args.scripts
+            else list(folder.scripts)
+        )
+        baseline_root = args.baseline_root.resolve()
+        migrated_root = (
+            args.migrated_root.resolve()
+            if args.migrated_root
+            else REPO_ROOT / "Quantum-Control-Applications/Superconducting/3D-storage-cavity"
+        )
+        results_dir = (
+            args.results_dir.resolve()
+            if args.results_dir
+            else REPO_ROOT / "validation_results/3D-storage-cavity"
+        )
+
+    if args.scripts and args.folder:
+        scripts = [s.strip() for s in args.scripts.split(",") if s.strip()]
+
+    return scripts, baseline_root, baseline_repo, migrated_root, migrated_repo, results_dir
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    scripts = [s.strip() for s in args.scripts.split(",") if s.strip()]
+
+    if args.list_folders:
+        _print_folder_catalog()
+        return 0
+
+    scripts, baseline_root, baseline_repo, migrated_root, migrated_repo, results_dir = _resolve_run_config(
+        args
+    )
+
+    if args.folder:
+        print(f"Folder preset: {args.folder}")
+        print(f"  migrated_root: {migrated_root}")
+        print(f"  baseline_root: {baseline_root}")
+        print(f"  results_dir:   {results_dir}")
+        print()
 
     summaries: list[dict[str, Any]] = []
     failures: list[str] = []
@@ -349,20 +422,21 @@ def main() -> int:
         try:
             summary = validate_script(
                 script_name=script_name,
-                baseline_root=args.baseline_root.resolve(),
-                baseline_repo=args.baseline_repo.resolve(),
+                baseline_root=baseline_root,
+                baseline_repo=baseline_repo,
                 baseline_runner=args.baseline_runner,
-                migrated_root=args.migrated_root.resolve(),
-                migrated_repo=args.migrated_repo.resolve(),
+                migrated_root=migrated_root,
+                migrated_repo=migrated_repo,
                 migrated_runner=args.migrated_runner,
-                results_dir=args.results_dir.resolve(),
+                results_dir=results_dir,
                 duration=args.duration,
             )
             summaries.append(summary)
             status = "PASS" if summary["passed"] else "FAIL"
-            print(f"  {status}: {format_notes(summary)}")
+            notes = format_notes(summary, results_dir)
+            print(f"  {status}: {notes}")
             if args.print_notes:
-                print(f"  Notes: {format_notes(summary)}")
+                print(f"  Notes: {notes}")
             if not summary["passed"]:
                 failures.append(script_name)
         except Exception as exc:  # noqa: BLE001
@@ -370,12 +444,13 @@ def main() -> int:
             failures.append(script_name)
 
     aggregate = {
+        "folder": args.folder,
         "passed": len(failures) == 0,
         "scripts": summaries,
         "failures": failures,
     }
-    args.results_dir.mkdir(parents=True, exist_ok=True)
-    (args.results_dir / "aggregate_summary.json").write_text(
+    results_dir.mkdir(parents=True, exist_ok=True)
+    (results_dir / "aggregate_summary.json").write_text(
         json.dumps(aggregate, indent=2) + "\n",
         encoding="utf-8",
     )

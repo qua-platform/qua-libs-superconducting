@@ -20,10 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `generate_qua_migrated_files_inventory.py`
 - Config-split helpers: `qua_config_split.py` (QCA and qualibration)
 - `.python-version` pinning Python 3.14 for local development
-- Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py))
+- Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py), [scripts/validation_matrix.py](scripts/validation_matrix.py))
 
 ### Changed
 
+- Generalized simulation baseline validation harness with `--folder` presets from VALIDATION.md ([scripts/validation_matrix.py](scripts/validation_matrix.py)); reran Single-Fixed-Transmon simulation baseline comparison (5 scripts, all pass)
 - Changed VALIDATION.md script matrix to drop ≥90% duplicate flux-tunable scripts and add flux-specific / coupled-gate calibrations for more robust migration validation
 - Completed 3D-storage-cavity simulation validation (5 scripts vs qua-libs baseline); documented dual runtime environments (`uv` migrated, Poetry baseline) in VALIDATION.md
 - Extended migration guide with universal keep-manual rules, standalone QCA templates, and Part 2 completion status; migration scripts accept `--modality` / `--qca-root`
