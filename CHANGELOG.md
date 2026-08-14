@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed duplicate QUA output stream tags in 10 Superconducting QCA scripts where `declare_with_stream` overlapped legacy manual `.save()` tags; added a migration grep gate
+- Fixed 3D-storage-cavity scripts that used `declare_with_stream(bool, ..., average_axes=...)` (simulation error: average can't operate on bool items); state streams now use `int`, matching upstream `boolean_to_int().average()` behavior; `readout_macro` stores 0/1 for int or bool state variables
 - Cast frequency/detuning sweep arrays to `.astype(int)` before `QuaIterable` when used with `update_frequency` (~60 QCA scripts and qualibration nodes); fixes simulation compile error `Expected type int but got fixed`
 - `test_calibration_module_imports` no longer fails in CI: [`conftest.py`](qualibration_graphs/superconducting/tests/conftest.py) stubs QualibrationNode run-actions and hardware I/O during module import checks; redirects `Quam.load()` to the calibration package dir so repo-root pytest runs do not pick up incompatible QUAM state files
 

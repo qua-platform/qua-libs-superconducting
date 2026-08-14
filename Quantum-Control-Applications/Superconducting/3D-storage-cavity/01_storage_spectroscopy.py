@@ -59,9 +59,7 @@ with program() as storage_spec:
     shots = QuaIterableRange("shots", n_avg)
     df_sweep = QuaIterable("df", dfs)
     n = declare(int)  # QUA variable for the averaging loop
-    state = declare(bool)
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
-    state_st = declare_output_stream()
 
     for shot in shots:
         assign(n, shot)
@@ -69,7 +67,7 @@ with program() as storage_spec:
         for df in df_sweep:
             I = declare_with_stream(fixed, "I", average_axes=["shots"])
             Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
-            state = declare_with_stream(bool, "state", average_axes=["shots"])
+            state = declare_with_stream(int, "state", average_axes=["shots"])
             # Update the frequency of the digital oscillator linked to the storage element
             update_frequency("storage", df + center)
             # Play the cw pulse to the storage
@@ -87,8 +85,6 @@ with program() as storage_spec:
             # Save the 'I' & 'Q' quadratures to their respective streams
 
     with stream_processing():
-        # Cast the data into a 1D vector, average the 1D vectors together and store the results on the OPX processor
-        state_st.boolean_to_int().buffer(len(dfs)).average().save("state")
         n_st.save("iteration")
 
 #####################################

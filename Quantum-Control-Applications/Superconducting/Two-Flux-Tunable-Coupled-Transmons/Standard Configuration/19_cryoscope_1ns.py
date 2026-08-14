@@ -170,10 +170,6 @@ with program() as cryoscope:
         with for_(segment, 0, segment <= const_flux_len + total_zeros, segment + 1):
             # Alternate between X/2 and Y/2 pulses
             for flag in flag_sweep:
-                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
-                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
-                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
-                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # Play first X/2
                 play("x90", f"q{qubit}_xy")
                 # Play truncated flux pulse
@@ -194,8 +190,8 @@ with program() as cryoscope:
                     play("y90", f"q{qubit}_xy")
                 # Measure resonator state after the sequence
                 align()
-                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I[0]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[0]))
+                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I[1]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[1]))
                 # State discrimination
                 assign(state[0], I[0] > ge_threshold_q1)
                 assign(state[1], I[1] > ge_threshold_q2)

@@ -19,6 +19,11 @@ LOGICAL_KEYS = frozenset(
     {"oscillators", "elements", "integration_weights", "waveforms", "digital_waveforms", "pulses"}
 )
 DEPRECATED_AMP_PATTERN = re.compile(r"\*\s*amp\s*\(")
+DECLARE_WITH_STREAM_TAG_PATTERN = re.compile(r'declare_with_stream\s*\([^,]+,\s*"([^"]+)"')
+MANUAL_SAVE_TAG_PATTERN = re.compile(r'\.save\s*\(\s*"([^"]+)"\s*\)')
+BOOL_AVERAGE_AXES_PATTERN = re.compile(
+    r'declare_with_stream\s*\(\s*bool\s*,[^)]*average_axes\s*='
+)
 
 
 def _skip_if_no_qca_root() -> None:
@@ -136,6 +141,46 @@ def test_no_deprecated_amp_in_qca() -> None:
             if DEPRECATED_AMP_PATTERN.search(line):
                 violations.append(f"{path.relative_to(REPO_ROOT)}:{line_no}: {line.strip()}")
     assert not violations, "Deprecated `* amp(` usage found:\n" + "\n".join(violations)
+
+
+def test_no_duplicate_stream_tags_in_qca() -> None:
+    """declare_with_stream auto tags must not overlap manual stream_processing .save() tags."""
+    violations: list[str] = []
+    for path in discover_qca_python_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if "declare_with_stream" not in text:
+            continue
+        auto_tags = set(DECLARE_WITH_STREAM_TAG_PATTERN.findall(text))
+        manual_tags = set(MANUAL_SAVE_TAG_PATTERN.findall(text))
+        collisions = sorted(auto_tags & manual_tags)
+        if collisions:
+            rel = path.relative_to(REPO_ROOT)
+            violations.append(f"{rel}: duplicate tags {collisions}")
+    assert not violations, (
+        "declare_with_stream tags collide with manual .save() tags:\n" + "\n".join(violations)
+    )
+
+
+def test_no_bool_average_axes_in_declare_with_stream() -> None:
+    """Bool streams cannot use average_axes — use int (equivalent to boolean_to_int().average())."""
+    violations: list[str] = []
+    for path in discover_qca_python_files():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line_no, line in _active_lines(text):
+            if BOOL_AVERAGE_AXES_PATTERN.search(line):
+                rel = path.relative_to(REPO_ROOT)
+                violations.append(f"{rel}:{line_no}: {line.strip()}")
+    assert not violations, (
+        "declare_with_stream(bool, ..., average_axes=...) is invalid — use int instead "
+        "(see https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/):\n"
+        + "\n".join(violations)
+    )
 
 
 def test_simulate_uses_manager_not_open_qm() -> None:

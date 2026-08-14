@@ -69,10 +69,10 @@ with program() as parity_meas:
         for tau in tau_sweep:
             I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
             Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
-            state1 = declare_with_stream(bool, "state1", average_axes=["shots"])
+            state1 = declare_with_stream(int, "state1", average_axes=["shots"])
             I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
             Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
-            state2 = declare_with_stream(bool, "state2", average_axes=["shots"])
+            state2 = declare_with_stream(int, "state2", average_axes=["shots"])
             # Background measurement
             # Play the x90 qubit pulses with the frequency that corresponds to Fock state n=0
             update_frequency("qubit", qubit_IF)

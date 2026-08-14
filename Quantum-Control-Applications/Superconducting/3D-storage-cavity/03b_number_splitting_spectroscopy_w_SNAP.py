@@ -68,7 +68,7 @@ with program() as number_splitting_spectroscopy:
         for df in df_sweep:
             I = declare_with_stream(fixed, "I", average_axes=["shots"])
             Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
-            state = declare_with_stream(bool, "state", average_axes=["shots"])
+            state = declare_with_stream(int, "state", average_axes=["shots"])
             # Update the frequency of the digital oscillator linked to the qubit element
             update_frequency("qubit", qubit_IF)
 

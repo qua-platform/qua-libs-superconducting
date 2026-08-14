@@ -109,7 +109,7 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
 
     :param threshold: Optional. The threshold to compare `I` against.
     :param state: A QUA variable for the state information, only used when a threshold is given.
-        Should be of type `bool`. If not given, a new variable will be created
+        Should be of type `bool` or `int`. If not given, a new variable will be created
     :param I: A QUA variable for the information in the `I` quadrature. Should be of type `Fixed`. If not given, a new
         variable will be created
     :param Q: A QUA variable for the information in the `Q` quadrature. Should be of type `Fixed`. If not given, a new
@@ -130,7 +130,10 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
         dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q),
     )
     if threshold is not None:
-        assign(state, I > threshold)
+        with if_(I > threshold):
+            assign(state, 1)
+        with else_():
+            assign(state, 0)
     return state, I, Q
 
 
