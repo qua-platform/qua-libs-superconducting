@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed VALIDATION.md script matrix to drop ≥90% duplicate flux-tunable scripts and add flux-specific / coupled-gate calibrations for more robust migration validation
 - Extended migration guide with universal keep-manual rules, standalone QCA templates, and Part 2 completion status; migration scripts accept `--modality` / `--qca-root`
 - Pinned `qm-qua==1.4.0`; bumped `qualibrate>=1.5.0` and Qiskit `>=2.3,<3.0`; extended `requires-python` to `<3.15`
 - CI runs on Python 3.14

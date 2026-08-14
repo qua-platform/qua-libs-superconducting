@@ -17,21 +17,28 @@ We validate **5 representative QUA scripts per top-level folder** under `Quantum
 
 Baseline for comparison: same relative path under `../qua-libs/Quantum-Control-Applications/Superconducting/`.
 
+## Script selection
+
+Scripts are chosen to maximize **distinct QUA program structure** across the 25 entries, not just distinct folder names.
+
+- **Dedup rule:** reject any candidate whose line-level similarity to a script already in the matrix is **≥90%** (full-file `SequenceMatcher` ratio, same method as the overlap audit).
+- **Per-folder constraint:** each folder keeps 5 scripts; migration pillars are verified **across the full 25**, not in every script.
+
 ## How to run
 
 1. Set `simulate = True` in the script (most default to `False`; the 3D-storage-cavity folder and some `00_hello_qua.py` scripts default to `True`).
-2. Run from the script’s directory so `from configuration import *` resolves (e.g. `cd Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon && uv run python 04_resonator_spectroscopy.py`).
+2. Run from the script’s directory so `from configuration import *` resolves (e.g. `cd Quantum-Control-Applications/Superconducting/Single-Flux-Tunable-Transmon && uv run python 05b_resonator_spectroscopy_vs_flux.py`).
 3. Compare the compiled job / waveform report structure against the baseline script at the same relative path.
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
 5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1_con1` at IP `172.16.33.101`).
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after manual simulation.
 
-## Simulated Results
-
-For the first validation tests we used `simulate = True` and the OPX `CS_1_con1` (IP: 172.16.33.101).
+## Results
 
 ### Single-Fixed-Transmon
+
+For these tests we used the OPX `CS_1_con1` (IP: 172.16.33.101).
 
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
@@ -55,11 +62,11 @@ For the first validation tests we used `simulate = True` and the OPX `CS_1_con1`
 
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Single-Flux-Tunable-Transmon/00_hello_qua.py` | — | — | yes | yes (`play`) | pending | |
-| `Single-Flux-Tunable-Transmon/04_resonator_spectroscopy.py` | yes | yes | yes | — | pending | |
-| `Single-Flux-Tunable-Transmon/05a_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pending | |
-| `Single-Flux-Tunable-Transmon/08b_power_rabi.py` | yes | yes | yes | yes (`play`) | pending | |
+| `Single-Flux-Tunable-Transmon/07a_rabi_chevron_duration.py` | yes | yes | yes | — | pending | 2D time×detuning sweep |
+| `Single-Flux-Tunable-Transmon/05b_resonator_spectroscopy_vs_flux.py` | yes | yes | yes | — | pending | Flux-specific 2D resonator spectroscopy |
 | `Single-Flux-Tunable-Transmon/06b_qubit_spectroscopy_vs_flux.py` | yes | yes | yes | yes (`play`) | pending | |
+| `Single-Flux-Tunable-Transmon/07b_rabi_chevron_amplitude.py` | yes | yes | yes | yes (`play`) | pending | 2D chevron amplitude calibration |
+| `Single-Flux-Tunable-Transmon/08a_time_rabi.py` | yes | yes | yes | — | pending | Duration sweep (complements amplitude calibrations) |
 
 ### Two-Fixed-Coupled-Transmons
 
@@ -75,10 +82,9 @@ For the first validation tests we used `simulate = True` and the OPX `CS_1_con1`
 
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/00_hello_qua.py` | — | — | yes | — | pending | |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/08_qubit_spectroscopy_vs_flux_simultaneous.py` | yes | yes | yes | yes (`play`) | pending | dual-qubit flux spectroscopy |
 | `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/04_resonator_spectroscopy_single.py` | yes | yes | yes | — | pending | |
 | `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/05_resonator_spectroscopy_multiplexed.py` | yes | yes | yes | — | pending | |
 | `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/06_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pending | |
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/10_power_rabi.py` | yes | yes | yes | yes (`play`) | pending | |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/21_CZ.py` | yes | yes | yes | yes (`play`) | pending | flux-driven two-qubit calibration |
 
-## Executed Results
