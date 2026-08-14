@@ -160,7 +160,7 @@ with program() as spec:
         save(n, n_st)
         with for_(*from_array(f, frequencies)):
             update_frequency("resonator", f)
-            measure("readout", "resonator", None, dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
+            measure("readout", "resonator", dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
             save(I, I_st)
             save(Q, Q_st)
     with stream_processing():
@@ -188,7 +188,7 @@ with program() as spec:
             I = declare_with_stream(fixed, "I", average_axes=["shots"])
             Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
             update_frequency("resonator", f)
-            measure("readout", "resonator", None, dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
+            measure("readout", "resonator", dual_demod.full("cos", "sin", I), dual_demod.full("minus_sin", "cos", Q))
     with stream_processing():
         n_st.save("iteration")
 ```
@@ -212,7 +212,7 @@ for shot in shots:
         for a in a_sweep:
             I = declare_with_stream(fixed, "I", average_axes=["shots"])
             Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
-            measure("readout", "resonator", None, dual_demod.full(...), dual_demod.full(...), amplitude_scale=a)
+            measure("readout", "resonator", dual_demod.full(...), dual_demod.full(...), amplitude_scale=a)
 ```
 
 ### Compat-only macro (stream rename only)
@@ -444,7 +444,7 @@ measure(
     dual_demod.full("cos", "sin", I),
     dual_demod.full("minus_sin", "cos", Q),
 )
-# -> measure("readout", "resonator", None, dual_demod.full(...), ..., amplitude_scale=a)
+# -> measure("readout", "resonator", dual_demod.full(...), ..., amplitude_scale=a)
 
 # Star-unpack (e.g. XEB gate macros)
 play("sx" * amp(*amp_matrix), qubit_el)

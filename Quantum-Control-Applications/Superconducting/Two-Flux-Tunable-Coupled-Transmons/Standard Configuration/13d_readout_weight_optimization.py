@@ -138,7 +138,6 @@ with program() as opt_weights:
             measure(
                 "readout",
                 f"rr{res}",
-                None,
                 demod.sliced("cos", II[rr], division_length, "out1"),
                 demod.sliced("sin", IQ[rr], division_length, "out2"),
                 demod.sliced("minus_sin", QI[rr], division_length, "out1"),
@@ -165,7 +164,6 @@ with program() as opt_weights:
             measure(
                 "readout",
                 f"rr{res}",
-                None,
                 demod.sliced("cos", II[rr], division_length, "out1"),
                 demod.sliced("sin", IQ[rr], division_length, "out2"),
                 demod.sliced("minus_sin", QI[rr], division_length, "out1"),

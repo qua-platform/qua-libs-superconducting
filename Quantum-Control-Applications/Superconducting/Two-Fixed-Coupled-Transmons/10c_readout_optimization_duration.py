@@ -66,7 +66,6 @@ with program() as PROGRAM:
         measure(
             "readout",
             resonator,
-            None,
             demod.accumulated("cos", II, division_length, "out1"),
             demod.accumulated("sin", IQ, division_length, "out2"),
             demod.accumulated("minus_sin", QI, division_length, "out1"),
@@ -91,7 +90,6 @@ with program() as PROGRAM:
         measure(
             "readout",
             resonator,
-            None,
             demod.accumulated("cos", II, division_length, "out1"),
             demod.accumulated("sin", IQ, division_length, "out2"),
             demod.accumulated("minus_sin", QI, division_length, "out1"),

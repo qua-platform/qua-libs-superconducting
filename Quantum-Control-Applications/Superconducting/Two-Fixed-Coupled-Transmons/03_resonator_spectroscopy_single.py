@@ -68,7 +68,6 @@ with program() as PROGRAM:
             measure(
                 "readout",
                 resonator,
-                None,
                 dual_demod.full("cos", "sin", I),
                 dual_demod.full("minus_sin", "cos", Q),
                 amplitude_scale=1,

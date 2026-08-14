@@ -100,8 +100,8 @@ with program() as multi_qubit_spec_vs_flux:
                 # play("saturation", "q2_xy", duration=saturation_len * u.ns, amplitude_scale=saturation_amp)
 
                 # Multiplexed readout, also saves the measurement outcomes
-                measure("readout", "rr1", None, dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
-                measure("readout", "rr2", None, dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
+                measure("readout", "rr1", dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
+                measure("readout", "rr2", dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns)
                 # Update the resonator frequency vs flux index

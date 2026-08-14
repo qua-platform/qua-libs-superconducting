@@ -46,7 +46,7 @@ with program() as PROGRAM:
         reset_if_phase("rr2")
         # Sends the readout pulse and stores the raw ADC traces in the stream called "adc_st"
         measure("readout", "rr1", adc_st)
-        measure("readout", "rr2", None)
+        measure("readout", "rr2")
         # Wait for the resonators to empty
         wait(depletion_time * u.ns, "rr1")
         wait(depletion_time * u.ns, "rr2")

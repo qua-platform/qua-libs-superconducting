@@ -252,7 +252,6 @@ with program() as two_qubit_process_tomography:
                         measure(
                             "readout",
                             f"rr{qubit1}",
-                            None,
                             dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", I1),
                             dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q1),
                         )
@@ -260,7 +259,6 @@ with program() as two_qubit_process_tomography:
                         measure(
                             "readout",
                             f"rr{qubit2}",
-                            None,
                             dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", I2),
                             dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q2),
                         )

@@ -56,7 +56,6 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
     measure(
         "readout",
         "resonator",
-        None,
         dual_demod.full("rotated_cos", "rotated_sin", I),
         dual_demod.full("rotated_minus_sin", "rotated_cos", Q),
     )

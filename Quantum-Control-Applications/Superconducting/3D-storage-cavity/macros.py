@@ -89,7 +89,6 @@ def active_reset(threshold, max_tries=1, Ig=None):
         measure(
             "readout",
             "resonator",
-            None,
             dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", Ig),
         )
         # Play a pi pulse to get back to the ground state
@@ -125,7 +124,6 @@ def readout_macro(threshold=None, state=None, I=None, Q=None):
     measure(
         "readout",
         "resonator",
-        None,
         dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", I),
         dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q),
     )
@@ -328,7 +326,6 @@ class qubit_frequency_tracking:
                 measure(
                     "readout",
                     "resonator",
-                    None,
                     dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", self.I),
                 )
                 assign(self.res, self.I > self.ge_threshold)
@@ -413,7 +410,6 @@ class qubit_frequency_tracking:
                 measure(
                     "readout",
                     "resonator",
-                    None,
                     dual_demod.full("cos", "out1", "sin", "out2", self.I),
                 )
                 if self.frame_rotation:
@@ -510,7 +506,6 @@ class qubit_frequency_tracking:
                 measure(
                     "readout",
                     "resonator",
-                    None,
                     dual_demod.full("cos", "out1", "sin", "out2", self.I),
                 )
                 if self.frame_rotation:

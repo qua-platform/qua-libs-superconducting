@@ -183,6 +183,34 @@ def test_no_bool_average_axes_in_declare_with_stream() -> None:
     )
 
 
+def test_no_measure_none_adc_placeholder_in_qca() -> None:
+    """measure(..., None, ...) ADC placeholder is deprecated in qm-qua 1.4.0 — omit None."""
+    import sys
+
+    scripts_dir = REPO_ROOT / "scripts"
+    sys.path.insert(0, str(scripts_dir))
+    try:
+        from migrate_measure_none import migrate_text  # noqa: PLC0415
+    finally:
+        sys.path.pop(0)
+
+    violations: list[str] = []
+    for path in discover_qca_python_files():
+        if "migrate_measure_none" in path.name:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        _, count = migrate_text(text)
+        if count:
+            violations.append(f"{path.relative_to(REPO_ROOT)} ({count} placeholder(s))")
+    assert not violations, (
+        "Deprecated measure(..., None, ...) ADC placeholder found — remove literal None:\n"
+        + "\n".join(violations)
+    )
+
+
 def test_simulate_uses_manager_not_open_qm() -> None:
     violations: list[str] = []
     for path in discover_qca_scripts_with_execute_or_simulate():

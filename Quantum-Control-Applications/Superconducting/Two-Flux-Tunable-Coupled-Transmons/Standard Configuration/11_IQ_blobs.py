@@ -54,8 +54,8 @@ with program() as iq_blobs:
         wait(thermalization_time * u.ns)
         align()
         # play("x180", "q2_xy")
-        measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
-        measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
+        measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
+        measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
 
         # excited iq blobs for both qubits
         align()
@@ -65,8 +65,8 @@ with program() as iq_blobs:
         play("x180", "q1_xy")
         play("x180", "q2_xy")
         align()
-    measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
-    measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
+    measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
+    measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
 
     with stream_processing():
         # Save all streamed points for plotting the IQ blobs
@@ -140,7 +140,7 @@ else:
     # with while_(I > threshold):
     #     play("x180", "qubit")
     #     align("qubit", "resonator")
-    #     measure("readout", "resonator", None,
+    #     measure("readout", "resonator",
     #                 dual_demod.full("rotated_cos", "rotated_sin", I))
     #
     #########################################
@@ -153,7 +153,7 @@ else:
     # with while_(cont_condition):
     #     play("x180", "qubit")
     #     align("qubit", "resonator")
-    #     measure("readout", "resonator", None,
+    #     measure("readout", "resonator",
     #                 dual_demod.full("rotated_cos", "rotated_sin", I))
     #     assign(count, count + 1)
     #     assign(cont_condition, ((I > threshold) & (count < 3)))

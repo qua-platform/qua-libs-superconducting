@@ -71,7 +71,6 @@ with program() as multi_res_spec:
             measure(
                 "readout",
                 "rr1",
-                None,
                 dual_demod.full("cos", "sin", I1),
                 dual_demod.full("minus_sin", "cos", Q1),
             )
@@ -84,7 +83,6 @@ with program() as multi_res_spec:
             measure(
                 "readout",
                 "rr2",
-                None,
                 dual_demod.full("cos", "sin", I2),
                 dual_demod.full("minus_sin", "cos", Q2),
             )

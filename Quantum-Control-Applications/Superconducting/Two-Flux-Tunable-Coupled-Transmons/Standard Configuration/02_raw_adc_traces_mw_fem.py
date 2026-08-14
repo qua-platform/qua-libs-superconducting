@@ -36,7 +36,7 @@ with program() as raw_trace_prog:
         # Measure the resonator (send a readout pulse and record the raw ADC trace)
         measure("readout", "rr1", adc_st)
         # Play the readout on rr2 as well for making sure that the ADC won't be saturated for multiplexed readout
-        measure("readout", "rr2", None)
+        measure("readout", "rr2")
         # Wait for the resonator to deplete
         wait(depletion_time * u.ns, "rr1", "rr2")
 

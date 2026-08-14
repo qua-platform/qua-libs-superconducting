@@ -110,7 +110,6 @@ with program() as PROGRAM:
         measure(
             "readout",
             resonator,
-            None,
             demod.sliced("cos", II, division_length, "out1"),
             demod.sliced("minus_sin", IQ, division_length, "out2"),
             demod.sliced("sin", QI, division_length, "out1"),
@@ -139,7 +138,6 @@ with program() as PROGRAM:
         measure(
             "readout",
             resonator,
-            None,
             demod.sliced("cos", II, division_length, "out1"),
             demod.sliced("minus_sin", IQ, division_length, "out2"),
             demod.sliced("sin", QI, division_length, "out1"),

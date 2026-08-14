@@ -190,8 +190,8 @@ with program() as cryoscope:
                     play("y90", f"q{qubit}_xy")
                 # Measure resonator state after the sequence
                 align()
-                measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I[0]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[0]))
-                measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I[1]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[1]))
+                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I[0]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[0]))
+                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I[1]), dual_demod.full("rotated_minus_sin", "rotated_cos", Q[1]))
                 # State discrimination
                 assign(state[0], I[0] > ge_threshold_q1)
                 assign(state[1], I[1] > ge_threshold_q2)

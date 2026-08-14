@@ -246,7 +246,7 @@ with program() as rb:
                     # Align the two elements to measure after playing the circuit.
                     align()
                     # Play through the 2nd resonator to be in the same condition as when the readout was optimized
-                    measure("readout", f"rr{qubit%2 + 1}", None)
+                    measure("readout", f"rr{qubit%2 + 1}")
                     # Make sure you updated the ge_threshold and angle if you want to use state discrimination
                     multiplexed_readout([I], [I_st], [Q], [Q_st], resonators=[qubit], weights="rotated_")
                     if state_discrimination:

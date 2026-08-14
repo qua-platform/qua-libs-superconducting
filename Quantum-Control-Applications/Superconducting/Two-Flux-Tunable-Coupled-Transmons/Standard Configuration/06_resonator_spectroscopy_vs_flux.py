@@ -85,8 +85,8 @@ with program() as multi_res_spec_vs_flux:
                 set_dc_offset("q1_z", "single", dc)
                 set_dc_offset("q2_z", "single", dc)
                 wait(flux_settle_time * u.ns)  # Wait for the flux to settle
-                measure("readout", "rr1", None, dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
-                measure("readout", "rr2", None, dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
+                measure("readout", "rr1", dual_demod.full("cos", "sin", I1), dual_demod.full("minus_sin", "cos", Q1))
+                measure("readout", "rr2", dual_demod.full("cos", "sin", I2), dual_demod.full("minus_sin", "cos", Q2))
                 # wait for the resonators to relax
                 wait(depletion_time * u.ns, "rr1", "rr2")
 

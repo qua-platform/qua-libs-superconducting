@@ -81,7 +81,6 @@ with program() as PROGRAM:
             measure(
                 "readout",
                 "rr1",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg1),
                 amplitude_scale=a,
@@ -89,7 +88,6 @@ with program() as PROGRAM:
             measure(
                 "readout",
                 "rr2",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ig2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qg2),
                 amplitude_scale=a,
@@ -109,7 +107,6 @@ with program() as PROGRAM:
             measure(
                 "readout",
                 "rr1",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe1),
                 amplitude_scale=a,
@@ -117,7 +114,6 @@ with program() as PROGRAM:
             measure(
                 "readout",
                 "rr2",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", Ie2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Qe2),
                 amplitude_scale=a,

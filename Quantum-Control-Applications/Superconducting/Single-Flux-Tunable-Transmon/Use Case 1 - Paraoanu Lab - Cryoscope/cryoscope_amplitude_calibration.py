@@ -36,7 +36,6 @@ def ge_calibration(n_avg_cal):
         measure(
             "short_readout",
             "resonator",
-            None,
             dual_demod.full("cos", "sin", Ical),
             dual_demod.full("minus_sin", "cos", Qcal),
         )
@@ -51,7 +50,6 @@ def ge_calibration(n_avg_cal):
         measure(
             "short_readout",
             "resonator",
-            None,
             dual_demod.full("cos", "sin", Ical),
             dual_demod.full("minus_sin", "cos", Qcal),
         )
@@ -93,7 +91,6 @@ with program() as cryoscope_amp:
                 measure(
                     "short_readout",
                     "resonator",
-                    None,
                     dual_demod.full("cos", "sin", I),
                     dual_demod.full("minus_sin", "cos", Q),
                 )

@@ -81,7 +81,6 @@ with program() as multi_res_spec_vs_amp:
                 # resonator 1
                 wait(depletion_time * u.ns, "rr1")  # wait for the resonator to relax
                 measure("readout", "rr1",
-                    None,
                     dual_demod.full("cos", "sin", I1),
                     dual_demod.full("minus_sin", "cos", Q1),
                     amplitude_scale=a,
@@ -92,7 +91,6 @@ with program() as multi_res_spec_vs_amp:
                 # resonator 2
                 wait(depletion_time * u.ns, "rr2")  # wait for the resonator to relax
                 measure("readout", "rr2",
-                    None,
                     dual_demod.full("cos", "sin", I2),
                     dual_demod.full("minus_sin", "cos", Q2),
                     amplitude_scale=a,

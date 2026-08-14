@@ -67,7 +67,6 @@ with program() as ro_amp_opt:
         for shot in shots:
             assign(n, shot)
             measure("readout", "resonator",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_g),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g),
                 amplitude_scale=a,
@@ -79,7 +78,6 @@ with program() as ro_amp_opt:
             play("x180", "qubit")
             align("qubit", "resonator")
             measure("readout", "resonator",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_e),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e),
                     amplitude_scale=a,

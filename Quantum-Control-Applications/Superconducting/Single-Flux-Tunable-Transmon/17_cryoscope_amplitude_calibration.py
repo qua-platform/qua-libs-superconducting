@@ -95,7 +95,6 @@ with program() as cryoscope_amp:
                 measure(
                     "readout",
                     "resonator",
-                    None,
                     dual_demod.full("cos", "sin", I),
                     dual_demod.full("minus_sin", "cos", Q),
                 )

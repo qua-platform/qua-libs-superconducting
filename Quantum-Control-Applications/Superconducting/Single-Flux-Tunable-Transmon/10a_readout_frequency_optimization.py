@@ -71,7 +71,6 @@ with program() as ro_freq_opt:
             measure(
                 "readout",
                 "resonator",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_g),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g),
             )
@@ -88,7 +87,6 @@ with program() as ro_freq_opt:
             measure(
                 "readout",
                 "resonator",
-                None,
                 dual_demod.full("rotated_cos", "rotated_sin", I_e),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e),
             )

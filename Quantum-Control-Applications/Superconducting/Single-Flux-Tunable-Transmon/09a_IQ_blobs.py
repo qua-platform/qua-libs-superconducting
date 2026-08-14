@@ -56,7 +56,6 @@ with program() as IQ_blobs:
         measure(
             "readout",
             "resonator",
-            None,
             dual_demod.full("rotated_cos", "rotated_sin", I_g),
             dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g),
         )
@@ -75,7 +74,6 @@ with program() as IQ_blobs:
         measure(
             "readout",
             "resonator",
-            None,
             dual_demod.full("rotated_cos", "rotated_sin", I_e),
             dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e),
         )
@@ -160,7 +158,7 @@ else:
     # with while_(I > threshold):
     #     play("x180", "qubit")
     #     align("qubit", "resonator")
-    #     measure("readout", "resonator", None,
+    #     measure("readout", "resonator",
     #                 dual_demod.full("rotated_cos", "rotated_sin",  I))
     #
     #########################################
@@ -173,7 +171,7 @@ else:
     # with while_(cont_condition):
     #     play("x180", "qubit")
     #     align("qubit", "resonator")
-    #     measure("readout", "resonator", None,
+    #     measure("readout", "resonator",
     #                 dual_demod.full("rotated_cos", "rotated_sin",  I))
     #     assign(count, count + 1)
     #     assign(cont_condition, ((I > threshold) & (count < 3)))

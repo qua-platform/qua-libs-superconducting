@@ -57,8 +57,8 @@ with program() as PROGRAM:
 
         align()
         # Measure the state of the resonators
-        measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
-        measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
+        measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
+        measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
 
         align()
 
@@ -69,8 +69,8 @@ with program() as PROGRAM:
             play("x180", qb)
         align()
         # Measure the state of the resonators
-    measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
-    measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
+    measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
+    measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
 
     with stream_processing():
         n_st.save("iteration")

@@ -82,7 +82,6 @@ with program() as PROGRAM:
                 # resonator 1
                 wait(depletion_time * u.ns, "rr1")  # wait for the resonator to relax
                 measure("readout", "rr1",
-                    None,
                     dual_demod.full("cos", "sin", I1),
                     dual_demod.full("minus_sin", "cos", Q1),
                     amplitude_scale=a,
@@ -93,7 +92,6 @@ with program() as PROGRAM:
                 # resonator 2
                 wait(depletion_time * u.ns, "rr2")  # wait for the resonator to relax
                 measure("readout", "rr2",
-                    None,
                     dual_demod.full("cos", "sin", I2),
                     dual_demod.full("minus_sin", "cos", Q2),
                     amplitude_scale=a,

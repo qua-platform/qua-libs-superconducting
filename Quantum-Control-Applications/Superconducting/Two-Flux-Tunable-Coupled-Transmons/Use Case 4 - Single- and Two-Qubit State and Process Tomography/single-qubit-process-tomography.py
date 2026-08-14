@@ -157,7 +157,6 @@ with program() as single_qubit_process_tomography:
                 measure(
                     "readout",
                     f"rr{qubit}",
-                    None,
                     dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", I),
                     dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q),
                 )

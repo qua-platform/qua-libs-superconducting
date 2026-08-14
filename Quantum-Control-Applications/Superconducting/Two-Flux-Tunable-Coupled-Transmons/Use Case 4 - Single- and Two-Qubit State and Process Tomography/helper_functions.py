@@ -47,7 +47,6 @@ def rotated_multiplexed_state_discrimination(I, I_st, Q, Q_st, states, states_st
         measure(
             "readout",
             f"rr{res}",
-            None,
             dual_demod.full("rotated_cos", "out1", "rotated_sin", "out2", I[ind]),
             dual_demod.full("rotated_minus_sin", "out1", "rotated_cos", "out2", Q[ind]),
         )

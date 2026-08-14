@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-generated migrated-file inventory ([docs/plans/qua-1.4.0-migrated-files.md](docs/plans/qua-1.4.0-migrated-files.md))
 - Cursor rules for QUA, QUAM, and QUAlibrate ([.cursor/rules/qua-documentation.mdc](.cursor/rules/qua-documentation.mdc))
 - CI and static test gates: `test_qua_compile.py`, `test_config_split.py`, `test_no_deprecated_amp.py`, and [qualibration tests README](qualibration_graphs/superconducting/tests/README.md)
-- Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `generate_qua_migrated_files_inventory.py`
+- Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `migrate_measure_none.py`, `generate_qua_migrated_files_inventory.py`
 - Config-split helpers: `qua_config_split.py` (QCA and qualibration)
 - `.python-version` pinning Python 3.14 for local development
 - Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py), [scripts/validation_matrix.py](scripts/validation_matrix.py))
@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Removed deprecated `measure(..., None, ...)` ADC-stream placeholder across Superconducting QCA scripts (~142 files); real ADC streaming calls (`adc_st`, etc.) unchanged; added `test_no_measure_none_adc_placeholder_in_qca` grep gate
 - Fixed duplicate QUA output stream tags in 10 Superconducting QCA scripts where `declare_with_stream` overlapped legacy manual `.save()` tags; added a migration grep gate
 - Fixed 3D-storage-cavity scripts that used `declare_with_stream(bool, ..., average_axes=...)` (simulation error: average can't operate on bool items); state streams now use `int`, matching upstream `boolean_to_int().average()` behavior; `readout_macro` stores 0/1 for int or bool state variables
 - Fixed `09_swapping.py` missing `save(state, state_st)` after readout (empty stream compile error under iterables + manual `state_st`)

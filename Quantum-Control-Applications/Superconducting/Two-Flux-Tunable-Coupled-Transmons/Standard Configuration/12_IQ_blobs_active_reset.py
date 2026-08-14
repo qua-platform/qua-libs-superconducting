@@ -35,8 +35,8 @@ with program() as iq_blobs:
         reset_qubit("cooldown", "q2_xy", "rr2", cooldown_time=thermalization_time)
         # reset_qubit("active", "q1_xy", "resonator", threshold=ge_threshold_q1, max_tries=10, Ig=I_g)
         align()
-        measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
-        measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
+        measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_g1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g1))
+        measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_g2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_g2))
 
         # excited iq blobs
         align()
@@ -47,8 +47,8 @@ with program() as iq_blobs:
         play("x180", "q1_xy")
         # play("x180", "q2_xy")
         align()
-    measure("readout", "rr1", None, dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
-    measure("readout", "rr2", None, dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
+    measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I_e1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e1))
+    measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I_e2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q_e2))
 
     with stream_processing():
         # Save all streamed points for plotting the IQ blobs

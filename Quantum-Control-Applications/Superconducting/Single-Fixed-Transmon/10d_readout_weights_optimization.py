@@ -145,7 +145,6 @@ with program() as opt_weights:
         measure(
             "readout",
             "resonator",
-            None,
             demod.sliced("cos", II, division_length, "out1"),
             demod.sliced("sin", IQ, division_length, "out2"),
             demod.sliced("minus_sin", QI, division_length, "out1"),
@@ -167,7 +166,6 @@ with program() as opt_weights:
         measure(
             "readout",
             "resonator",
-            None,
             demod.sliced("cos", II, division_length, "out1"),
             demod.sliced("sin", IQ, division_length, "out2"),
             demod.sliced("minus_sin", QI, division_length, "out1"),
