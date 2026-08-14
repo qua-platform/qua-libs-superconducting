@@ -30,9 +30,9 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 2. Run each side from **its own** script directory so `from configuration import *` resolves, using the runtime in **Runtime environments** below (do not run baseline scripts through the migrated `uv` env or vice versa).
 3. Compare the compiled job / waveform report structure against the baseline script at the same relative path.
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
-5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1` at IP `172.16.33.101`).
+5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1` at IP `172.16.33.101`). For **OPX1000/FEM** configs only, call `job.wait_until("Done")` after `qmm.simulate(...)` before pulling samples or the waveform report; legacy OPX/OPX+ configs do not need it.
 
-Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly, compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse). Folder presets and script lists live in [scripts/validation_matrix.py](scripts/validation_matrix.py) (see `--list-folders`).
+Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly — waits on OPX1000 configs only — compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse). Folder presets and script lists live in [scripts/validation_matrix.py](scripts/validation_matrix.py) (see `--list-folders`).
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
 

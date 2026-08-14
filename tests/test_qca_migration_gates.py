@@ -211,6 +211,40 @@ def test_no_measure_none_adc_placeholder_in_qca() -> None:
     )
 
 
+def test_simulation_wait_until_before_samples_in_opx1000_qca() -> None:
+    """OPX1000 async simulate jobs need wait_until('Done') before get_simulated_samples()."""
+    import sys
+
+    scripts_dir = REPO_ROOT / "scripts"
+    sys.path.insert(0, str(scripts_dir))
+    try:
+        from migrate_simulation_wait_until import script_uses_opx1000_config  # noqa: PLC0415
+    finally:
+        sys.path.pop(0)
+
+    wait_pattern = re.compile(r"""wait_until\s*\(\s*['"]Done['"]\s*\)""")
+    violations: list[str] = []
+    for path in discover_qca_python_files():
+        if path.name.startswith("configuration"):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if "get_simulated_samples" not in text:
+            continue
+        if not script_uses_opx1000_config(path, text):
+            continue
+        samples_idx = text.find("get_simulated_samples")
+        wait_match = wait_pattern.search(text)
+        if wait_match is None or wait_match.start() >= samples_idx:
+            violations.append(str(path.relative_to(REPO_ROOT)))
+    assert not violations, (
+        "Missing job.wait_until('Done') before get_simulated_samples() in OPX1000 scripts — "
+        "run scripts/migrate_simulation_wait_until.py:\n" + "\n".join(violations)
+    )
+
+
 def test_simulate_uses_manager_not_open_qm() -> None:
     violations: list[str] = []
     for path in discover_qca_scripts_with_execute_or_simulate():

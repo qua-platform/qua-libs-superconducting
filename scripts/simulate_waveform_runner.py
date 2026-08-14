@@ -60,6 +60,13 @@ def load_program_namespace(script_path: Path) -> tuple[Any, Any, Any]:
     return ns["config"], program, ns
 
 
+def _config_uses_opx1000(config: dict[str, Any]) -> bool:
+    return any(
+        controller.get("type") == "opx1000" or "fems" in controller
+        for controller in config.get("controllers", {}).values()
+    )
+
+
 def simulate_script(script_path: Path, duration: int) -> dict[str, Any]:
     import logging
 
@@ -75,6 +82,8 @@ def simulate_script(script_path: Path, duration: int) -> dict[str, Any]:
 
     qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
     job = qmm.simulate(config, program, SimulationConfig(duration=duration))
+    if _config_uses_opx1000(config):
+        job.wait_until("Done")
     return job.get_simulated_waveform_report().to_dict()
 
 

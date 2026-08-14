@@ -379,7 +379,10 @@ Per the [OPX Simulator](https://docs.quantum-machines.co/latest/docs/Guides/simu
 
 ```python
 job = qmm.simulate(config, program, SimulationConfig(duration=...))  # config = merge_qua_config(...)
-job.wait_until("Done")
+# OPX1000/FEM configs only (async simulate job API):
+if any(c.get("type") == "opx1000" or "fems" in c for c in config.get("controllers", {}).values()):
+    job.wait_until("Done")
+samples = job.get_simulated_samples()
 ```
 
 ### Qualibration node template
@@ -535,3 +538,26 @@ Bulk migration script: [`scripts/migrate_measure_none.py`](../../scripts/migrate
 | No `measure(..., None, ...)` in Superconducting QCA Python | Done |
 | Real ADC stream calls (`adc_st`, etc.) unchanged | Done |
 | Grep gate in `test_no_measure_none_adc_placeholder_in_qca` | Done |
+
+## Part 6 — OPX1000 simulation async wait
+
+On **OPX1000** clusters, `qmm.simulate()` returns an async job (`SimulatedJobApi`); pull results only after the job finishes. Legacy **OPX/OPX+** configs return `SimulatedJob`, which has no `wait_until` and does not need it.
+
+Apply only to scripts whose imported configuration module contains `"type": "opx1000"` or `"fems"` (e.g. `configuration_lf_fem_and_octave.py`, `configuration_mw_fem.py`):
+
+```python
+job = qmm.simulate(config, program, simulation_config)
+job.wait_until("Done")
+samples = job.get_simulated_samples()
+waveform_report = job.get_simulated_waveform_report()
+```
+
+Bulk migration script: [`scripts/migrate_simulation_wait_until.py`](../../scripts/migrate_simulation_wait_until.py) (OPX1000 import detection). CI grep gate: `test_simulation_wait_until_before_samples_in_opx1000_qca` in [`tests/test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py).
+
+### Completion checklist (OPX1000 simulation async wait)
+
+| Criterion | Status |
+|-----------|--------|
+| `job.wait_until("Done")` before first `get_simulated_samples()` in OPX1000 QCA simulate blocks | Done (Superconducting: 3 Two-Fixed scripts) |
+| Headless harness [`simulate_waveform_runner.py`](../../scripts/simulate_waveform_runner.py) waits only for OPX1000 configs | Done |
+| Grep gate in `test_simulation_wait_until_before_samples_in_opx1000_qca` | Done |

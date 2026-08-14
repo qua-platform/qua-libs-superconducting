@@ -15,9 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/migration_paths.py` — shared `--modality` / `--qca-root` resolution for bulk migration scripts
 - QUA 1.3.1 / 1.4.0 migration guide ([docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md)), covering iterables, config split, `amp()` deprecation, program-queue `overrides` deprecation, and `measure()` ADC placeholder removal
 - Auto-generated migrated-file inventory ([docs/plans/qua-1.4.0-migrated-files.md](docs/plans/qua-1.4.0-migrated-files.md))
-- Cursor rules for QUA, QUAM, and QUAlibrate ([.cursor/rules/qua-documentation.mdc](.cursor/rules/qua-documentation.mdc))
+- Cursor rules for QUA, QUAM, and QUAlibrate ([.cursor/rules/qua-documentation.mdc](.cursor/rules/qua-documentation.mdc)); migration-script checklist ([.cursor/rules/migration-scripts.mdc](.cursor/rules/migration-scripts.mdc))
 - CI and static test gates: `test_qua_compile.py`, `test_config_split.py`, `test_no_deprecated_amp.py`, and [qualibration tests README](qualibration_graphs/superconducting/tests/README.md)
-- Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `migrate_measure_none.py`, `generate_qua_migrated_files_inventory.py`
+- Bulk migration scripts: `migrate_qca_qua_131.py`, `migrate_config_split.py`, `migrate_amp_to_amplitude_scale.py`, `migrate_measure_none.py`, `migrate_simulation_wait_until.py`, `generate_qua_migrated_files_inventory.py`
 - Config-split helpers: `qua_config_split.py` (QCA and qualibration)
 - `.python-version` pinning Python 3.14 for local development
 - Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py), [scripts/validation_matrix.py](scripts/validation_matrix.py))
@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Added `job.wait_until("Done")` before simulation result pulls in 3 Two-Fixed OPX1000 scripts; `simulate_waveform_runner.py` waits only for OPX1000 configs; grep gate `test_simulation_wait_until_before_samples_in_opx1000_qca`
 - Restored missing `update_frequency` calls in Single-Flux `05b_resonator_spectroscopy_vs_flux.py` and `06b_qubit_spectroscopy_vs_flux.py` (iterables migration regression); documented Single-Flux-Tunable-Transmon simulation validation (5 scripts, all pass) in VALIDATION.md
 - Removed deprecated `measure(..., None, ...)` ADC-stream placeholder across Superconducting QCA scripts (~142 files); real ADC streaming calls (`adc_st`, etc.) unchanged; added `test_no_measure_none_adc_placeholder_in_qca` grep gate
 - Fixed duplicate QUA output stream tags in 10 Superconducting QCA scripts where `declare_with_stream` overlapped legacy manual `.save()` tags; added a migration grep gate

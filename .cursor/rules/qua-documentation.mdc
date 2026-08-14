@@ -105,4 +105,6 @@ Frequency/detuning sweep arrays passed to `QuaIterable` and used with `update_fr
 
 **Part 5 (1.4.0)** — do **not** pass literal `None` as the third argument to `measure()` to mean “no ADC streaming”; omit it. Keep real stream variables (e.g. `adc_st`) when streaming raw ADC. Bulk fix: [`scripts/migrate_measure_none.py`](../../scripts/migrate_measure_none.py); gate: `test_no_measure_none_adc_placeholder_in_qca`.
 
+**Part 6 (1.4.0, OPX1000 only)** — after `qmm.simulate(...)`, call `job.wait_until("Done")` before `get_simulated_samples()` or `get_simulated_waveform_report()` **only when** the imported configuration uses OPX1000/FEM controllers (`"type": "opx1000"` or `"fems"`). Legacy OPX/OPX+ configs do not need it. Bulk fix: [`scripts/migrate_simulation_wait_until.py`](../../scripts/migrate_simulation_wait_until.py); gate: `test_simulation_wait_until_before_samples_in_opx1000_qca`.
+
 **Superconducting validation (this repo):** automated simulation baseline comparison via [`scripts/validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) (`--folder`, `--list-folders`) — see [`VALIDATION.md`](../../VALIDATION.md).

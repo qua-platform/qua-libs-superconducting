@@ -86,12 +86,15 @@ Apply in this order for every modality (five migration pillars + validation):
 | 3 | **1 — iterables & streams** | `uv run python scripts/migrate_qca_qua_131.py --modality "$MODALITY" --dry-run` then apply |
 | 4 | **Manual pass** | Keep-manual files (see guide + appendix F below); hand-migrate edge cases |
 | 5 | **5 — `measure()` ADC placeholder** | `uv run python scripts/migrate_measure_none.py --modality "$MODALITY" --dry-run` then apply |
-| 6 | **Compat-only** | Rename `declare_stream` → `declare_output_stream` in skipped files/macros |
-| 7 | **Validation** | Grep gates + simulation smoke (sections H–I) |
+| 6 | **6 — OPX1000 simulation wait** *(optional)* | `uv run python scripts/migrate_simulation_wait_until.py --modality "$MODALITY" --dry-run` then apply — **only if** the modality has OPX1000/FEM configs |
+| 7 | **Compat-only** | Rename `declare_stream` → `declare_output_stream` in skipped files/macros |
+| 8 | **Validation** | Grep gates + simulation smoke (sections H–I) |
 
 **Why Part 3 before Part 1?** `migrate_amp_to_amplitude_scale.py` is AST-safe and independent. Config split (Part 2) must land before you fix execute paths during manual work. Part 1 script only handles **simple 1D** sweeps — expect **manual migration for ~30–40%** of files.
 
 **Part 5 timing:** Run after manual pass so `measure(...)` calls are in final form. Safe to re-run; removes literal `None` inside `measure(...)` only — real ADC streams (`adc_st`, etc.) are unchanged.
+
+**Part 6 timing:** Optional per modality. Run only when QCA scripts import configuration modules with `"type": "opx1000"` or `"fems"`. Legacy OPX/OPX+ configs do **not** need `job.wait_until("Done")`.
 
 ### Bulk script limits (`migrate_qca_qua_131.py`)
 
@@ -129,6 +132,10 @@ uv run python scripts/migrate_qca_qua_131.py --modality "$MODALITY" --folder Sin
 # Part 5 — measure(None) ADC placeholder (qm-qua 1.4.0 DeprecationWarning)
 uv run python scripts/migrate_measure_none.py --modality "$MODALITY" --dry-run
 uv run python scripts/migrate_measure_none.py --modality "$MODALITY"
+
+# Part 6 — OPX1000 simulation async wait (skip if no OPX1000/FEM configs)
+uv run python scripts/migrate_simulation_wait_until.py --modality "$MODALITY" --dry-run
+uv run python scripts/migrate_simulation_wait_until.py --modality "$MODALITY"
 ```
 
 Explicit path (modality fork with non-standard layout):
@@ -148,6 +155,7 @@ Place [`qua_config_split.py`](../Quantum-Control-Applications/Superconducting/qu
 | [`migrate_config_split.py`](../../scripts/migrate_config_split.py) | Part 2 — controller / logical config split |
 | [`migrate_qca_qua_131.py`](../../scripts/migrate_qca_qua_131.py) | Part 1 — simple 1D iterables + auto-streaming |
 | [`migrate_measure_none.py`](../../scripts/migrate_measure_none.py) | Part 5 — remove `measure(..., None, ...)` placeholder |
+| [`migrate_simulation_wait_until.py`](../../scripts/migrate_simulation_wait_until.py) | Part 6 — insert `job.wait_until("Done")` for OPX1000/FEM simulate blocks |
 | [`generate_qua_migrated_files_inventory.py`](../../scripts/generate_qua_migrated_files_inventory.py) | Optional git-derived inventory |
 | [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) | SC reference: automated waveform baseline compare |
 | [`validation_matrix.py`](../../scripts/validation_matrix.py) | Folder presets for [`VALIDATION.md`](../../VALIDATION.md) |
@@ -166,6 +174,7 @@ Universal keep-manual rules live in the [migration guide — Universal patterns]
 - **Status:** Migrated in `qua-libs-superconducting`; tracked in [`VALIDATION.md`](../../VALIDATION.md)
 - **Unique patterns:** flux sweeps, Octave wide-range IF updates, multiplexed transmons, cross-resonance calibration
 - **Simulation validation (automated):** `uv run python scripts/validate_simulation_baseline.py --folder FOLDER --print-notes` (see `--list-folders`); dual runtime: `uv` migrated + Poetry baseline from `../qua-libs`
+- **Manual simulate (OPX1000 only):** call `job.wait_until("Done")` after `qmm.simulate(...)` before `get_simulated_samples()` / waveform report when the imported config uses OPX1000/FEM controllers
 - **Validated folders (10 scripts):** `Single-Fixed-Transmon` (5), `3D-storage-cavity` (5) — all pass vs qua-libs baseline
 - **Pending folders:** `Single-Flux-Tunable-Transmon`, `Two-Fixed-Coupled-Transmons`, `Two-Flux-Tunable-Coupled-Transmons` (5 scripts each in [`validation_matrix.py`](../../scripts/validation_matrix.py))
 

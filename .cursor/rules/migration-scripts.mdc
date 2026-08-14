@@ -1,0 +1,22 @@
+---
+description: Checklist when adding or changing scripts/migrate_*.py bulk migration tooling
+globs: scripts/migrate_*.py,tests/test_qca_migration_gates.py
+alwaysApply: false
+---
+
+# Migration script checklist
+
+When adding or substantially changing a `scripts/migrate_*.py` bulk migration tool, keep the modality bootstrap kit and docs in sync:
+
+1. [`docs/bootstrap/MANIFEST.md`](../../docs/bootstrap/MANIFEST.md) — table row for the new script
+2. [`scripts/bootstrap_modality_repo.sh`](../../scripts/bootstrap_modality_repo.sh) — `cp` line for the script
+3. [`docs/plans/qua-1.4.0-migration-runbook.md`](../../docs/plans/qua-1.4.0-migration-runbook.md) — execution-order step + scripts inventory row
+4. [`docs/plans/qua-1.4.0-migration.md`](../../docs/plans/qua-1.4.0-migration.md) — new Part section if this is a user-visible migration pillar
+5. [`tests/test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py) — grep gate (if applicable)
+6. [`.cursor/rules/qua-documentation.mdc`](qua-documentation.mdc) — short Part bullet when user-facing
+7. [`CHANGELOG.md`](../../CHANGELOG.md) — Added/Fixed entry under `[Unreleased]`
+8. Run `--dry-run` then apply; document the command in the runbook
+
+New migration scripts should accept `--modality` / `--qca-root` via [`scripts/migration_paths.py`](../../scripts/migration_paths.py).
+
+When adding a new Cursor rule for migration tooling, add a `cp` line for it in `bootstrap_modality_repo.sh` and a row in `MANIFEST.md`.

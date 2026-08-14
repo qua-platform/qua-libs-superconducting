@@ -208,7 +208,6 @@ def test_simulate_hello_qua_with_merged_split_config() -> None:
     except QmServerDetectionError as exc:
         pytest.skip(f"No QOP available for simulate smoke: {exc}")
 
-    job.wait_until("Done")
     assert job.get_simulated_samples() is not None
 
 

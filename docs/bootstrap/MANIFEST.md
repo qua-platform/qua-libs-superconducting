@@ -23,6 +23,7 @@ Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adap
 | `scripts/migrate_config_split.py` | Part 2 bulk migration |
 | `scripts/migrate_qca_qua_131.py` | Part 1 bulk migration |
 | `scripts/migrate_measure_none.py` | Part 5 bulk migration |
+| `scripts/migrate_simulation_wait_until.py` | Part 6 bulk migration — OPX1000 simulation async wait |
 | `scripts/generate_qua_migrated_files_inventory.py` | Optional inventory generator |
 | `scripts/bootstrap_modality_repo.sh` | This bootstrap script |
 
@@ -31,6 +32,7 @@ Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adap
 | `tests/test_qca_migration_gates.py` | Portable CI grep gates |
 | `.cursor/rules/qua-documentation.mdc` | Cursor QUA context (edit modality) |
 | `.cursor/rules/changelog.mdc` | Changelog rule |
+| `.cursor/rules/migration-scripts.mdc` | Checklist when adding `scripts/migrate_*.py` |
 | `.github/workflows/ci.yml` | Adapt: drop qualibration jobs if N/A |
 | `CONTRIBUTING.md` | Adapt intro + migration links |
 | `CHANGELOG.md` | Empty `[Unreleased]` skeleton or copy structure |

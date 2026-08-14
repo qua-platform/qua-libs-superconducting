@@ -72,8 +72,10 @@ simulate = False
 if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=1_000)  # In clock cycles = 4ns
-    # Simulate blocks python until the simulation is done
+    # Start simulation (non-blocking on OPX1000; wait before pulling results)
     job = qmm.simulate(config, PROGRAM, simulation_config)
+    # Wait until the simulation is done
+    job.wait_until("Done")
     # Get the simulated samples
     samples = job.get_simulated_samples()
     # Plot the simulated samples
