@@ -26,7 +26,6 @@ from qm import SimulationConfig
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
-from qualang_tools.loops import from_array
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.optimize import curve_fit
@@ -69,6 +68,7 @@ with program() as resonator_spec_2D:
         assign(n, shot)
         save(n, n_st)
         for f in f_sweep:
+            update_frequency("resonator", f + resonator_IF)
             for dc in dc_sweep:
                 I = declare_with_stream(fixed, "I", average_axes=["shots"])
                 Q = declare_with_stream(fixed, "Q", average_axes=["shots"])

@@ -92,13 +92,15 @@ For these tests we used the OPX `CS_1` (IP: 172.16.33.101).
 
 ### Single-Flux-Tunable-Transmon
 
+For these tests we used the OPX `CS_1` (IP: 172.16.33.101).
+
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Single-Flux-Tunable-Transmon/05b_resonator_spectroscopy_vs_flux.py` | yes | yes | yes | — | pending | Flux-specific 2D resonator spectroscopy |
-| `Single-Flux-Tunable-Transmon/06b_qubit_spectroscopy_vs_flux.py` | yes | yes | yes | yes (`play`) | pending | |
-| `Single-Flux-Tunable-Transmon/07a_rabi_chevron_duration.py` | yes | yes | yes | — | pending | 2D time×detuning sweep |
-| `Single-Flux-Tunable-Transmon/07b_rabi_chevron_amplitude.py` | yes | yes | yes | yes (`play`) | pending | 2D chevron amplitude calibration |
-| `Single-Flux-Tunable-Transmon/08a_time_rabi.py` | yes | yes | yes | — | pending | Duration sweep (complements amplitude calibrations) |
+| `Single-Flux-Tunable-Transmon/05b_resonator_spectroscopy_vs_flux.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (12 analog, 6 digital, 12 ADC); 0 diff lines |
+| `Single-Flux-Tunable-Transmon/06b_qubit_spectroscopy_vs_flux.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
+| `Single-Flux-Tunable-Transmon/07a_rabi_chevron_duration.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
+| `Single-Flux-Tunable-Transmon/07b_rabi_chevron_amplitude.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
+| `Single-Flux-Tunable-Transmon/08a_time_rabi.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
 
 ### Two-Fixed-Coupled-Transmons
 

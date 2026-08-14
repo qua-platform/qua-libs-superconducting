@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Aligned `validation_matrix.py` script order with VALIDATION.md Results tables (alphabetical by filename)
 - Updated migration runbook, migration guide, bootstrap manifest, and Cursor rules for `migrate_measure_none.py`, measure-None grep gate, and Superconducting simulation validation harness
 - Generalized simulation baseline validation harness with `--folder` presets from VALIDATION.md ([scripts/validation_matrix.py](scripts/validation_matrix.py)); reran Single-Fixed-Transmon simulation baseline comparison (5 scripts, all pass)
 - Changed VALIDATION.md script matrix to drop ≥90% duplicate flux-tunable scripts and add flux-specific / coupled-gate calibrations for more robust migration validation
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Restored missing `update_frequency` calls in Single-Flux `05b_resonator_spectroscopy_vs_flux.py` and `06b_qubit_spectroscopy_vs_flux.py` (iterables migration regression); documented Single-Flux-Tunable-Transmon simulation validation (5 scripts, all pass) in VALIDATION.md
 - Removed deprecated `measure(..., None, ...)` ADC-stream placeholder across Superconducting QCA scripts (~142 files); real ADC streaming calls (`adc_st`, etc.) unchanged; added `test_no_measure_none_adc_placeholder_in_qca` grep gate
 - Fixed duplicate QUA output stream tags in 10 Superconducting QCA scripts where `declare_with_stream` overlapped legacy manual `.save()` tags; added a migration grep gate
 - Fixed 3D-storage-cavity scripts that used `declare_with_stream(bool, ..., average_axes=...)` (simulation error: average can't operate on bool items); state streams now use `int`, matching upstream `boolean_to_int().average()` behavior; `readout_macro` stores 0/1 for int or bool state variables

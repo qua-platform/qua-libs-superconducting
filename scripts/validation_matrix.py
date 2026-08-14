@@ -1,4 +1,7 @@
-"""VALIDATION.md folder presets for simulation baseline comparison."""
+"""VALIDATION.md folder presets for simulation baseline comparison.
+
+Per-folder ``scripts`` order matches VALIDATION.md Results tables (alphabetical by filename).
+"""
 
 from __future__ import annotations
 
@@ -29,19 +32,19 @@ VALIDATION_FOLDERS: dict[str, ValidationFolder] = {
     "3D-storage-cavity": ValidationFolder(
         qca_subpath="3D-storage-cavity",
         scripts=(
-            "01_storage_spectroscopy.py",
             "00_selective_pulse_power_rabi.py",
-            "06a_qubit_AC_Stark_shift_from_readout_pumping.py",
+            "01_storage_spectroscopy.py",
             "03a_number_splitting_spectroscopy_w_displacement.py",
+            "06a_qubit_AC_Stark_shift_from_readout_pumping.py",
             "09_swapping.py",
         ),
     ),
     "Single-Flux-Tunable-Transmon": ValidationFolder(
         qca_subpath="Single-Flux-Tunable-Transmon",
         scripts=(
-            "07a_rabi_chevron_duration.py",
             "05b_resonator_spectroscopy_vs_flux.py",
             "06b_qubit_spectroscopy_vs_flux.py",
+            "07a_rabi_chevron_duration.py",
             "07b_rabi_chevron_amplitude.py",
             "08a_time_rabi.py",
         ),
@@ -59,10 +62,10 @@ VALIDATION_FOLDERS: dict[str, ValidationFolder] = {
     "Two-Flux-Tunable-Coupled-Transmons": ValidationFolder(
         qca_subpath="Two-Flux-Tunable-Coupled-Transmons/Standard Configuration",
         scripts=(
-            "08_qubit_spectroscopy_vs_flux_simultaneous.py",
             "04_resonator_spectroscopy_single.py",
             "05_resonator_spectroscopy_multiplexed.py",
             "06_resonator_spectroscopy_vs_amplitude.py",
+            "08_qubit_spectroscopy_vs_flux_simultaneous.py",
             "21_CZ.py",
         ),
     ),
