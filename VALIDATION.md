@@ -13,7 +13,7 @@ The set of tested scripts collectively covers these migration pillars (not every
 
 ## Scope
 
-We validate **5 representative QUA scripts per top-level folder** under `Quantum-Control-Applications/Superconducting/` (**25 scripts total**). Use Case subfolders are not given separate tables. Scripts for `Two-Flux-Tunable-Coupled-Transmons` live under `Standard Configuration/` (that folder has no root-level QUA examples).
+We validate **5 representative QUA scripts per top-level folder** under `Quantum-Control-Applications/Superconducting/` (**25 scripts total** across five documented folders). Use Case subfolders are not given separate tables. Scripts for `Two-Flux-Tunable-Coupled-Transmons` live under `Standard Configuration/` (that folder has no root-level QUA examples).
 
 Baseline for comparison: same relative path under `../qua-libs/Quantum-Control-Applications/Superconducting/`.
 
@@ -104,13 +104,15 @@ For these tests we used the OPX `CS_1` (IP: 172.16.33.101).
 
 ### Two-Fixed-Coupled-Transmons
 
+For `00_hello_qua.py` we used OPX `CS_3` (IP: `172.16.33.115`, LF-FEM + Octave / OPX1000). For the other four scripts we used OPX `CS_1` (IP: `172.16.33.101`).
+
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Two-Fixed-Coupled-Transmons/00_hello_qua.py` | — | — | yes | — | pending | Uses `configuration_lf_fem_and_octave` |
-| `Two-Fixed-Coupled-Transmons/03_resonator_spectroscopy_single.py` | yes | yes | yes | — | pending | |
-| `Two-Fixed-Coupled-Transmons/04_resonator_spectroscopy_multiplexed.py` | yes | yes | yes | — | pending | |
-| `Two-Fixed-Coupled-Transmons/05_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pending | |
-| `Two-Fixed-Coupled-Transmons/08_power_rabi.py` | yes | yes | yes | yes (`play`) | pending | |
+| `Two-Fixed-Coupled-Transmons/00_hello_qua.py` | — | — | yes | — | pass | `simulate=True`; waveform report matches baseline (4 analog, 0 digital, 0 ADC); 0 diff lines; uses `configuration_lf_fem_and_octave` |
+| `Two-Fixed-Coupled-Transmons/03_resonator_spectroscopy_single.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (26 analog, 13 digital, 26 ADC); 0 diff lines |
+| `Two-Fixed-Coupled-Transmons/04_resonator_spectroscopy_multiplexed.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (52 analog, 26 digital, 52 ADC); 0 diff lines |
+| `Two-Fixed-Coupled-Transmons/05_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (52 analog, 26 digital, 52 ADC); 0 diff lines |
+| `Two-Fixed-Coupled-Transmons/08_power_rabi.py` | yes | yes | yes | yes (`play`, `measure`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 2 digital, 4 ADC); 0 diff lines |
 
 ### Two-Flux-Tunable-Coupled-Transmons (`Standard Configuration/`)
 
