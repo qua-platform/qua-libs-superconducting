@@ -196,9 +196,7 @@ with program() as PROGRAM:
             # Only played the depth corresponding to target_depth
 
             with if_((depth == 2) | (depth == depth_target)):
-                for shot in shots:
-        assign(n, shot)
-        save(n, n_st)
+                with for_(n, 0, n < n_avg, n + 1):
                     # Can replace by active reset
                     wait(thermalization_time * u.ns)
                     # Align the two elements to play the sequence after qubit initialization
@@ -208,8 +206,9 @@ with program() as PROGRAM:
                     play_sequence(sequence_list, depth, "q2_xy")
                     # Align the two elements to measure after playing the circuit.
                     align()
-                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                    multiplexed_readout(
+                        I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_", amplitude=1.0
+                    )
                 # always play the random gate followed by the interleaved gate. The factor of 2 is there to always
                 # play the gates by pairs [(random_gate-interleaved_gate)^depth/2-inv_gate]
                 assign(depth_target, depth_target + 2 * delta_clifford)

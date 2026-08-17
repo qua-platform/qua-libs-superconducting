@@ -194,8 +194,8 @@ with program() as PROGRAM:
                         align(qt_xy, *resonators)
 
                         # Measure the state of the resonators
-                        measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-                        measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                        measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1), amplitude_scale=1)
+                        measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2), amplitude_scale=1)
                         assign(state[0], I1 > ge_threshold_q1)
                         save(state[0], state_st[0])
                         assign(state[1], I2 > ge_threshold_q2)

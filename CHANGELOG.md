@@ -38,9 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation, Cursor rules, and CONTRIBUTING for qm-qua 1.4.0 and the config-split pattern
 - Replaced deprecated QUA `amp()` pulse multiplication with `amplitude_scale` on `play`/`measure` across ~70 files (~150 occurrences): 68 QCA scripts, 4 shared `macros.py`, 2 qualibration files, 1 notebook, and 1 README; added `test_no_deprecated_amp.py` grep gate
 - Reran simulation baseline validation for Single-Fixed-Transmon, 3D-storage-cavity, and Single-Flux-Tunable-Transmon (15 scripts, all pass vs existing VALIDATION.md counts); completed first Two-Fixed-Coupled-Transmons validation run (5 scripts, all pass)
+- Documented readout `amplitude_scale=None` vs `amplitude_scale=1` parity pitfall in migration guide and Cursor rules
 
 ### Fixed
 
+- Two-Fixed-Coupled-Transmons extended simulation audit (~22 scripts): readout parity (`amplitude_scale=1` / `multiplexed_readout`), streaming/iterable migration fixes, and `12_T1` pulse-order correction; 21/22 pass vs baseline (`19a` non-parity: baseline uses localhost/mw_fem config)
 - Added `job.wait_until("Done")` before simulation result pulls in 3 Two-Fixed OPX1000 scripts; `simulate_waveform_runner.py` waits only for OPX1000 configs; grep gate `test_simulation_wait_until_before_samples_in_opx1000_qca`
 - Restored missing `update_frequency` calls in Single-Flux `05b_resonator_spectroscopy_vs_flux.py` and `06b_qubit_spectroscopy_vs_flux.py` (iterables migration regression); documented Single-Flux-Tunable-Transmon simulation validation (5 scripts, all pass) in VALIDATION.md
 - Removed deprecated `measure(..., None, ...)` ADC-stream placeholder across Superconducting QCA scripts (~142 files); real ADC streaming calls (`adc_st`, etc.) unchanged; added `test_no_measure_none_adc_placeholder_in_qca` grep gate

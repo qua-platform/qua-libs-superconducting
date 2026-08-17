@@ -50,33 +50,15 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
+    Ig, I_g_st, Qg, Q_g_st, n, n_st = qua_declaration(nb_of_qubits=2)
+    Ie, I_e_st, Qe, Q_e_st, _, _ = qua_declaration(nb_of_qubits=2)
     shots = QuaIterableRange("shots", n_avg)
     df_sweep = QuaIterable("df", dfs)
-    n = declare(int)  # QUA variable for the averaging loop
-    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
-    Ig1 = declare(fixed)
-    Qg1 = declare(fixed)
-    Ig2 = declare(fixed)
-    Qg2 = declare(fixed)
-    Ig1_st = declare_output_stream()
-    Qg1_st = declare_output_stream()
-    Ig2_st = declare_output_stream()
-    Qg2_st = declare_output_stream()
-    Ie1 = declare(fixed)
-    Qe1 = declare(fixed)
-    Ie2 = declare(fixed)
-    Qe2 = declare(fixed)
-    Ie1_st = declare_output_stream()
-    Qe1_st = declare_output_stream()
-    Ie2_st = declare_output_stream()
-    Qe2_st = declare_output_stream()
 
     for shot in shots:
         assign(n, shot)
         save(n, n_st)
         for df in df_sweep:
-            I = declare_with_stream(fixed, "I", average_axes=["shots"])
-            Q = declare_with_stream(fixed, "Q", average_axes=["shots"])
             # Update the frequency of the two resonator elements
             update_frequency("rr1", df + resonator_IF_q1)
             update_frequency("rr2", df + resonator_IF_q2)
@@ -84,12 +66,7 @@ with program() as PROGRAM:
             # Reset both qubits to ground
             wait(thermalization_time * u.ns)
             # Measure the ground IQ blobs
-                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", Ig1), dual_demod.full("rotated_minus_sin", "rotated_cos", Qg1))
-                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", Ig2), dual_demod.full("rotated_minus_sin", "rotated_cos", Qg2))
-                save(Ig1, Ig1_st)
-                save(Qg1, Qg1_st)
-                save(Ig2, Ig2_st)
-                save(Qg2, Qg2_st)
+            multiplexed_readout(Ig, I_g_st, Qg, Q_g_st, resonators=[1, 2], weights="rotated_", amplitude=1.0)
 
             align()
             # Reset both qubits to ground
@@ -99,33 +76,32 @@ with program() as PROGRAM:
             play("x180", "q2_xy")
             align()
             # Measure the state of the resonators
-    measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", Ie1), dual_demod.full("rotated_minus_sin", "rotated_cos", Qe1))
-    measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", Ie2), dual_demod.full("rotated_minus_sin", "rotated_cos", Qe2))
+            multiplexed_readout(Ie, I_e_st, Qe, Q_e_st, resonators=[1, 2], weights="rotated_", amplitude=1.0)
 
     with stream_processing():
         n_st.save("iteration")
         for i in range(2):
             # mean values
-            Ig{i+1}_st.buffer(len(dfs)).average().save(f"Ig{i+1}_avg")
-            Qg{i+1}_st.buffer(len(dfs)).average().save(f"Qg{i+1}_avg")
-            Ie{i+1}_st.buffer(len(dfs)).average().save(f"Ie{i+1}_avg")
-            Qe{i+1}_st.buffer(len(dfs)).average().save(f"Qe{i+1}_avg")
+            I_g_st[i].buffer(len(dfs)).average().save(f"Ig{i+1}_avg")
+            Q_g_st[i].buffer(len(dfs)).average().save(f"Qg{i+1}_avg")
+            I_e_st[i].buffer(len(dfs)).average().save(f"Ie{i+1}_avg")
+            Q_e_st[i].buffer(len(dfs)).average().save(f"Qe{i+1}_avg")
             # variances to get the SNR
             (
-                ((Ig{i+1}_st.buffer(len(dfs)) * Ig{i+1}_st.buffer(len(dfs))).average())
-                - (Ig{i+1}_st.buffer(len(dfs)).average() * Ig{i+1}_st.buffer(len(dfs)).average())
+                ((I_g_st[i].buffer(len(dfs)) * I_g_st[i].buffer(len(dfs))).average())
+                - (I_g_st[i].buffer(len(dfs)).average() * I_g_st[i].buffer(len(dfs)).average())
             ).save(f"Ig{i+1}_var")
             (
-                ((Qg{i+1}_st.buffer(len(dfs)) * Qg{i+1}_st.buffer(len(dfs))).average())
-                - (Qg{i+1}_st.buffer(len(dfs)).average() * Qg{i+1}_st.buffer(len(dfs)).average())
+                ((Q_g_st[i].buffer(len(dfs)) * Q_g_st[i].buffer(len(dfs))).average())
+                - (Q_g_st[i].buffer(len(dfs)).average() * Q_g_st[i].buffer(len(dfs)).average())
             ).save(f"Qg{i+1}_var")
             (
-                ((Ie{i+1}_st.buffer(len(dfs)) * Ie{i+1}_st.buffer(len(dfs))).average())
-                - (Ie{i+1}_st.buffer(len(dfs)).average() * Ie{i+1}_st.buffer(len(dfs)).average())
+                ((I_e_st[i].buffer(len(dfs)) * I_e_st[i].buffer(len(dfs))).average())
+                - (I_e_st[i].buffer(len(dfs)).average() * I_e_st[i].buffer(len(dfs)).average())
             ).save(f"Ie{i+1}_var")
             (
-                ((Qe{i+1}_st.buffer(len(dfs)) * Qe{i+1}_st.buffer(len(dfs))).average())
-                - (Qe{i+1}_st.buffer(len(dfs)).average() * Qe{i+1}_st.buffer(len(dfs)).average())
+                ((Q_e_st[i].buffer(len(dfs)) * Q_e_st[i].buffer(len(dfs))).average())
+                - (Q_e_st[i].buffer(len(dfs)).average() * Q_e_st[i].buffer(len(dfs)).average())
             ).save(f"Qe{i+1}_var")
 
 

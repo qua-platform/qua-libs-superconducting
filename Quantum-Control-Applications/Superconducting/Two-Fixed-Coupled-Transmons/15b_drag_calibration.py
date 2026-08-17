@@ -58,7 +58,7 @@ save_data_dict = {
 ###################
 with program() as PROGRAM:
     shots = QuaIterableRange("shots", n_avg)
-    npi_sweep = QuaIterable("npi", nb_of_pulses)
+    npi_sweep = QuaIterable("npi", nb_of_pulses.astype(int))
     a_sweep = QuaIterable("a", amps)
     n = declare(int)  # QUA variable for the averaging loop
     n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
@@ -84,8 +84,8 @@ with program() as PROGRAM:
                 # Align the elements to measure after playing the qubit pulses.
                 align()
                 # Multiplexed readout, also saves the measurement outcomes
-                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1), amplitude_scale=1)
+                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2), amplitude_scale=1)
 
                 # Wait for the qubit to decay to the ground state
                 wait(thermalization_time * u.ns)

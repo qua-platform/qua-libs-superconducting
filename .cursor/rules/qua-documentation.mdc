@@ -99,7 +99,7 @@ Frequency/detuning sweep arrays passed to `QuaIterable` and used with `update_fr
 - **Simulate:** `qmm.simulate(merge_qua_config(...), ...)` on the manager — **never** `open_qm` before simulate ([OPX Simulator](https://docs.quantum-machines.co/latest/docs/Guides/simulator/))
 - `mixers` belongs to **controller** config (not logical)
 
-**Part 3 (1.4.0)** — do **not** use `pulse * amp(scale)` in new QUA code. Pass `amplitude_scale=` to `play` and `measure` instead. See the **`amp()` deprecation** section in the guide.
+**Part 3 (1.4.0)** — do **not** use `pulse * amp(scale)` in new QUA code. Pass `amplitude_scale=` to `play` and `measure` instead. See the **`amp()` deprecation** section in the guide. Inline `measure("readout", …)` replacing `multiplexed_readout` or `* amp(1)` **must** pass `amplitude_scale=1` (or keep the macro): omitting it (`None`) is not equivalent and breaks mixed readout simulation parity — see the **Readout parity** subsection in Part 3 of the migration guide.
 
 **Part 4 (1.4.0)** — do **not** use `add_to_queue(..., overrides=...)` or `queue.add_compiled()`. Prefer `qm.execute(program, config=logical_config)`.
 

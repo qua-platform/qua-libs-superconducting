@@ -47,35 +47,29 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as PROGRAM:
+    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
     shots = QuaIterableRange("shots", n_avg)
-    t_sweep = QuaIterable("t", t_delays)
-    n = declare(int)  # QUA variable for the averaging loop
-    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
+    t_sweep = QuaIterable("t", t_delays.astype(int))
 
     for shot in shots:
         assign(n, shot)
-        save(n, n_st)
         for t in t_sweep:
-            I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
-            Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
-            I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
-            Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
             play("x180", "q1_xy")
-            wait(t, "q1_xy")
             play("x180", "q2_xy")
-            wait(t, "q2_xy")
-
-            # Align the elements to measure after having waited a time "tau" after the qubit pulses.
+            wait(t)
             align()
-
-            # Measure the state of the resonators
-            measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-            measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
-
+            multiplexed_readout(
+                I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_", amplitude=1.0
+            )
             wait(thermalization_time * u.ns)
+        save(n, n_st)
 
     with stream_processing():
         n_st.save("iteration")
+        I_st[0].buffer(len(t_delays)).average().save("I1")
+        Q_st[0].buffer(len(t_delays)).average().save("Q1")
+        I_st[1].buffer(len(t_delays)).average().save("I2")
+        Q_st[1].buffer(len(t_delays)).average().save("Q2")
 
 
 #####################################

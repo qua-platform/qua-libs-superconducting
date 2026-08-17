@@ -215,6 +215,8 @@ for shot in shots:
             measure("readout", "resonator", dual_demod.full(...), dual_demod.full(...), amplitude_scale=a)
 ```
 
+Some nested 2D sweeps still need the **05 fix** (manual streams): use `qua_declaration`, per-measure `save`, explicit `I_st`/`Q_st` buffers in `stream_processing()`, and `save(n, n_st)` after inner loops — not only `declare_with_stream`. Reference: [`05_resonator_spectroscopy_vs_amplitude.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/05_resonator_spectroscopy_vs_amplitude.py). If `diff.txt` shows matching counts but different readout **timestamps**, also verify the pulse sequence matches baseline (e.g. [`12_T1.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/12_T1.py)).
+
 ### Compat-only macro (stream rename only)
 
 Reference: Quantum-Dots `RF_reflectometry_macro` in qua-libs — rename streams inside macros, keep manual `save` / `buffer()` in callers. Superconducting example: [`macros.py`](../../Quantum-Control-Applications/Superconducting/Single-Fixed-Transmon/macros.py).
@@ -453,6 +455,25 @@ measure(
 play("sx" * amp(*amp_matrix), qubit_el)
 # -> play("sx", qubit_el, amplitude_scale=(amp_matrix[0], amp_matrix[1], amp_matrix[2], amp_matrix[3]))
 ```
+
+### Readout parity: omitting `amplitude_scale` is not the same as `amplitude_scale=1`
+
+In qm-qua **1.4.0**, `measure(..., amplitude_scale=...)` defaults to **`None`**, not `1`.
+
+| Form | Meaning |
+|------|---------|
+| Omit `amplitude_scale` (`None`) | No amp stage — old bare `measure("readout", …)` without `* amp(...)` |
+| `amplitude_scale=1` | Explicit amp stage with unity factor — old `measure("readout" * amp(1), …)` or [`multiplexed_readout`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/macros.py) with default `amplitude=1.0` |
+
+These are **different compiler paths**. For mixed I/Q readout (`readout_wf` on I, `zero_wf` on Q), they produce **different simulated waveform-report lines** even when the Q waveform sample is 0.
+
+**Triage symptom:** `summary.json` counts match, but `diff.txt` shows a `zero_wf` Q line with mismatched `amp=…` tuples on readout analog lines.
+
+**Fix:** when baseline uses `multiplexed_readout` or `* amp(1)`, migrated inline `measure("readout", …)` must pass **`amplitude_scale=1`** or call `multiplexed_readout(..., amplitude=1.0)`. References: [`08_power_rabi.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/08_power_rabi.py), [`03_resonator_spectroscopy_single.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/03_resonator_spectroscopy_single.py).
+
+When the sweep **intentionally** scales readout amplitude, pass the variable (e.g. `amplitude_scale=a`) — do not hard-code `1`. References: [`05_resonator_spectroscopy_vs_amplitude.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/05_resonator_spectroscopy_vs_amplitude.py), [`10b_readout_optimization_amp.py`](../../Quantum-Control-Applications/Superconducting/Two-Fixed-Coupled-Transmons/10b_readout_optimization_amp.py).
+
+**Triage harness:** run [`scripts/validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) and inspect per-script `diff.txt` under local `validation_results/` (gitignored; not committed).
 
 Bulk migration script: [`scripts/migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py). CI grep gate: `test_no_deprecated_amp.py`.
 

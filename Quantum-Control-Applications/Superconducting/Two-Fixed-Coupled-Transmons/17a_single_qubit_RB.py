@@ -15,10 +15,7 @@ from macros import multiplexed_readout, qua_declaration, active_reset
 import math
 from qualang_tools.results.data_handler import DataHandler
 from scipy.optimize import curve_fit
-import matplotlib
 import time
-
-matplotlib.use("TkAgg")
 
 ##################
 #   Parameters   #
@@ -176,9 +173,7 @@ with program() as PROGRAM:
             # Only played the depth corresponding to target_depth
 
             with if_((depth == 1) | (depth == depth_target)):
-                for shot in shots:
-        assign(n, shot)
-        save(n, n_st)
+                with for_(n, 0, n < n_avg, n + 1):
                     wait(thermalization_time * u.ns)
                     # Align the two elements to play the sequence after qubit initialization
                     align()
@@ -188,8 +183,9 @@ with program() as PROGRAM:
                     play_sequence(sequence_list, depth, "q2_xy")
                     # Align the two elements to measure after playing the circuit.
                     align()
-                measure("readout", "rr1", dual_demod.full("rotated_cos", "rotated_sin", I1), dual_demod.full("rotated_minus_sin", "rotated_cos", Q1))
-                measure("readout", "rr2", dual_demod.full("rotated_cos", "rotated_sin", I2), dual_demod.full("rotated_minus_sin", "rotated_cos", Q2))
+                    multiplexed_readout(
+                        I, I_st, Q, Q_st, resonators=[1, 2], weights="rotated_", amplitude=1.0
+                    )
 
                 # Go to the next depth
                 assign(depth_target, depth_target + delta_clifford)

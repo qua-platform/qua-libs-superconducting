@@ -104,12 +104,14 @@ with program() as PROGRAM:
                 "rr1",
                 dual_demod.full("rotated_cos", "rotated_sin", I1),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q1),
+                amplitude_scale=1,
             )
             measure(
                 "readout",
                 "rr2",
                 dual_demod.full("rotated_cos", "rotated_sin", I2),
                 dual_demod.full("rotated_minus_sin", "rotated_cos", Q2),
+                amplitude_scale=1,
             )
             # Wait for the qubit to decay to the ground state - Can be replaced by active reset
             wait(thermalization_time * u.ns)
