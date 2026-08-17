@@ -1,6 +1,6 @@
 Here we collect the results regarding the validation procedure of this branch.
 
-Below one can find tables with the files that have been tested and whose results have been compared with the ones obtained using their original version in [qua-libs](https://github.com/qua-platform/qua-libs) (main branch, commit 30823059).
+Below one can find tables with the files that have been tested and whose results have been compared with the ones obtained using their original version in [qua-libs](https://github.com/qua-platform/qua-libs) (branch **`QL-1212-validation`**).
 
 The set of tested scripts collectively covers these migration pillars (not every script hits all four).
 
@@ -15,7 +15,7 @@ The set of tested scripts collectively covers these migration pillars (not every
 
 We validate **5 representative QUA scripts per top-level folder** under `Quantum-Control-Applications/Superconducting/` (**25 scripts total** across five documented folders). Use Case subfolders are not given separate tables. Scripts for `Two-Flux-Tunable-Coupled-Transmons` live under `Standard Configuration/` (that folder has no root-level QUA examples).
 
-Baseline for comparison: same relative path under `../qua-libs/Quantum-Control-Applications/Superconducting/`.
+Baseline for comparison: [`../qua-libs`](../qua-libs) checked out on branch **`QL-1212-validation`**, same relative path under `Quantum-Control-Applications/Superconducting/`.
 
 ## Script selection
 
@@ -26,6 +26,7 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 
 ## How to run
 
+0. Ensure [`../qua-libs`](../qua-libs) is on branch **`QL-1212-validation`**. Confirm CS rack network access (see **Network prerequisites** below) before running the harness.
 1. Set `simulate = True` in the script (most default to `False`; the 3D-storage-cavity folder and some `00_hello_qua.py` scripts default to `True`).
 2. Run each side from **its own** script directory so `from configuration import *` resolves, using the runtime in **Runtime environments** below (do not run baseline scripts through the migrated `uv` env or vice versa).
 3. Compare the compiled job / waveform report structure against the baseline script at the same relative path.
@@ -36,9 +37,22 @@ Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
 
+## Network prerequisites
+
+Simulation validation is **not offline**. [`simulate_waveform_runner.py`](scripts/simulate_waveform_runner.py) opens `QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name)` and calls `qmm.simulate(...)`; **both** the migrated and baseline sides need a live QOP session to the cluster configured in each script’s `configuration*.py`.
+
+| Cluster | IP | When needed |
+|---------|-----|-------------|
+| **CS_1** | `172.16.33.101` | OPX+ configs (default `configuration.py`, Octave-on-`con1`, Use Case mixer configs) |
+| **CS_3** | `172.16.33.115` | OPX1000 FEM configs |
+
+Connect to the CS rack (VPN or on-site network as applicable). **Preflight:** `ping -c 1 172.16.33.101` and `ping -c 1 172.16.33.115` before running [`validate_simulation_baseline.py`](scripts/validate_simulation_baseline.py). If ping fails, fix network access before debugging waveform diffs.
+
+**Cursor / sandbox:** agent shell runs need **`full_network`** when invoking the validation harness — the default sandbox blocks QOP gRPC and produces misleading `QMConnectionError` failures.
+
 ## CS rack assignment
 
-Superconducting QCA configuration files target two Customer Success rack clusters. Set `qop_ip` and `cluster_name` in the relevant `configuration*.py` before connecting to hardware.
+Superconducting QCA configuration files target two Customer Success rack clusters. Set `qop_ip` and `cluster_name` in the relevant `configuration*.py` before connecting to hardware. Migrated configs in this repo and baseline configs on `../qua-libs` branch **`QL-1212-validation`** use the same CS_1 / CS_3 targets.
 
 | CS server | IP | Platform | Hardware | Used by |
 |-----------|-----|----------|----------|---------|
@@ -64,7 +78,7 @@ Each baseline comparison uses **two separate Python environments** — one per r
 | Side | Repo | Runner | QUA version |
 |------|------|--------|-------------|
 | **Migrated** | `qua-libs-superconducting` | `uv run python <script>` from script directory | `qm-qua==1.4.0` (repo pin) |
-| **Baseline** | `../qua-libs` | `poetry run python <script>` from same relative script directory | `qm-qua>=1.2.0` (qua-libs Poetry env) |
+| **Baseline** | `../qua-libs` (branch **`QL-1212-validation`**) | `poetry run python <script>` from same relative script directory | `qm-qua>=1.2.0` (qua-libs Poetry env) |
 
 Each side uses its own `configuration.py` and `macros.py`. Example harness invocation (any VALIDATION folder):
 
