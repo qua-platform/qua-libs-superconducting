@@ -175,8 +175,7 @@ Universal keep-manual rules live in the [migration guide — Universal patterns]
 - **Unique patterns:** flux sweeps, Octave wide-range IF updates, multiplexed transmons, cross-resonance calibration
 - **Simulation validation (automated):** `uv run python scripts/validate_simulation_baseline.py --folder FOLDER --print-notes` (see `--list-folders`); dual runtime: `uv` migrated + Poetry baseline from `../qua-libs`
 - **Manual simulate (OPX1000 only):** call `job.wait_until("Done")` after `qmm.simulate(...)` before `get_simulated_samples()` / waveform report when the imported config uses OPX1000/FEM controllers
-- **Validated folders (10 scripts):** `Single-Fixed-Transmon` (5), `3D-storage-cavity` (5) — all pass vs qua-libs baseline
-- **Pending folders:** `Single-Flux-Tunable-Transmon`, `Two-Fixed-Coupled-Transmons`, `Two-Flux-Tunable-Coupled-Transmons` (5 scripts each in [`validation_matrix.py`](../../scripts/validation_matrix.py))
+- **Validated folders (25 scripts):** `Single-Fixed-Transmon` (5), `3D-storage-cavity` (5), `Single-Flux-Tunable-Transmon` (5), `Two-Fixed-Coupled-Transmons` (5), `Two-Flux-Tunable-Coupled-Transmons` (5) — all pass vs qua-libs baseline ([`validation_matrix.py`](../../scripts/validation_matrix.py))
 
 ### Quantum-Dots
 

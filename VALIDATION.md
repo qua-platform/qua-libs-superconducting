@@ -116,11 +116,13 @@ For `00_hello_qua.py` we used OPX `CS_3` (IP: `172.16.33.115`, LF-FEM + Octave /
 
 ### Two-Flux-Tunable-Coupled-Transmons (`Standard Configuration/`)
 
+For these tests we used the OPX `CS_1` (IP: `172.16.33.101`).
+
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/04_resonator_spectroscopy_single.py` | yes | yes | yes | — | pending | |
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/05_resonator_spectroscopy_multiplexed.py` | yes | yes | yes | — | pending | |
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/06_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pending | |
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/08_qubit_spectroscopy_vs_flux_simultaneous.py` | yes | yes | yes | yes (`play`) | pending | dual-qubit flux spectroscopy |
-| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/21_CZ.py` | yes | yes | yes | yes (`play`) | pending | flux-driven two-qubit calibration |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/04_resonator_spectroscopy_single.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (14 analog, 7 digital, 14 ADC); 0 diff lines |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/05_resonator_spectroscopy_multiplexed.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (28 analog, 14 digital, 28 ADC); 0 diff lines |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/06_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (28 analog, 14 digital, 28 ADC); 0 diff lines |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/08_qubit_spectroscopy_vs_flux_simultaneous.py` | yes | yes | yes | yes (`play`, `measure`) | pass | `simulate=True`; waveform report matches baseline (16 analog, 4 digital, 8 ADC); 0 diff lines; dual-qubit flux spectroscopy |
+| `Two-Flux-Tunable-Coupled-Transmons/Standard Configuration/21_CZ.py` | yes | yes | yes | yes (`play`, `measure`) | pass | `simulate=True`; waveform report matches baseline (27 analog, 6 digital, 12 ADC); 0 diff lines; flux-driven two-qubit calibration |
 

@@ -58,46 +58,52 @@ save_data_dict = {
 # The QUA program #
 ###################
 with program() as multi_res_spec_vs_amp:
+    I, I_st, Q, Q_st, n, n_st = qua_declaration(nb_of_qubits=2)
     shots = QuaIterableRange("shots", n_avg)
     df_sweep = QuaIterable("df", dfs)
     a_sweep = QuaIterable("a", amplitudes)
-    # QUA macro to declare the measurement variables and their corresponding streams for a given number of resonators
-    n = declare(int)  # QUA variable for the averaging loop
-    n_st = declare_output_stream()  # Stream for the averaging iteration 'n'
 
     for shot in shots:
         assign(n, shot)
-        save(n, n_st)
         for df in df_sweep:
             # Update the frequency of the two resonator elements
             update_frequency("rr1", df + resonator_IF_q1)
             update_frequency("rr2", df + resonator_IF_q2)
 
             for a in a_sweep:
-                I1 = declare_with_stream(fixed, "I1", average_axes=["shots"])
-                Q1 = declare_with_stream(fixed, "Q1", average_axes=["shots"])
-                I2 = declare_with_stream(fixed, "I2", average_axes=["shots"])
-                Q2 = declare_with_stream(fixed, "Q2", average_axes=["shots"])
                 # resonator 1
                 wait(depletion_time * u.ns, "rr1")  # wait for the resonator to relax
-                measure("readout", "rr1",
-                    dual_demod.full("cos", "sin", I1),
-                    dual_demod.full("minus_sin", "cos", Q1),
+                measure(
+                    "readout",
+                    "rr1",
+                    dual_demod.full("cos", "sin", I[0]),
+                    dual_demod.full("minus_sin", "cos", Q[0]),
                     amplitude_scale=a,
                 )
+                save(I[0], I_st[0])
+                save(Q[0], Q_st[0])
 
                 # align("rr1", "rr2")  # Uncomment to measure sequentially
 
                 # resonator 2
                 wait(depletion_time * u.ns, "rr2")  # wait for the resonator to relax
-                measure("readout", "rr2",
-                    dual_demod.full("cos", "sin", I2),
-                    dual_demod.full("minus_sin", "cos", Q2),
+                measure(
+                    "readout",
+                    "rr2",
+                    dual_demod.full("cos", "sin", I[1]),
+                    dual_demod.full("minus_sin", "cos", Q[1]),
                     amplitude_scale=a,
                 )
+                save(I[1], I_st[1])
+                save(Q[1], Q_st[1])
+        save(n, n_st)
 
     with stream_processing():
         n_st.save("n")
+        I_st[0].buffer(len(amplitudes)).buffer(len(dfs)).average().save("I1")
+        Q_st[0].buffer(len(amplitudes)).buffer(len(dfs)).average().save("Q1")
+        I_st[1].buffer(len(amplitudes)).buffer(len(dfs)).average().save("I2")
+        Q_st[1].buffer(len(amplitudes)).buffer(len(dfs)).average().save("Q2")
 
 #####################################
 #  Open Communication with the QOP  #
