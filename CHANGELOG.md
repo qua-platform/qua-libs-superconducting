@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Standardized CS rack targets across QCA `configuration*.py` files: OPX+ configs use **CS_1** (`172.16.33.101`); OPX1000 FEM configs use **CS_3** (`172.16.33.115`) with LF-FEM slots aligned to the rack (LF-only → 5, LF+Octave → 3); documented assignment in [VALIDATION.md](VALIDATION.md)
 - Aligned `validation_matrix.py` script order with VALIDATION.md Results tables (alphabetical by filename)
 - Updated migration runbook, migration guide, bootstrap manifest, and Cursor rules for `migrate_measure_none.py`, measure-None grep gate, and Superconducting simulation validation harness
 - Generalized simulation baseline validation harness with `--folder` presets from VALIDATION.md ([scripts/validation_matrix.py](scripts/validation_matrix.py)); reran Single-Fixed-Transmon simulation baseline comparison (5 scripts, all pass)

@@ -30,11 +30,32 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 2. Run each side from **its own** script directory so `from configuration import *` resolves, using the runtime in **Runtime environments** below (do not run baseline scripts through the migrated `uv` env or vice versa).
 3. Compare the compiled job / waveform report structure against the baseline script at the same relative path.
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
-5. Simulations use the OPX cluster configured in each folder’s `configuration.py` (e.g. `CS_1` at IP `172.16.33.101`). For **OPX1000/FEM** configs only, call `job.wait_until("Done")` after `qmm.simulate(...)` before pulling samples or the waveform report; legacy OPX/OPX+ configs do not need it.
+5. Simulations use the CS rack cluster configured in each folder’s `configuration.py` — see **CS rack assignment** below. For **OPX1000/FEM** configs only, call `job.wait_until("Done")` after `qmm.simulate(...)` before pulling samples or the waveform report; legacy OPX/OPX+ configs do not need it.
 
 Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly — waits on OPX1000 configs only — compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse). Folder presets and script lists live in [scripts/validation_matrix.py](scripts/validation_matrix.py) (see `--list-folders`).
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
+
+## CS rack assignment
+
+Superconducting QCA configuration files target two Customer Success rack clusters. Set `qop_ip` and `cluster_name` in the relevant `configuration*.py` before connecting to hardware.
+
+| CS server | IP | Platform | Hardware | Used by |
+|-----------|-----|----------|----------|---------|
+| **CS_1** | `172.16.33.101` | OPX+ | `con1`, `con2`, Octave `oct1` | Default `configuration.py`; Octave-on-`con1` variants; all Use Case mixer configs |
+| **CS_3** | `172.16.33.115` | OPX1000 | `con1`; MW-FEM 1–2; LF-FEM 3/5/8; Octave | All OPX1000 FEM variants (`configuration_with_lf_fem*`, `configuration_with_mw_fem*`, `configuration_lf_fem*`, `configuration_mw_fem*`) |
+
+**Assignment rule:** if `controller_config` contains `"type": "opx1000"`, use **CS_3**; otherwise use **CS_1** (OPX+ with external mixers and/or Octave on `con1`).
+
+| Config filename pattern | CS server | LF FEM slot (CS_3 only) |
+|-------------------------|:---------:|-------------------------|
+| `configuration.py` | CS_1 | — |
+| `configuration_with_octave.py` | CS_1 | — |
+| Use Case `configuration.py` / `configuration_SSB.py` | CS_1 | — |
+| `configuration_with_lf_fem.py`, `configuration_lf_fem.py` | CS_3 | 5 |
+| `configuration_with_mw_fem.py`, `configuration_mw_fem.py` | CS_3 | — (MW-FEM 1) |
+| `configuration_with_lf_fem_and_mw_fem.py` | CS_3 | LF 5, MW 1 |
+| `configuration_with_lf_fem_and_octave.py`, `configuration_lf_fem_and_octave.py` | CS_3 | 3 |
 
 ## Runtime environments
 
