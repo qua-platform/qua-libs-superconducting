@@ -11,8 +11,9 @@ from calibration_utils.cz_phase_compensation_error_amp import (
     plot_raw_data_with_fit,
     process_raw_dataset,
 )
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
@@ -62,7 +63,6 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
     unit(coerce_to_integer=True)
 
     node.namespace["qubit_pairs"] = qubit_pairs = get_qubit_pairs(node)
-    num_qubit_pairs = len(qubit_pairs)
 
     n_avg = node.parameters.num_shots
     frames = np.linspace(-node.parameters.frame_range / 2, node.parameters.frame_range / 2, node.parameters.num_frames)
@@ -78,18 +78,12 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
         "frame": xr.DataArray(frames, attrs={"long_name": "virtual-Z frame", "units": "2π"}),
     }
 
+    n_ops = np.arange(1, num_operations + 1)
+
     with program() as node.namespace["qua_program"]:
-        frame = declare(fixed)
         n = declare(int)
-        n_op = declare(int)
         count = declare(int)
         n_st = declare_output_stream()
-        I_c, I_c_st, Q_c, Q_c_st, n, n_st = node.machine.declare_qua_variables()
-        I_t, I_t_st, Q_t, Q_t_st, _, _ = node.machine.declare_qua_variables()
-        state_c = [declare(int) for _ in range(num_qubit_pairs)]
-        state_t = [declare(int) for _ in range(num_qubit_pairs)]
-        state_c_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-        state_t_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
         extra_phase_c = declare(fixed)
         extra_phase_t = declare(fixed)
 
@@ -99,16 +93,17 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                 node.machine.initialize_qpu(target=qp.qubit_target)
             align()
 
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
-                with for_(n_op, 1, n_op <= num_operations, n_op + 1):
-                    with for_(*from_array(frame, frames)):
+                for n_op in QuaIterable("number_of_operations", n_ops):
+                    for frame in QuaIterable("frame", frames):
                         for ii, qp in multiplexed_qubit_pairs.items():
                             assign(extra_phase_c, qp.macros[cz_operation].phase_shift_control)
                             assign(extra_phase_t, qp.macros[cz_operation].phase_shift_target)
-                            for qubit, state_q, state_st in [
-                                (qp.qubit_control, state_c[ii], state_c_st[ii]),
-                                (qp.qubit_target, state_t[ii], state_t_st[ii]),
+                            for qubit, stream_suffix in [
+                                (qp.qubit_control, "control"),
+                                (qp.qubit_target, "target"),
                             ]:
                                 qp.qubit_control.reset(
                                     reset_type=node.parameters.reset_type, simulate=node.parameters.simulate
@@ -131,31 +126,23 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                                 qp.align()
 
                                 if node.parameters.use_state_discrimination:
-                                    qubit.readout_state(state_q)
-                                    save(state_q, state_st)
+                                    state = declare_with_stream(
+                                        int, f"state_{stream_suffix}{ii + 1}", average_axes=["shots"]
+                                    )
+                                    qubit.readout_state(state)
                                 else:
                                     if qubit is qp.qubit_control:
-                                        qp.qubit_control.resonator.measure("readout", qua_vars=(I_c[ii], Q_c[ii]))
-                                        save(I_c[ii], I_c_st[ii])
-                                        save(Q_c[ii], Q_c_st[ii])
+                                        I_c = declare_with_stream(fixed, f"I_control{ii + 1}", average_axes=["shots"])
+                                        Q_c = declare_with_stream(fixed, f"Q_control{ii + 1}", average_axes=["shots"])
+                                        qp.qubit_control.resonator.measure("readout", qua_vars=(I_c, Q_c))
                                     elif qubit is qp.qubit_target:
-                                        qp.qubit_target.resonator.measure("readout", qua_vars=(I_t[ii], Q_t[ii]))
-                                        save(I_t[ii], I_t_st[ii])
-                                        save(Q_t[ii], Q_t_st[ii])
+                                        I_t = declare_with_stream(fixed, f"I_target{ii + 1}", average_axes=["shots"])
+                                        Q_t = declare_with_stream(fixed, f"Q_target{ii + 1}", average_axes=["shots"])
+                                        qp.qubit_target.resonator.measure("readout", qua_vars=(I_t, Q_t))
                                 align()
 
-        align()
         with stream_processing():
             n_st.save("n")
-            for ii in range(num_qubit_pairs):
-                if node.parameters.use_state_discrimination:
-                    state_c_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"state_control{ii + 1}")
-                    state_t_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"state_target{ii + 1}")
-                else:
-                    I_c_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"I_control{ii + 1}")
-                    Q_c_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"Q_control{ii + 1}")
-                    I_t_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"I_target{ii + 1}")
-                    Q_t_st[ii].buffer(len(frames)).buffer(num_operations).average().save(f"Q_target{ii + 1}")
 
 
 # %% {Simulate}
@@ -174,8 +161,10 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """Execute the QUA program and fetch raw data."""
     qmm = node.machine.connect()
     config = node.machine.generate_config()
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(

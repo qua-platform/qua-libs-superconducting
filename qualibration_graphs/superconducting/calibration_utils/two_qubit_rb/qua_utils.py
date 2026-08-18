@@ -602,7 +602,7 @@ class QuaProgramHandler:  # pylint: disable=too-few-public-methods,too-many-inst
         with program() as rb:
 
             n = declare(int)
-            n_st = declare_stream()
+            n_st = declare_output_stream()
             # Replace the Python-unrolled per-sub-chunk loop with a QUA for_
             # loop so the (huge) play_gate switch_case body appears in the
             # compiled program ONCE per multiplex batch, not once per sub-chunk.
@@ -614,7 +614,7 @@ class QuaProgramHandler:  # pylint: disable=too-few-public-methods,too-many-inst
 
             sequence = declare_input_stream("client", stream_id="sequence", dtype=int, size=self.declared_size)
 
-            state_st = [declare_stream() for _ in range(self.num_pairs)]
+            state_st = [declare_output_stream() for _ in range(self.num_pairs)]
 
             for multiplexed_qubit_pairs in self.qubit_pairs.batch():
                 state_control = declare(int)
@@ -708,12 +708,12 @@ class QuaProgramHandler:  # pylint: disable=too-few-public-methods,too-many-inst
         with program() as rb:
 
             n = declare(int)
-            n_st = declare_stream()
+            n_st = declare_output_stream()
 
             job_sequence_qua = declare(int, value=job_sequence)
 
             # The relevant streams
-            state_st = [declare_stream() for _ in range(self.num_pairs)]
+            state_st = [declare_output_stream() for _ in range(self.num_pairs)]
 
             for multiplexed_qubit_pairs in self.qubit_pairs.batch():
                 n = declare(int)

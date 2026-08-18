@@ -34,6 +34,7 @@ from calibration_utils.two_qubit_rb import (
     summarize_transpiled_depth,
     try_load,
 )
+from calibration_utils.qua_config_split import split_qua_config
 
 # %% {Initialisation}
 description = """
@@ -187,9 +188,11 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Get the config from the machine
     config = node.machine.generate_config()
     # Execute the QUA program only if the quantum machine is available (this is to avoid interrupting running jobs).
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
+    controller_config, logical_config = split_qua_config(config)
+
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
         # The job is stored in the node namespace to be reused in the fetching_data run_action
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         # Feed the input-stream queue upfront: pair-major, then sub-chunk
         # (one host push per advance; shots replay each chunk on the OPX).
         if node.parameters.use_input_stream:
@@ -258,16 +261,19 @@ def plot_data(node: QualibrationNode[Parameters, Quam]):
 
 
 # %% {Update_state}
-with node.record_state_updates():
-    for qp in node.namespace["qubit_pairs"]:
-        if node.outcomes[qp.name] == "failed":
-            continue
-        node.machine.qubit_pairs[qp.name].macros[node.parameters.operation].fidelity["InterleavedRB"] = node.results[
-            "fit_results"
-        ][qp.name]["fidelity"]
-        node.machine.qubit_pairs[qp.name].macros[node.parameters.operation].fidelity["InterleavedRB_alpha"] = (
-            node.results["fit_results"][qp.name]["alpha"]
-        )
+@node.run_action(skip_if=node.parameters.simulate)
+def update_state(node: QualibrationNode[Parameters, Quam]):
+    """Update CZ-macro InterleavedRB fidelity entries for successful qubit pairs."""
+    with node.record_state_updates():
+        for qp in node.namespace["qubit_pairs"]:
+            if node.outcomes[qp.name] == "failed":
+                continue
+            node.machine.qubit_pairs[qp.name].macros[node.parameters.operation].fidelity["InterleavedRB"] = (
+                node.results["fit_results"][qp.name]["fidelity"]
+            )
+            node.machine.qubit_pairs[qp.name].macros[node.parameters.operation].fidelity["InterleavedRB_alpha"] = (
+                node.results["fit_results"][qp.name]["alpha"]
+            )
 
 
 # %% {Save_results}

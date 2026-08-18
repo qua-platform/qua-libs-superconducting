@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.python-version` pinning Python 3.14 for local development
 - Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py), [scripts/validation_matrix.py](scripts/validation_matrix.py))
 - Scripts catalog ([scripts/README.md](scripts/README.md)) and Cursor rule to keep it in sync ([.cursor/rules/scripts-readme.mdc](.cursor/rules/scripts-readme.mdc))
+- CZ JAZZ-N / JAZZ2-N, leakage amplification, phase-compensation error-amp, and two-qubit RB calibration nodes from qua-libs `main`, migrated to QUA 1.3.1/1.4.0
 
 ### Changed
 
@@ -43,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reran simulation baseline validation for Single-Fixed-Transmon, 3D-storage-cavity, and Single-Flux-Tunable-Transmon (15 scripts, all pass vs existing VALIDATION.md counts); completed first Two-Fixed-Coupled-Transmons validation run (5 scripts, all pass)
 - Completed Two-Flux-Tunable-Coupled-Transmons simulation validation (5 scripts, all pass vs qua-libs baseline); closes the 25-script Superconducting VALIDATION.md matrix
 - Documented readout `amplitude_scale=None` vs `amplitude_scale=1` parity pitfall in migration guide and Cursor rules
+- Merged qua-libs `main` superconducting calibrations; added `uncertainties>=3.2.2` and kept Qiskit `>=2.3,<3.0` for Python 3.14
 
 ### Fixed
 

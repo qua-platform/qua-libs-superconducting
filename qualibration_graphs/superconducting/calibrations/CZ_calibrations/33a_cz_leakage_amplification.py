@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from qm.qua import *
-from qualang_tools.loops import from_array
+from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
@@ -25,6 +25,7 @@ from calibration_utils.cz_leakage_amp import (
     plot_raw_data_with_fit,
     process_raw_dataset,
 )
+from calibration_utils.qua_config_split import split_qua_config
 
 # %% {Initialisation}
 description = """
@@ -112,16 +113,12 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
     with program() as node.namespace["qua_program"]:
-        amp = declare(fixed)  # amplitude scaling factor for the CZ gate coupler pulse
         n = declare(int)
-        n_op = declare(int)  # number of CZ operations
         count = declare(int)  # loop counter
         n_st = declare_output_stream()
         state_high_q = [declare(int) for _ in range(num_qubit_pairs)]
         state_low_q = [declare(int) for _ in range(num_qubit_pairs)]
-        state_high_q_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-        state_low_q_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
-        state_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
+        n_ops = np.arange(1, num_operations + 1)
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
             # Initialize the qubits
@@ -131,12 +128,13 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                 node.machine.initialize_qpu(target=high_q)
                 node.machine.initialize_qpu(target=low_q)
             # Loop for averaging
-            with for_(n, 0, n < n_avg, n + 1):
+            for shot in QuaIterableRange("shots", n_avg):
+                assign(n, shot)
                 save(n, n_st)
                 # Loop over the number of CZ operations for error amplification
-                with for_(n_op, 1, n_op <= num_operations, n_op + 1):
+                for n_op in QuaIterable("number_of_operations", n_ops):
                     # Loop over amplitude scale
-                    with for_(*from_array(amp, amplitudes)):
+                    for amp in QuaIterable("amp", amplitudes):
                         for ii, qp in multiplexed_qubit_pairs.items():
                             qubit_role = qubit_roles_map[qp.name]
                             high_q, low_q = qubit_role.high, qubit_role.low
@@ -161,22 +159,20 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):  # pylint: dis
                             high_q.readout_state_gef(state_high_q[ii])
                             low_q.readout_state_gef(state_low_q[ii])
 
+                            streamed_high = declare_with_stream(int, f"state_high_q{ii + 1}", average_axes=["shots"])
+                            streamed_low = declare_with_stream(int, f"state_low_q{ii + 1}", average_axes=["shots"])
+                            streamed_state = declare_with_stream(int, f"state{ii + 1}", average_axes=["shots"])
+                            assign(streamed_high, state_high_q[ii])
+                            assign(streamed_low, state_low_q[ii])
                             with if_((state_high_q[ii] == 1) & (state_low_q[ii] == 1)):
                                 wait(4)
-                                save(1, state_st[ii])
+                                assign(streamed_state, 1)
                             with else_():
                                 wait(4)
-                                save(0, state_st[ii])
-
-                            save(state_high_q[ii], state_high_q_st[ii])
-                            save(state_low_q[ii], state_low_q_st[ii])
+                                assign(streamed_state, 0)
                         align()
         with stream_processing():
             n_st.save("n")
-            for i in range(num_qubit_pairs):
-                state_high_q_st[i].buffer(len(amplitudes)).buffer(num_operations).average().save(f"state_high_q{i + 1}")
-                state_low_q_st[i].buffer(len(amplitudes)).buffer(num_operations).average().save(f"state_low_q{i + 1}")
-                state_st[i].buffer(len(amplitudes)).buffer(num_operations).average().save(f"state{i + 1}")
 
 
 # %% {Simulate}
@@ -202,9 +198,11 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Get the config from the machine
     config = node.machine.generate_config()
     # Execute the QUA program only if the quantum machine is available (this is to avoid interrupting running jobs).
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
+    controller_config, logical_config = split_qua_config(config)
+
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
         # The job is stored in the node namespace to be reused in the fetching_data run_action
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         # Display the progress bar
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
