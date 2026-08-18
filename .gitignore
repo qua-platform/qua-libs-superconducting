@@ -31,6 +31,8 @@ dist/
 
 # Simulation validation artifacts (scripts/validate_simulation_baseline.py)
 validation_results/
+# Two-qubit RB circuit cache (mirrors qua-libs)
+.rb_cache/
 
 # Installer-local config (telemetry.toml, etc.)
 **/.qua-libs/

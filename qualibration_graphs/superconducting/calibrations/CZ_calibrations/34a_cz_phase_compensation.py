@@ -48,7 +48,7 @@ State update:
 
 # Be sure to include [Parameters, Quam] so the node has proper type hinting
 node = QualibrationNode[Parameters, Quam](
-    name="33_cz_phase_compensation",  # Name should be unique
+    name="34a_cz_phase_compensation",  # Name should be unique
     description=description,  # Describe what the node is doing, which is also reflected in the QUAlibrate GUI
     parameters=Parameters(),  # Node parameters defined under quam_experiment/experiments/node_name
     machine=Quam.load(),
@@ -83,7 +83,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     # Register the sweep axes to be added to the dataset when fetching data
     node.namespace["sweep_axes"] = {
         "qubit_pair": xr.DataArray(qubit_pairs.get_names()),
-        "frame": xr.DataArray(frames, attrs={"long_name": "frame rotation", "units": "2π"}),
+        "frame": xr.DataArray(frames, attrs={"long_name": "virtual-Z frame", "units": "2π"}),
     }
 
     # The QUA program stored in the node namespace to be transfer to the simulation and execution run_actions
