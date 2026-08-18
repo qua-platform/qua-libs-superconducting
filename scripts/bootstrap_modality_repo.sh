@@ -23,6 +23,7 @@ cp "$SOURCE/scripts/migrate_measure_none.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/migrate_simulation_wait_until.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/generate_qua_migrated_files_inventory.py" "$TARGET/scripts/"
 cp "$SOURCE/scripts/bootstrap_modality_repo.sh" "$TARGET/scripts/"
+cp "$SOURCE/scripts/README.md" "$TARGET/scripts/"
 
 cp "$SOURCE/Quantum-Control-Applications/Superconducting/qua_config_split.py" \
    "$TARGET/Quantum-Control-Applications/$MODALITY/"
@@ -31,6 +32,7 @@ cp "$SOURCE/tests/test_qca_migration_gates.py" "$TARGET/tests/"
 cp "$SOURCE/.cursor/rules/qua-documentation.mdc" "$TARGET/.cursor/rules/"
 cp "$SOURCE/.cursor/rules/changelog.mdc" "$TARGET/.cursor/rules/"
 cp "$SOURCE/.cursor/rules/migration-scripts.mdc" "$TARGET/.cursor/rules/"
+cp "$SOURCE/.cursor/rules/scripts-readme.mdc" "$TARGET/.cursor/rules/"
 
 if [[ -f "$SOURCE/.github/workflows/ci.yml" ]]; then
   cp "$SOURCE/.github/workflows/ci.yml" "$TARGET/.github/workflows/"

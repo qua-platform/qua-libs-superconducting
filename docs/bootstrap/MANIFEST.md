@@ -26,6 +26,7 @@ Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adap
 | `scripts/migrate_simulation_wait_until.py` | Part 6 bulk migration — OPX1000 simulation async wait |
 | `scripts/generate_qua_migrated_files_inventory.py` | Optional inventory generator |
 | `scripts/bootstrap_modality_repo.sh` | This bootstrap script |
+| `scripts/README.md` | Catalog of scripts in this directory |
 
 **Optional (Superconducting reference repo only):** `scripts/validate_simulation_baseline.py`, `scripts/validation_matrix.py`, `scripts/simulate_waveform_runner.py` — automated waveform baseline comparison; requires sibling `../qua-libs`.
 | `Quantum-Control-Applications/Superconducting/qua_config_split.py` | → `{Modality}/qua_config_split.py` |
@@ -33,6 +34,7 @@ Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adap
 | `.cursor/rules/qua-documentation.mdc` | Cursor QUA context (edit modality) |
 | `.cursor/rules/changelog.mdc` | Changelog rule |
 | `.cursor/rules/migration-scripts.mdc` | Checklist when adding `scripts/migrate_*.py` |
+| `.cursor/rules/scripts-readme.mdc` | Keep `scripts/README.md` in sync when scripts change |
 | `.github/workflows/ci.yml` | Adapt: drop qualibration jobs if N/A |
 | `CONTRIBUTING.md` | Adapt intro + migration links |
 | `CHANGELOG.md` | Empty `[Unreleased]` skeleton or copy structure |

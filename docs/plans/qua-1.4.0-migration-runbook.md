@@ -149,6 +149,8 @@ Place [`qua_config_split.py`](../Quantum-Control-Applications/Superconducting/qu
 
 ### Scripts inventory
 
+Full catalog (purpose + typical commands): [`scripts/README.md`](../../scripts/README.md).
+
 | Script | Purpose |
 |--------|---------|
 | [`migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py) | Part 3 — `amp()` → `amplitude_scale` |

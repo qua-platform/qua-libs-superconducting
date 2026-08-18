@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config-split helpers: `qua_config_split.py` (QCA and qualibration)
 - `.python-version` pinning Python 3.14 for local development
 - Simulation baseline validation harness ([scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py), [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py), [scripts/validation_matrix.py](scripts/validation_matrix.py))
+- Scripts catalog ([scripts/README.md](scripts/README.md)) and Cursor rule to keep it in sync ([.cursor/rules/scripts-readme.mdc](.cursor/rules/scripts-readme.mdc))
 
 ### Changed
 
