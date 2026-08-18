@@ -7,13 +7,15 @@ alwaysApply: true
 
 This repo contains **QUA programs embedded in Python** for superconducting qubit control and calibration on Quantum Machines hardware (OPX).
 
+**Branch context (QL-983-qua2):** This branch migrates to **qm-qua 2.0 / QOP 4.x**. Public online docs may still describe QUA 1.x — prefer the vendored migration guide and local wheel bundle for breaking changes and config schema.
+
 ## Official documentation
 
-When writing, reviewing, or debugging QUA code, consult the official docs:
+When writing, reviewing, or debugging QUA code, consult:
 
 **https://docs.quantum-machines.co/latest/**
 
-Useful entry points:
+Useful entry points (general QUA concepts; config/API examples may still reflect QUA 1.x until QUA 2 docs ship publicly):
 - [QUA Overview](https://docs.quantum-machines.co/latest/introduction/qua_overview/) — language concepts
 - [QUA Language Features](https://docs.quantum-machines.co/latest/guides/qua_language_features/) — syntax and constructs
 - [QUA Best Practice Guide](https://docs.quantum-machines.co/latest/guides/qua_best_practice_guide/)
@@ -21,12 +23,21 @@ Useful entry points:
 - [QUA API](https://docs.quantum-machines.co/latest/api_references/qua_language_api/qua_api/) — `declare`, `play`, `measure`, `align`, streams, etc.
 - [Quantum Machine API](https://docs.quantum-machines.co/latest/api_references/opx1000/quantum_machine_api/) — compile, execute, simulate jobs
 
-Prefer these docs over general Python or generic quantum-computing assumptions when unsure about QUA syntax, timing, streams, or hardware configuration.
+**Primary references for QUA 2 on this branch:**
+- [docs/plans/qua-2.0-migration.md](../../docs/plans/qua-2.0-migration.md) — breaking changes with detection grep patterns and before/after recipes
+- [qua-emulator-0.2.13-delivery/README.md](../../qua-emulator-0.2.13-delivery/README.md) — local wheel bundle install notes
+
+Prefer the vendored migration guide over general Python or generic quantum-computing assumptions when unsure about QUA 2 config schema, `@shot`, timing, streams, or hardware configuration.
 
 ## Python vs QUA
 
 - **Python** (outside `with program()`): setup, parameters, plotting, data handling, `QuantumMachinesManager`, simulation config.
-- **QUA** (inside `with program()`): real-time pulse sequences — `declare`, `play`, `measure`, `wait`, `align`, `for_`, `if_`, `declare_output_stream`, `declare_with_stream`, iterables, etc.
+- **QUA** (inside `with program()`): real-time pulse sequences — `declare`, `play`, `measure`, `wait`, `align`, `for_`, `if_`, `@shot`, `declare_output_stream`, `declare_input_stream`, `send_to_stream`, `receive_from_stream`, `declare_with_stream`, iterables, etc.
+
+QUA 2 specifics:
+- **`@shot`** — factor one experimental run into a module-scope function with typed parameters and returns (`QuaVariable[...]` from `qm.qua.type_hints`).
+- **Config keys** — `single_input`, `mix_inputs`, `single_output`, `mix_outputs`, `imbalance_correction` (snake_case; no top-level `mixers`).
+- **`declare(..., timing=...)`** — optional `"prepared"` or `"live"` override; default `None` lets the compiler infer.
 
 Do not rewrite QUA constructs as plain Python loops or NumPy when they must run on the OPX in real time.
 
@@ -78,37 +89,52 @@ Useful entry points:
 - Match existing patterns in the nearest folder (standalone script vs qualibration node).
 - Format/lint: `uv run black .` and `uv run ruff check .` per [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## QUA 1.3.1 / 1.4.0 migration
+## QUA 2.0 migration
 
-When updating QUA programs, follow [docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md) (API reference) and [docs/plans/qua-1.4.0-migration-runbook.md](../../docs/plans/qua-1.4.0-migration-runbook.md) (step-by-step playbook for all QCA modalities).
+When updating QUA programs or configs for **qm-qua 2.0 / QOP 4**, follow
+[docs/plans/qua-2.0-migration.md](../../docs/plans/qua-2.0-migration.md).
 
-**Cross-modality / new repo:** Migration scripts accept `--modality` (e.g. `Quantum-Dots`, `AMO`, `Optically addressable spin qubits`) or `--qca-root`. Bootstrap a modality fork via [docs/bootstrap/MANIFEST.md](../../docs/bootstrap/MANIFEST.md) and `scripts/bootstrap_modality_repo.sh`.
+Apply migration-guide recipes **literally** when before-patterns match; do not invent variants.
 
-**Part 1 (1.3.1)** — prefer **iterables + auto-streaming** for sweep experiments:
-- [Iterables & Auto-Streaming (1.3.1)](https://docs.quantum-machines.co/1.3.1/docs/Guides/qua_iterables/)
-- [qm-qua 1.3.1 release notes](https://docs.quantum-machines.co/1.3.1/docs/Releases/qm_qua_releases/)
+### Breaking-change checklist
 
-Use `declare_output_stream()` instead of deprecated `declare_stream()`.
-Use native QUA 1.3.1 iterables and `declare_with_stream` directly in calibration nodes (see migration plan template).
-Frequency/detuning sweep arrays passed to `QuaIterable` and used with `update_frequency` must be **`.astype(int)`** (Hz integers); `coerce_to_integer=True` on `unit()` is not enough when `np.arange` stop/step promotes float dtype.
+| Area | QUA 1 | QUA 2 |
+|------|-------|-------|
+| Mixers | top-level `mixers`, `mixer`/`lo_frequency` on elements | `imbalance_correction` on `mix_inputs`; `job.set_element_correction()` |
+| Element I/O keys | `singleInput`, `mixInputs`, `outputs` | `single_input`, `mix_inputs`, `single_output` / `mix_outputs` |
+| Measure/demod | `element_output`, `out1`/`out2`, 5-arg `dual_demod` | ADC from element config; 3-arg `dual_demod`; `"I"`/`"Q"` |
+| Sliced demod params | `samples_per_chunk`, `chunks_per_window` | `samples_per_slice`, `slices_per_window` |
+| Program structure | single `with program():` body | factor experimental runs into `@shot` methods |
+| Runtime mixer API | `qm.set_mixer_correction()` | removed — use `job.set_element_correction()` or rebuild config |
 
-**Part 2 (1.4.0)** — controller / logical config split. When editing configuration files or QM open/execute call sites, follow the **Controller / logical config split** section in the guide.
+Additional 2.0 changes (see CHANGELOG `[2.0.0]`):
+- `digital_marker` → `digital_waveform`
+- `reset_phase()` removed → `reset_phase=True` on `play()` / `measure()`
+- `for_(lower, upper, step)` — all bounds must be QUA int/fixed; iteration via `with for_() as i`
+- `smearing` / `time_of_flight` moved from element to **port** config
 
-- [Configuration split overview](https://docs.quantum-machines.co/latest/docs/Introduction/config/) — controller vs logical keys
-- **Execute / compile:** `open_qm(controller_config)`; pass `logical_config` to `execute` / `compile`
-- **Simulate:** `qmm.simulate(merge_qua_config(...), ...)` on the manager — **never** `open_qm` before simulate ([OPX Simulator](https://docs.quantum-machines.co/latest/docs/Guides/simulator/))
-- `mixers` belongs to **controller** config (not logical)
+### Prior 1.3.1 work (already applied)
 
-**Part 3 (1.4.0)** — do **not** use `pulse * amp(scale)` in new QUA code. Pass `amplitude_scale=` to `play` and `measure` instead. See the **`amp()` deprecation** section in the guide. Inline `measure("readout", …)` replacing `multiplexed_readout` or `* amp(1)` **must** pass `amplitude_scale=1` (or keep the macro): omitting it (`None`) is not equivalent and breaks mixed readout simulation parity — see the **Readout parity** subsection in Part 3 of the migration guide.
+Stream and iterable migrations from **qm-qua 1.3.1** are largely done in this repo. See
+[docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md) for history.
+Use `declare_output_stream()` (not `declare_stream()`), iterables, and `declare_with_stream` for sweep experiments.
 
-**Part 4 (1.4.0)** — do **not** use `add_to_queue(..., overrides=...)` or `queue.add_compiled()`. Prefer `qm.execute(program, config=logical_config)`.
+## Local wheel bundle
 
-**Part 5 (1.4.0)** — do **not** pass literal `None` as the third argument to `measure()` to mean “no ADC streaming”; omit it. Keep real stream variables (e.g. `adc_st`) when streaming raw ADC. Bulk fix: [`scripts/migrate_measure_none.py`](../../scripts/migrate_measure_none.py); gate: `test_no_measure_none_adc_placeholder_in_qca`.
+QUA 2 and the QUA emulator are **not on public PyPI**. This repo installs them from wheels in [`qua-emulator-0.2.13-delivery/`](../../qua-emulator-0.2.13-delivery/):
 
-**Part 6 (1.4.0, OPX1000 only)** — after `qmm.simulate(...)`, call `job.wait_until("Done")` before `get_simulated_samples()` or `get_simulated_waveform_report()` **only when** the imported configuration uses OPX1000/FEM controllers (`"type": "opx1000"` or `"fems"`). Legacy OPX/OPX+ configs do not need it. Bulk fix: [`scripts/migrate_simulation_wait_until.py`](../../scripts/migrate_simulation_wait_until.py); gate: `test_simulation_wait_until_before_samples_in_opx1000_qca`.
+- `qm-qua==2.0.0.dev5` — `qm_qua-2.0.0.dev5-py3-none-any.whl`
+- `qua-emulator==0.2.13` — `qua_emulator-0.2.13-py3-none-any.whl`
 
-**Superconducting validation (this repo):** automated simulation baseline comparison via [`scripts/validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py) (`--folder`, `--list-folders`) — see [`VALIDATION.md`](../../VALIDATION.md).
+```toml
+# pyproject.toml (workspace root)
+dependencies = ["qm-qua==2.0.0.dev5", "qua-emulator==0.2.13", ...]
 
-- Baseline repo: [`../qua-libs`](../../qua-libs) on branch **`QL-1212-validation`** (not `main`).
-- **Network required:** validation contacts CS rack clusters at `172.16.33.101` (CS_1) / `172.16.33.115` (CS_3) via QMM — not localhost-only.
-- **Before running** the harness: ping both IPs (or confirm VPN/rack access); request **`full_network`** for shell commands that run `validate_simulation_baseline.py`.
+[tool.uv.sources]
+qm-qua = { path = "qua-emulator-0.2.13-delivery/qm_qua-2.0.0.dev5-py3-none-any.whl" }
+qua-emulator = { path = "qua-emulator-0.2.13-delivery/qua_emulator-0.2.13-py3-none-any.whl" }
+```
+
+The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is standalone — use path prefix `../../qua-emulator-0.2.13-delivery/` and run `uv sync` from that directory.
+
+Wheel metadata may declare Python `<3.14` (qm-qua) or `<3.12` (qua-emulator); see the delivery README for tested Python versions.
