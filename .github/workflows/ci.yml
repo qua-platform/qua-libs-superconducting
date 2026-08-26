@@ -96,3 +96,19 @@ jobs:
         env:
           QCA_MODALITY: Superconducting
         run: uv run pytest tests/test_qca_migration_gates.py -q
+
+  qua2-emulate-smoke:
+    name: QUA 2 emulate validation smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install workspace dependencies
+        run: uv sync --python 3.14
+      - name: Run emulate-based validation harness smoke test
+        run: uv run pytest tests/test_qua2_emulate_smoke.py -q

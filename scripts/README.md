@@ -6,11 +6,15 @@ Run Python tools from the **repo root** with `uv run python scripts/<name>.py` u
 
 Related docs: [migration runbook](../docs/plans/qua-1.4.0-migration-runbook.md), [migration guide](../docs/plans/qua-1.4.0-migration.md), [VALIDATION.md](../VALIDATION.md), [bootstrap manifest](../docs/bootstrap/MANIFEST.md).
 
-## Shared helper
+## Shared helpers
 
 ### [`migration_paths.py`](migration_paths.py)
 
 Shared `--modality` / `--qca-root` / `$QCA_MODALITY` resolution for bulk migration scripts. Not a standalone CLI.
+
+### [`qca_script_loader.py`](qca_script_loader.py)
+
+Shared QCA script prelude loader (`load_program_namespace`) used by both `simulate_waveform_runner.py` and `emulate_waveform_runner.py`. Not a standalone CLI.
 
 ## Migration (all modalities)
 
@@ -86,23 +90,32 @@ Copy the migration bootstrap kit into a new modality repo. File list: [MANIFEST.
 
 ## Simulation validation (this repo only)
 
-Automated waveform comparison against sibling [`../qua-libs`](https://github.com/qua-platform/qua-libs) on branch `QL-1212-validation`. Requires CS rack network access. Full usage: [VALIDATION.md](../VALIDATION.md). Modality forks can skip these unless they maintain their own `VALIDATION.md`.
+Automated waveform/schedule comparison against sibling [`../qua-libs`](https://github.com/qua-platform/qua-libs) on branch `QL-1212-validation`. The baseline side always requires CS rack network access; the migrated side does too by default (`qmm.simulate()`), but needs no network when run with `--migrated-backend emulate` (QUA 2 branch). Full usage: [VALIDATION.md](../VALIDATION.md). Modality forks can skip these unless they maintain their own `VALIDATION.md`.
 
 ### [`validate_simulation_baseline.py`](validate_simulation_baseline.py)
 
-Harness: simulate each script in this repo and the baseline, then compare canonical waveform-report lines.
+Harness: run each script in this repo and the baseline, then compare canonical lines. Baseline always uses `qmm.simulate()`; the migrated side defaults to `qmm.simulate()` too, or use `--migrated-backend emulate` (QUA 2 branch) to run this repo's side through the QUA emulator instead — see [VALIDATION.md § QUA 2 branch](../VALIDATION.md#qua-2-branch-emulator-based-validation-experimental) for current status (blocked pending per-script QUA 2 migration) and caveats.
 
 ```
 uv run python scripts/validate_simulation_baseline.py --list-folders
 uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --print-notes
+uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --migrated-backend emulate
 ```
 
 ### [`simulate_waveform_runner.py`](simulate_waveform_runner.py)
 
-Headless QCA simulate helper used by the harness. Emits waveform-report JSON (stdout or `--output`). Waits on OPX1000 configs only.
+Headless QCA simulate helper used by the harness (`qmm.simulate()`). Emits waveform-report JSON (stdout or `--output`). Waits on OPX1000 configs only.
 
 ```
 uv run python scripts/simulate_waveform_runner.py path/to/script.py --duration 10000
+```
+
+### [`emulate_waveform_runner.py`](emulate_waveform_runner.py)
+
+Headless QCA emulate helper used by the harness (`QuaEmulator().emulate()`, QUA 2 branch). Emits a pulse-schedule JSON (stdout or `--output`); no live QOP session needed. Scripts not yet migrated to QUA 2 report a `_blocked` payload (reason + detail) instead of crashing.
+
+```
+uv run python scripts/emulate_waveform_runner.py path/to/script.py --length-ns 40000
 ```
 
 ### [`validation_matrix.py`](validation_matrix.py)

@@ -119,6 +119,17 @@ Stream and iterable migrations from **qm-qua 1.3.1** are largely done in this re
 [docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md) for history.
 Use `declare_output_stream()` (not `declare_stream()`), iterables, and `declare_with_stream` for sweep experiments.
 
+### Emulator-based validation (QUA 2 branch)
+
+qm-qua 2.0 has no OPX simulator — only `qua_emulator.QuaEmulator.emulate()`. The validation harness supports it via `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](../../scripts/validate_simulation_baseline.py) (new [scripts/emulate_waveform_runner.py](../../scripts/emulate_waveform_runner.py)); baseline (`../qua-libs`) is unchanged. Comparison is pulse-schedule structure only (no ADC/measurement modeling). See [VALIDATION.md § QUA 2 branch](../../VALIDATION.md#qua-2-branch-emulator-based-validation-experimental) for full details.
+
+Confirmed blockers for running real (not-yet-migrated) QCA scripts through the emulator, reported as a distinct `BLOCKED` status rather than a crash:
+- Script imports QUA 1.4.0-only APIs (`qm.qua.extensions.QuaIterable`, ...) or uses old call signatures (4-arg `for_`) — not present/valid in qm-qua 2.0.
+- Config still uses QUA 1.4.0 keys (pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight`) — raises `qm.exceptions.ConfigValidationException`.
+- Real-time ops (`play`, `measure`, `wait`, `align`, ...) used outside a `@shot` — raises `InvalidStatementContextError`.
+
+Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](../../tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](../../tests/fixtures/qua2_emulate_smoke_program.py); CI job `qua2-emulate-smoke`.
+
 ## Local wheel bundle
 
 QUA 2 and the QUA emulator are **not on public PyPI**. This repo installs them from wheels in [`qua-emulator-0.2.13-delivery/`](../../qua-emulator-0.2.13-delivery/):

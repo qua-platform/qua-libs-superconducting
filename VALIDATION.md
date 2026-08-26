@@ -99,6 +99,43 @@ uv run python scripts/validate_simulation_baseline.py \
   --migrated-runner "uv run python"
 ```
 
+## QUA 2 branch: emulator-based validation (experimental)
+
+This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above (`requirements.txt`/`pyproject.toml` now pins `qm-qua==2.0.0.dev5` + `qua-emulator==0.2.13` from [`qua-emulator-0.2.13-delivery/`](qua-emulator-0.2.13-delivery/README.md)). qm-qua 2.0 has **no OPX simulator**; only the [QUA emulator](qua-emulator-0.2.13-delivery/getting-started.md) (`qua_emulator.QuaEmulator`) is available on this branch.
+
+The harness now supports an **asymmetric backend split**:
+
+| Side | Backend | Unchanged? |
+|------|---------|------------|
+| **Baseline** (`../qua-libs`) | `qmm.simulate()` (OPX simulator), via [`simulate_waveform_runner.py`](scripts/simulate_waveform_runner.py) | Yes — no change |
+| **Migrated** (this repo) | `QuaEmulator().emulate()`, via [`emulate_waveform_runner.py`](scripts/emulate_waveform_runner.py) | New — opt in with `--migrated-backend emulate` |
+
+```bash
+uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --migrated-backend emulate
+```
+
+### Current status: blocked, by design
+
+Running the emulate backend against **any** real QCA folder today reports every script as **`BLOCKED`**, not pass/fail — this is expected, not a regression. Confirmed blockers, in the order a script tends to hit them:
+
+1. **`needs-qua2-script-migration`** — the script's prelude fails to exec under qm-qua 2.0: QUA 1.4.0-only imports (`qm.qua.extensions.QuaIterable`, `declare_with_stream`, ...) don't exist, and old call signatures (4-arg `for_(var, start, cond, step)`) raise `TypeError`.
+2. **`needs-config-migration`** (`qm.exceptions.ConfigValidationException`, e.g. `ConfigSchemaError`) — the config still uses QUA 1.4.0 keys: pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight` (these move to port-level config in QUA 2).
+3. **`needs-shot-migration`** (`InvalidStatementContextError`) — once imports and config load, real-time ops (`play`, `measure`, `wait`, `align`, ...) still raise because they're not inside a `@shot`.
+
+None of today's `Quantum-Control-Applications/Superconducting/**` scripts have been migrated to QUA 2 program/config shape yet — that migration (tracked in [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md)) is a separate, larger effort. Running the harness with `--migrated-backend emulate` against a folder is a convenient way to track that migration's progress: scripts move from `BLOCKED` to `PASS`/`FAIL` as they're migrated.
+
+### What "pass" means once unblocked (schedule-structure comparison)
+
+The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the emulator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity per the emulator's own [getting-started notes](qua-emulator-0.2.13-delivery/getting-started.md):
+
+- No ADC/measurement modeling (baseline's `adc_acquisitions` has no counterpart).
+- Ideal timing, not FPGA-exact — computation-induced gaps and feedback latency are not modeled.
+- No inter-shot-gap modeling (gaps between shots depend on runtime conditions).
+
+### Offline smoke test
+
+[`tests/test_qua2_emulate_smoke.py`](tests/test_qua2_emulate_smoke.py) exercises `emulate_waveform_runner.py` and the harness's schedule canonicalizer against a synthetic QUA 2 fixture ([`tests/fixtures/qua2_emulate_smoke_program.py`](tests/fixtures/qua2_emulate_smoke_program.py)) — fully offline, independent of any real QCA script or the CS rack. CI job: `qua2-emulate-smoke`.
+
 ## Results
 
 ### Single-Fixed-Transmon

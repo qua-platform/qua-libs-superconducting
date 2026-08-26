@@ -1,8 +1,9 @@
-"""Compile and import checks for QUA 1.3.1 calibration programs."""
+"""Compile and import checks for calibration programs."""
 
 from __future__ import annotations
 
 import ast
+import importlib.metadata
 import importlib.util
 from pathlib import Path
 
@@ -11,6 +12,10 @@ import pytest
 qm = pytest.importorskip("qm")
 
 CALIBRATIONS_DIR = Path(__file__).resolve().parent.parent / "calibrations"
+
+
+def qm_qua_major() -> int:
+    return int(importlib.metadata.version("qm-qua").split(".")[0])
 
 
 def discover_calibration_files() -> list[Path]:
@@ -28,13 +33,28 @@ def discover_calibration_files() -> list[Path]:
 
 
 def test_qm_extensions_importable() -> None:
-    from qm.qua import declare_output_stream, declare_with_stream
-    from qm.qua.extensions import QuaIterable, QuaIterableRange
+    """The QUA API surface used by calibration nodes, per installed qm-qua major version.
 
-    assert QuaIterable is not None
-    assert QuaIterableRange is not None
-    assert declare_with_stream is not None
+    qm-qua 2.0 removed the 1.3.1/1.4.0 sweep helpers (`qm.qua.extensions.QuaIterable`,
+    `declare_with_stream`) and introduced `@shot`; `declare_output_stream` spans both.
+    """
+    from qm.qua import declare_output_stream
+
     assert declare_output_stream is not None
+
+    if qm_qua_major() >= 2:
+        from qm.qua import shot
+
+        assert shot is not None
+        with pytest.raises(ModuleNotFoundError):
+            import qm.qua.extensions  # noqa: F401, PLC0415
+    else:
+        from qm.qua import declare_with_stream
+        from qm.qua.extensions import QuaIterable, QuaIterableRange
+
+        assert QuaIterable is not None
+        assert QuaIterableRange is not None
+        assert declare_with_stream is not None
 
 
 @pytest.mark.parametrize(

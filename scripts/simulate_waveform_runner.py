@@ -4,60 +4,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any
 
-
-def _json_default(obj: Any) -> Any:
-    if hasattr(obj, "item"):
-        return obj.item()
-    if hasattr(obj, "tolist"):
-        return obj.tolist()
-    return str(obj)
-
-
-def _find_program_name(source: str) -> str | None:
-    match = re.search(r"with\s+program\s*\(\s*\)\s+as\s+(\w+)\s*:", source)
-    return match.group(1) if match else None
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qca_script_loader import json_default as _json_default  # noqa: E402
+from qca_script_loader import load_program_namespace as _load_program_namespace  # noqa: E402
 
 
 def load_program_namespace(script_path: Path) -> tuple[Any, Any, Any]:
-    import matplotlib
-
-    matplotlib.use("Agg")
-
-    source = script_path.read_text(encoding="utf-8")
-    marker = "qmm = QuantumMachinesManager"
-    if marker not in source:
-        raise RuntimeError(f"{script_path}: could not find '{marker}'")
-    prelude = source.split(marker, 1)[0]
-
-    ns: dict[str, Any] = {
-        "__name__": "__simulate_runner__",
-        "__file__": str(script_path.resolve()),
-    }
-    exec(compile(prelude, str(script_path), "exec"), ns)  # noqa: S102
-
-    prog_name = _find_program_name(source)
-    program = ns.get(prog_name) if prog_name else None
-    if program is None:
-        for key, value in ns.items():
-            if key.startswith("_"):
-                continue
-            if hasattr(value, "is_reversed"):
-                program = value
-                break
-    if program is None:
-        raise RuntimeError(f"{script_path}: QUA program not found (expected '{prog_name}')")
-
-    if "config" not in ns:
-        raise RuntimeError(f"{script_path}: configuration did not define 'config'")
+    config, program, ns = _load_program_namespace(script_path)
     if "qop_ip" not in ns or "cluster_name" not in ns:
         raise RuntimeError(f"{script_path}: configuration missing qop_ip / cluster_name")
-
-    return ns["config"], program, ns
+    return config, program, ns
 
 
 def _config_uses_opx1000(config: dict[str, Any]) -> bool:
