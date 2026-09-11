@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `09_swapping.py` missing `save(state, state_st)` after readout (empty stream compile error under iterables + manual `state_st`)
 - Cast frequency/detuning sweep arrays to `.astype(int)` before `QuaIterable` when used with `update_frequency` (~60 QCA scripts and qualibration nodes); fixes simulation compile error `Expected type int but got fixed`
 - `test_calibration_module_imports` no longer fails in CI: [`conftest.py`](qualibration_graphs/superconducting/tests/conftest.py) stubs QualibrationNode run-actions and hardware I/O during module import checks; redirects `Quam.load()` to the calibration package dir so repo-root pytest runs do not pick up incompatible QUAM state files
+- All-XY calibration node (`20_all_xy.py`) now uses 1.3.1 iterables/`declare_with_stream`, controller/logical config split, and `declare_output_stream()` instead of `for_`/`from_array`, merged `qm_session` config, and deprecated `declare_stream()`
 
 ### Deprecated
 
