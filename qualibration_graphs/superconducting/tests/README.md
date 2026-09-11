@@ -1,6 +1,6 @@
 # Tests — superconducting-calibrations
 
-Static gate for the [QUA 1.3.1 / 1.4.0 migration](../../../docs/plans/qua-1.4.0-migration.md) of
+Static gate for the [QUA 1.3.1 / 1.4.0 migration](../../../../qua-libs-core/qua141_migration/docs/qua-1.4.0-migration.md) of
 **calibration nodes** under `calibrations/`.
 
 Despite the filename, `test_qua_compile.py` does **not** call the QM compiler (`qm.compile()`).

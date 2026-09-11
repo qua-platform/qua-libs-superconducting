@@ -121,5 +121,5 @@ def resolve_paths(
         scripts=folder.scripts,
         migrated_root=qca_path(root, folder.qca_subpath),
         baseline_root=qca_path(baseline, folder.qca_subpath),
-        results_dir=root / "validation_results" / slug,
+        results_dir=root / "qua141_migration" / "validation_results" / slug,
     )

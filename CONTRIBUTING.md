@@ -25,10 +25,10 @@ Notable changes belong in [CHANGELOG.md](CHANGELOG.md) under `## [Unreleased]`, 
 
 This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
 (uv will fetch a suitable interpreter). **CI uses Python 3.14.** QUA code targets
-**qm-qua 1.4.0**; see [docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md)
-for iterables, auto-streaming, config split, and other migration conventions, and
-[docs/plans/qua-1.4.0-migration-runbook.md](docs/plans/qua-1.4.0-migration-runbook.md)
-for the step-by-step playbook (all QCA modalities, new-repo bootstrap).
+**qm-qua 1.4.0**; see the shared kit in sibling `qua-libs-core`
+([guide](../qua-libs-core/qua141_migration/docs/qua-1.4.0-migration.md),
+[runbook](../qua-libs-core/qua141_migration/docs/qua-1.4.0-migration-runbook.md))
+and this repo’s [`qua141_migration/`](qua141_migration/).
 
 Create a local environment — installs the runtime dependencies and dev tools into `.venv`:
 

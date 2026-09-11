@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Consume the shared QUA 1.4.0 kit from `qua-libs-core` branch `QL-1212-qua141-py314` (`qua141_migration/`); Superconducting-only matrix, VALIDATION.md, and inventories live in this repo’s `qua141_migration/`
+- Pin `qua-libs-core` to git branch `QL-1212-qua141-py314`; `qua_config_split.py` re-exports `qua_libs_core.qua_config`
+- Agent guidance is root [`AGENTS.md`](AGENTS.md) (QUA conventions + changelog); migration notes in [`qua141_migration/AGENTS.md`](qua141_migration/AGENTS.md)
+
 ### Added
 
 - QUA 1.3.1 / 1.4.0 migration runbook ([docs/plans/qua-1.4.0-migration-runbook.md](docs/plans/qua-1.4.0-migration-runbook.md)) — step-by-step playbook for all QCA modalities, repo bootstrap, and pre-AI checklist

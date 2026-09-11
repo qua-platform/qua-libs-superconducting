@@ -29,8 +29,9 @@ dist/
 **/calibration_data
 **/quam_config/quam_state
 
-# Simulation validation artifacts (scripts/validate_simulation_baseline.py)
+# Simulation validation artifacts (core harness → qua141_migration/validation_results/)
 validation_results/
+qua141_migration/validation_results/
 # Two-qubit RB circuit cache (mirrors qua-libs)
 .rb_cache/
 

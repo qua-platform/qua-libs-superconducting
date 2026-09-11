@@ -84,6 +84,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout qua-libs-core kit
+        uses: actions/checkout@v4
+        with:
+          repository: JacobFastQM/qua-libs-core
+          ref: QL-1212-qua141-py314
+          path: .qua-libs-core
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Set up Python
@@ -95,4 +101,5 @@ jobs:
       - name: Run portable QCA migration gates
         env:
           QCA_MODALITY: Superconducting
-        run: uv run pytest tests/test_qca_migration_gates.py -q
+          QCA_REPO: ${{ github.workspace }}
+        run: uv run pytest .qua-libs-core/qua141_migration/tests/test_qca_migration_gates.py -q

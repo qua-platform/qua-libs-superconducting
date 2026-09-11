@@ -407,19 +407,11 @@ Inventory of Python files touched during the QUA 1.3.1 and 1.4.0 migrations (ite
 
 - [`test_qua_compile.py`](../../qualibration_graphs/superconducting/tests/test_qua_compile.py)
 
-## scripts (10)
+## scripts (moved to qua-libs-core)
 
-- [`generate_qua_migrated_files_inventory.py`](../../scripts/generate_qua_migrated_files_inventory.py)
-- [`migrate_amp_to_amplitude_scale.py`](../../scripts/migrate_amp_to_amplitude_scale.py)
-- [`migrate_config_split.py`](../../scripts/migrate_config_split.py)
-- [`migrate_measure_none.py`](../../scripts/migrate_measure_none.py)
-- [`migrate_qca_qua_131.py`](../../scripts/migrate_qca_qua_131.py)
-- [`migrate_simulation_wait_until.py`](../../scripts/migrate_simulation_wait_until.py)
-- [`migration_paths.py`](../../scripts/migration_paths.py)
-- [`simulate_waveform_runner.py`](../../scripts/simulate_waveform_runner.py)
-- [`validate_simulation_baseline.py`](../../scripts/validate_simulation_baseline.py)
-- [`validation_matrix.py`](../../scripts/validation_matrix.py)
+Bulk migrators and the waveform harness now live in sibling `qua-libs-core/qua141_migration/`. This repo keeps [`validation_matrix.py`](validation_matrix.py) only.
 
-## tests (1)
 
-- [`test_qca_migration_gates.py`](../../tests/test_qca_migration_gates.py)
+## tests (moved to qua-libs-core)
+
+Portable grep gates: `qua-libs-core/qua141_migration/tests/test_qca_migration_gates.py`.

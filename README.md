@@ -30,9 +30,9 @@ It includes:
 
 Superconducting examples here are the **reference implementation** of the qm-qua 1.4.0 migration. The same patterns apply to other [qua-libs](https://github.com/qua-platform/qua-libs) modalities (Quantum-Dots, AMO, optically addressable spin qubits).
 
-- [Migration guide](./docs/plans/qua-1.4.0-migration.md) — API reference and code templates
-- [Migration runbook](./docs/plans/qua-1.4.0-migration-runbook.md) — audit, scripts, validation, new-repo bootstrap
-- [Bootstrap manifest](./docs/bootstrap/MANIFEST.md) — copy checklist for modality forks (e.g. `qua-libs-amo`)
+- Shared kit: sibling `qua-libs-core` [`qua141_migration/`](../qua-libs-core/qua141_migration/) (guide, runbook, migrators)
+- This repo: [`qua141_migration/`](./qua141_migration/) — Superconducting validation matrix and results
+- [Bootstrap](./docs/bootstrap/MANIFEST.md) — seed other modality forks from core (do not copy migrate scripts)
 
 ## Support and Contribution
 This is a beta version of the repo, and thus, if you see quirks and inaccuracies please tell us!

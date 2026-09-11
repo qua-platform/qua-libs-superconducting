@@ -16,7 +16,7 @@ requires-python = ">=3.10,<3.15"
 dependencies = [
     "qm-qua==1.4.0",
     "qualang-tools>=0.19.0",
-    "qua-libs-core@git+https://github.com/JacobFastQM/qua-libs-core.git",
+    "qua-libs-core@git+https://github.com/JacobFastQM/qua-libs-core.git@QL-1212-qua141-py314",
     "numpy>=1.18.5",
     "scipy>=1.7.0",
     "matplotlib>=3.2.2",
@@ -30,7 +30,7 @@ package = false
 
 [tool.uv.sources]
 superconducting-calibrations = { workspace = true }
-qua-libs-core = { git = "https://github.com/JacobFastQM/qua-libs-core.git" }
+qua-libs-core = { git = "https://github.com/JacobFastQM/qua-libs-core.git", branch = "QL-1212-qua141-py314" }
 
 [tool.uv.workspace]
 members = ["qualibration_graphs/superconducting"]

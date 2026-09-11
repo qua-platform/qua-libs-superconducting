@@ -33,13 +33,18 @@ Scripts are chosen to maximize **distinct QUA program structure** across the 25 
 4. On frequency-sweep compile errors (`Expected type int but got fixed`), add `.astype(int)` to sweep arrays before passing them to `QuaIterable`.
 5. Simulations use the CS rack cluster configured in each folder’s `configuration.py` — see **CS rack assignment** below. For **OPX1000/FEM** configs only, call `job.wait_until("Done")` after `qmm.simulate(...)` before pulling samples or the waveform report; legacy OPX/OPX+ configs do not need it.
 
-Automated baseline comparison: [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (uses [scripts/simulate_waveform_runner.py](scripts/simulate_waveform_runner.py) headlessly — waits on OPX1000 configs only — compares canonical lines from `waveform_report.to_dict()` with timestamps normalized to the first pulse). Folder presets and script lists live in [scripts/validation_matrix.py](scripts/validation_matrix.py) (see `--list-folders`).
+Automated baseline comparison: sibling [`../qua-libs-core/qua141_migration/validate_simulation_baseline.py`](../qua-libs-core/qua141_migration/validate_simulation_baseline.py) (uses [`simulate_waveform_runner.py`](../qua-libs-core/qua141_migration/simulate_waveform_runner.py) in that same directory). Folder presets live in [validation_matrix.py](validation_matrix.py).
+
+```
+uv run python ../qua-libs-core/qua141_migration/validate_simulation_baseline.py --repo . --list-folders
+uv run python ../qua-libs-core/qua141_migration/validate_simulation_baseline.py --repo . --folder Single-Fixed-Transmon --print-notes
+```
 
 The **Iterables**, **Streaming API**, **Config split**, and **`amplitude_scale`** columns below are filled by static code review. **Status** and **Notes** are updated only after simulation validation.
 
 ## Network prerequisites
 
-Simulation validation is **not offline**. [`simulate_waveform_runner.py`](scripts/simulate_waveform_runner.py) opens `QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name)` and calls `qmm.simulate(...)`; **both** the migrated and baseline sides need a live QOP session to the cluster configured in each script’s `configuration*.py`.
+Simulation validation is **not offline**. The core [`simulate_waveform_runner.py`](../qua-libs-core/qua141_migration/simulate_waveform_runner.py) opens `QuantumMachinesManager(host=qop_ip, cluster_name=cluster_name)` and calls `qmm.simulate(...)`; **both** the migrated and baseline sides need a live QOP session to the cluster configured in each script’s `configuration*.py`.
 
 | Cluster | IP | When needed |
 |---------|-----|-------------|
