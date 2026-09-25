@@ -2,6 +2,11 @@ from qm import SimulationConfig
 from qm.qua import *
 from qm import LoopbackInterface
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+)
 from frequency_tracking_class import qubit_frequency_tracking, qmm
 from configuration import config, ge_IF, qubit_freq, disc_file_jpa
 import numpy as np
@@ -10,11 +15,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+telemetry = start_qca_telemetry(__file__)
+
 # initialize object
 freq_track_obj = qubit_frequency_tracking("qubit", "rr", ge_IF)
 
 # time domain ramsey
-qm = qmm.open_qm(config)
+qm = trace_open_qm(qmm.open_qm)(config)
 print(freq_track_obj.fres)
 freq_track_obj.f_ref = int(0.06e6)
 reps = 20
@@ -29,7 +36,7 @@ for arg in ["Pe_0", "Pe_corrected"]:
                 FUNCTIONS.average()
             ).save(arg)
 
-    job = qm.execute(prog)
+    job = trace_execute(qm.execute)(prog)
     job.result_handles.wait_for_all_values()
     plt.figure(arg)
     freq_track_obj.time_domain_ramesy_full_sweep_analysis(job.result_handles, arg)
@@ -51,8 +58,8 @@ with program() as prog:
             "Pe_fd"
         )
 
-qm = qmm.open_qm(config)
-job = qm.execute(prog)
+qm = trace_open_qm(qmm.open_qm)(config)
+job = trace_execute(qm.execute)(prog)
 job.result_handles.wait_for_all_values()
 plt.figure("Pe_fd")
 freq_track_obj.freq_domain_ramsey_full_sweep_analysis(job.result_handles, "Pe_fd")
@@ -75,7 +82,7 @@ freq_track_obj.freq_domain_ramsey_full_sweep_analysis(job.result_handles, "Pe_fd
 #         freq_track_obj.state_estimation_st[0].buffer(reps, len(freq_track_obj.tau_vec)).map(FUNCTIONS.average()).save_all('td')
 #         freq_track_obj.corr_st.save_all('2point')
 #
-# job = qm.execute(prog)
+# job = trace_execute(qm.execute)(prog)
 # job.result_handles.wait_for_all_values()
 # Pe = job.result_handles.get('td').fetch_all()['value']
 # td_shifts = []; two_point_sifts = []
@@ -111,7 +118,7 @@ with program() as prog:
             "Pe_td_corr"
         )
 
-job = qm.execute(prog)
+job = trace_execute(qm.execute)(prog)
 td_ref_handle = job.result_handles.get("Pe_td_ref")
 td_corr_handle = job.result_handles.get("Pe_td_corr")
 
@@ -144,3 +151,5 @@ while cond:
     ax2.set_xlabel("tau [ns]")
     ax2.set_ylabel("time [hours]")
     plt.pause(10)
+
+telemetry.end()

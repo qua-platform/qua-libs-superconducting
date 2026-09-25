@@ -11,6 +11,7 @@ from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.time_of_flight import (
     Parameters,
@@ -54,6 +55,8 @@ State update:
 node = QualibrationNode[Parameters, Quam](
     name="01a_time_of_flight", description=description, parameters=Parameters(), machine=Quam.load()
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

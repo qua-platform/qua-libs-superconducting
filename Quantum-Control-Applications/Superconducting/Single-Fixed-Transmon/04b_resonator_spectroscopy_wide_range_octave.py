@@ -20,6 +20,12 @@ Before proceeding to the next node:
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+    trace_qmm,
+)
 from configuration_with_octave import *
 from qualang_tools.results import progress_counter, wait_until_job_is_paused
 from qualang_tools.plot import interrupt_on_close
@@ -56,6 +62,8 @@ save_data_dict = {
     "frequencies": frequency,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -102,14 +110,14 @@ with program() as resonator_spec:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 
 ###############
 # Run Program #
 ###############
 # Open the quantum machine
-qm = qmm.open_qm(config)
+qm = trace_open_qm(qmm.open_qm)(config)
 
 # Calibrate the element for each LO frequency of the sweep and the central intermediate frequency
 calibrate = True
@@ -119,7 +127,7 @@ if calibrate:
         qm.calibrate_element("resonator", {lo: (IFs[len(IFs) // 2],)})
 
 # Send the QUA program to the OPX, which compiles and executes it. It will stop at the 'pause' statement.
-job = qm.execute(resonator_spec)
+job = trace_execute(qm.execute)(resonator_spec)
 # Creates results handles to fetch the data
 res_handles = job.result_handles
 # Initialize empty vectors to store the global 'I' & 'Q' results
@@ -193,3 +201,5 @@ save_data_dict.update({"Q_data": Q})
 save_data_dict.update({"fig_live": fig})
 data_handler.additional_files = {script_name: script_name, **default_additional_files}
 data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

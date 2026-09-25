@@ -32,6 +32,15 @@ from scipy.linalg import sqrtm
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
@@ -248,7 +257,9 @@ with program() as two_qubit_state_tomography:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -258,16 +269,16 @@ simulate = False
 if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
-    job = qmm.simulate(config, two_qubit_state_tomography, simulation_config)
-    job.get_simulated_samples().con1.plot()
+    job = trace_simulate(qmm.simulate)(config, two_qubit_state_tomography, simulation_config)
+    trace_get_simulated_samples(job.get_simulated_samples)().con1.plot()
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = trace_open_qm(qmm.open_qm)(config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(two_qubit_state_tomography)
+    job = trace_execute(qm.execute)(two_qubit_state_tomography)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["probs", "iteration"], mode="live")
+    results = trace_fetching(fetching_tool)(job, data_list=["probs", "iteration"], mode="live")
 
     while results.is_processing():
 
@@ -347,3 +358,5 @@ else:
     state_fidelity = (np.abs(sqrtm(sqrt_ideal_state @ rho @ sqrt_ideal_state).trace())) ** 2
 
     print(f"The state fidelity is: {np.round(state_fidelity, decimals=4)}")
+
+telemetry.end()

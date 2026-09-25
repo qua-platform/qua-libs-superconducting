@@ -1,6 +1,7 @@
 import numpy as np
 from pandas import DataFrame
 from qm.qua import *
+from qua_libs_core.telemetry import trace_execute, trace_open_qm
 import os
 import matplotlib.pyplot as plt
 from sklearn import mixture
@@ -105,8 +106,8 @@ class StateDiscriminator:
         return np.array(weights)
 
     def _execute_and_fetch(self, program, **execute_args):
-        qm = self.qmm.open_qm(self.config)
-        job = qm.execute(program, duration_limit=0, data_limit=0, **execute_args)
+        qm = trace_open_qm(self.qmm.open_qm)(self.config)
+        job = trace_execute(qm.execute)(program, duration_limit=0, data_limit=0, **execute_args)
         res_handles = job.result_handles
         res_handles.wait_for_all_values()
         I_res = res_handles.get("I").fetch_all()["value"]

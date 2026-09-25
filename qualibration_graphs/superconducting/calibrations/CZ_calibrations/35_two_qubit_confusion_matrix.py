@@ -9,6 +9,7 @@ from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from qualibration_libs.data import XarrayDataFetcher
 from qualibration_libs.parameters import get_qubit_pairs
 from qualibration_libs.runtime import simulate_and_plot
@@ -47,6 +48,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 @node.run_action(skip_if=node.modes.external)

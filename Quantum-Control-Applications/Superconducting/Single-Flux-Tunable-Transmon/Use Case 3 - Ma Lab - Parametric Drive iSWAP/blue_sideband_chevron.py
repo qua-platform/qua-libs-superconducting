@@ -1,6 +1,15 @@
 from qm import SimulationConfig
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from configuration import *
 from qualang_tools.loops import from_array
 from qualang_tools.results import fetching_tool, progress_counter
@@ -80,7 +89,9 @@ with program() as blue_sideband:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(qop_ip, cluster_name=cluster_name)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(qop_ip, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -91,16 +102,16 @@ simulate = True
 if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=100_000)  # In clock cycles = 4ns
-    job = qmm.simulate(config, blue_sideband, simulation_config)  # do simulation with qmm
-    job.get_simulated_samples().con1.plot()  # visualize played pulses
+    job = trace_simulate(qmm.simulate)(config, blue_sideband, simulation_config)  # do simulation with qmm
+    trace_get_simulated_samples(job.get_simulated_samples)().con1.plot()  # visualize played pulses
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = trace_open_qm(qmm.open_qm)(config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(blue_sideband)
+    job = trace_execute(qm.execute)(blue_sideband)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
+    results = trace_fetching(fetching_tool)(job, data_list=["I", "Q", "iteration"], mode="live")
     # Live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
@@ -116,3 +127,5 @@ else:
         plt.xlabel("Modulation frequency [Hz]")
         plt.ylabel("Variable pulse length [ns]")
         plt.pause(0.1)
+
+telemetry.end()

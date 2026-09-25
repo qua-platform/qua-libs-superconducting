@@ -13,6 +13,12 @@ Before proceeding to the next node, take the following steps:
 """
 
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+    trace_qmm,
+)
 from qm.qua import *
 from configuration import *
 
@@ -33,9 +39,11 @@ with program() as manual_mixer_calib:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(config)
-job = qm.execute(manual_mixer_calib)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qm = trace_open_qm(qmm.open_qm)(config)
+job = trace_execute(qm.execute)(manual_mixer_calib)
 
 # When done, the halt command can be called and the offsets can be written directly into the config file.
 
@@ -111,3 +119,5 @@ job = qm.execute(manual_mixer_calib)
 # plt.suptitle(f"Image cancellation for {element}")
 #
 # print(f"For {element}, gain is {centers[0]} and phase is {centers[1]}")
+
+telemetry.end()

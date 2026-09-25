@@ -14,6 +14,7 @@ from qm.qua import *
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from qualibration_libs.data import XarrayDataFetcher
 from qualibration_libs.parameters import get_qubit_pairs
 from qualibration_libs.runtime import simulate_and_plot
@@ -67,6 +68,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),  # Node parameters defined under calibration_utils/bell_state_tomography/parameters.py
     machine=Quam.load(),  # Instantiate the QUAM class from the state file
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

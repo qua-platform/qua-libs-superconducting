@@ -16,6 +16,14 @@ The data undergoes post-processing to calibrate three distinct parameters:
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig
 from configuration import *
 import matplotlib.pyplot as plt
@@ -54,7 +62,9 @@ with program() as raw_trace_prog:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 #######################
 # Simulate or execute #
@@ -64,9 +74,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, raw_trace_prog, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, raw_trace_prog, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -78,9 +88,9 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = trace_open_qm(qmm.open_qm)(config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(raw_trace_prog)
+    job = trace_execute(qm.execute)(raw_trace_prog)
     # Creates a result handle to fetch data from the OPX
     res_handles = job.result_handles
     # Waits (blocks the Python console) until all results have been acquired
@@ -121,3 +131,5 @@ else:
 
     # Update the config
     print(f"Time Of Flight to add in the config: {delay} ns")
+
+telemetry.end()

@@ -1,6 +1,13 @@
 from qm.qua import *
 from configuration import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_open_qm,
+    trace_qmm,
+)
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
@@ -127,13 +134,15 @@ with program() as cryoscope:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager()
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)()
 # Open quantum machine
-qm = qmm.open_qm(config)
+qm = trace_open_qm(qmm.open_qm)(config)
 # Execute QUA program
-job = qm.execute(cryoscope)
+job = trace_execute(qm.execute)(cryoscope)
 # Get results from QUA program
-results = fetching_tool(job, data_list=["state", "iteration"], mode="live")
+results = trace_fetching(fetching_tool)(job, data_list=["state", "iteration"], mode="live")
 # Live plotting
 fig = plt.figure()
 interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
@@ -216,3 +225,5 @@ plt.text(40, 0.93, f"IIR = {iir}\nFIR = {fir}", bbox=dict(boxstyle="round", face
 plt.xlabel("Flux pulse duration [ns]")
 plt.ylabel("Step response")
 plt.legend(loc="upper right")
+
+telemetry.end()

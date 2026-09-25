@@ -3,6 +3,7 @@ from dataclasses import asdict
 import matplotlib.pyplot as plt
 from qualang_tools.multi_user import qm_session
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from qualibration_libs.parameters import get_qubits
 from calibration_utils.mixer_calibration import (
@@ -20,6 +21,8 @@ description = """
 node = QualibrationNode[Parameters, Quam](
     name="01a_mixer_calibration", description=description, parameters=Parameters(), machine=Quam.load()
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

@@ -1,6 +1,13 @@
 from qm.qua import *
 from configuration import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_open_qm,
+    trace_qmm,
+)
 import matplotlib.pyplot as plt
 import numpy as np
 from qualang_tools.loops import from_array
@@ -74,14 +81,16 @@ with program() as drag:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host="192.168.88.10", port=80)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host="192.168.88.10", port=80)
 # Open quantum machine
-qm = qmm.open_qm(config, close_other_machines=False)
+qm = trace_open_qm(qmm.open_qm)(config, close_other_machines=False)
 # Execute QUA program
-job = qm.execute(drag)
+job = trace_execute(qm.execute)(drag)
 
 # Get results from QUA program
-results = fetching_tool(job, data_list=["state", "iteration"], mode="live")
+results = trace_fetching(fetching_tool)(job, data_list=["state", "iteration"], mode="live")
 # Live plotting
 fig = plt.figure()
 interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
@@ -99,3 +108,5 @@ while results.is_processing():
 
 # Close quantum machine
 qm.close()
+
+telemetry.end()

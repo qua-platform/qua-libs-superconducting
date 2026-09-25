@@ -30,6 +30,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from qm import QuantumMachinesManager, SimulationConfig
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_fit,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm.qua import *
 
 from configuration import *
@@ -65,6 +75,8 @@ save_data_dict = {
     "n_xy8_values": n_xy8_values,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -170,7 +182,7 @@ with program() as xy8:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -181,9 +193,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, xy8, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, xy8, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     plt.figure()
     samples.con1.plot()
@@ -200,11 +212,11 @@ if simulate:
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(config)
+    qm = trace_open_qm(qmm.open_qm)(config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(xy8)
+    job = trace_execute(qm.execute)(xy8)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["I", "Q", "iteration"], mode="live")
+    results = trace_fetching(fetching_tool)(job, data_list=["I", "Q", "iteration"], mode="live")
 
     # Live plotting
     fig, axes = plt.subplots(2, 1, figsize=(10, 8))
@@ -250,7 +262,7 @@ else:
     try:
         from qualang_tools.plot.fitting import Fit
 
-        fit = Fit()
+        fit = trace_fit(Fit())
         T2_xy8_values = []
 
         # Create a new figure for the fitted results
@@ -332,3 +344,5 @@ else:
     data_handler.save_data(data=save_data_dict, name="xy8")
 
     print(f"\nData saved to: {save_dir}")
+
+telemetry.end()

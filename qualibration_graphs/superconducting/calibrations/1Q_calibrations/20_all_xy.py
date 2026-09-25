@@ -14,6 +14,7 @@ from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.all_xy import (
     ALL_XY_SEQUENCES,
@@ -59,6 +60,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

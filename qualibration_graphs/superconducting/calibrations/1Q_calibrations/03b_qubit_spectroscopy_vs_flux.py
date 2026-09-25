@@ -11,6 +11,7 @@ from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.qubit_spectroscopy_vs_flux import (
     Parameters,
@@ -49,6 +50,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

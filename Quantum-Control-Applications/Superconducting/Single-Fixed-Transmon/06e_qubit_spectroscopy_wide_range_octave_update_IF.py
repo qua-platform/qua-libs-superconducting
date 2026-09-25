@@ -16,6 +16,12 @@ Before proceeding to the next node:
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+    trace_qmm,
+)
 from configuration import *
 from qualang_tools.results import progress_counter, wait_until_job_is_paused
 from qualang_tools.plot import interrupt_on_close
@@ -27,9 +33,9 @@ from qualang_tools.results.data_handler import DataHandler
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 # Open the quantum machine
-qm = qmm.open_qm(config)
+qm = trace_open_qm(qmm.open_qm)(config)
 
 
 ##################
@@ -73,6 +79,8 @@ save_data_dict = {
     "frequencies": frequency,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -147,7 +155,7 @@ with program() as qubit_spec:
 ###############
 
 # Send the QUA program to the OPX, which compiles and executes it. It will stop at the 'pause' statement.
-job = qm.execute(qubit_spec)
+job = trace_execute(qm.execute)(qubit_spec)
 # Creates results handles to fetch the data
 res_handles = job.result_handles
 I_handle = res_handles.get("I")
@@ -229,3 +237,5 @@ save_data_dict.update({"Q_data": Q})
 save_data_dict.update({"fig_live": fig})
 data_handler.additional_files = {script_name: script_name, **default_additional_files}
 data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

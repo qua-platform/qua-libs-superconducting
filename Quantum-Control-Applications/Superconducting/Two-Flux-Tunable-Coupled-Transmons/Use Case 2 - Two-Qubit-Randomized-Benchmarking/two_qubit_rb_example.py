@@ -5,6 +5,10 @@ import cirq
 import matplotlib.pyplot as plt
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_qmm,
+)
 from qualang_tools.bakery.bakery import Baking
 from configuration import *
 from two_qubit_rb import TwoQubitRb
@@ -100,7 +104,9 @@ def meas():
 ##############################
 ##  Two-qubit RB execution  ##
 ##############################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)  # initialize qmm
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)  # initialize qmm
 
 # create RB experiment from configuration and defined functions
 rb = TwoQubitRb(
@@ -142,3 +148,5 @@ rb.save_command_mapping_to_file("commands.txt")  # saves mapping from "command i
 #     # interleaved_alpha=res.fit_exponential()[1],  # alpha from the interleaved experiment
 # )
 # print(f"Interleaved Gate Fidelity: {interleaved_gate_fidelity*100:.3f}")
+
+telemetry.end()
