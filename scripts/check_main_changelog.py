@@ -58,9 +58,7 @@ def check_changelog(*, old_changelog: str, new_changelog: str) -> None:
     new_dates = dated_headings(new_changelog)
     added = [date for date in new_dates if date not in old_dates]
     if not added:
-        raise SystemExit(
-            "CHANGELOG.md must add a ## [YYYY-MM-DD] section when merging to main."
-        )
+        raise SystemExit("CHANGELOG.md must add a ## [YYYY-MM-DD] section when merging to main.")
     newest = added[0]
     if not section_body(new_changelog, newest):
         raise SystemExit(f"CHANGELOG.md section [{newest}] is empty")
