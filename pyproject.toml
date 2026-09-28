@@ -34,7 +34,7 @@ superconducting-calibrations = { workspace = true }
 members = ["qualibration_graphs/superconducting"]
 
 [dependency-groups]
-dev = ["black>=24.3,<25", "ruff>=0.6,<1"]
+dev = ["black>=24.3,<25", "ruff>=0.6,<1", "pytest>=8.3.5"]
 
 [tool.black]
 line-length = 120
