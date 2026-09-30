@@ -15,6 +15,7 @@ from qualang_tools.results import progress_counter
 
 from qualibrate import QualibrationNode
 from quam_config import Quam
+from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.all_xy import (
     ALL_XY_SEQUENCES,
     N_ALL_XY,
@@ -99,7 +100,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         seq_idx = declare(int)
         if node.parameters.use_state_discrimination:
             state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
+            state_st = [declare_output_stream() for _ in range(num_qubits)]
 
         for multiplexed_qubits in qubits.batch():
             for qubit in multiplexed_qubits.values():
@@ -157,8 +158,10 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """Execute the QUA program and fetch the raw data into ds_raw."""
     qmm = node.machine.connect()
     config = node.machine.generate_config()
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    controller_config, logical_config = split_qua_config(config)
+
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(

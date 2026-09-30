@@ -31,27 +31,17 @@ config = {
             },
         },
     },
-    "mixers": {
-        "mixer1": [
-            {
-                "intermediate_frequency": 100e6,
-                "lo_frequency": 5e9,
-                "correction": [1.0, 0.0, 0.0, 1.0],
-            }
-        ],
-    },
     "elements": {
         "qe_single": {
-            "singleInput": {"port": ("con1", 1, 1)},
+            "single_input": {"port": ("con1", 1, 1)},
             "intermediate_frequency": 100e6,
             "operations": {"pulse_single": "pulse_single"},
         },
         "qe_mixed": {
-            "mixInputs": {
+            "mix_inputs": {
                 "I": ("con1", 1, 2),
                 "Q": ("con1", 1, 3),
-                "mixer": "mixer1",
-                "lo_frequency": 5e9,
+                "imbalance_correction": [1.0, 0.0, 0.0, 1.0],
             },
             "intermediate_frequency": 100e6,
             "operations": {"pulse_mixed": "pulse_mixed"},
@@ -69,7 +59,7 @@ config = {
 
 
 @shot
-def play_two(a):
+def play_two(a: fixed):
     play("pulse_single" * amp(a), "qe_single")
     play("pulse_mixed", "qe_mixed")
 

@@ -48,7 +48,11 @@ def load_program_namespace(script_path: Path) -> tuple[Any, Any, dict[str, Any]]
         "__name__": "__simulate_runner__",
         "__file__": str(script_path.resolve()),
     }
-    exec(compile(prelude, str(script_path), "exec"), ns)  # noqa: S102
+    # dont_inherit=True: this module's `from __future__ import annotations` (line 8)
+    # would otherwise leak into the compiled prelude, silently stringifying every
+    # annotation in the exec'd script (e.g. `def play_two(a: fixed)` -> `a: "fixed"`),
+    # which breaks qm-qua 2's `@shot` decorator (it requires a resolved concrete type).
+    exec(compile(prelude, str(script_path), "exec", dont_inherit=True), ns)  # noqa: S102
 
     prog_name = find_program_name(source)
     program = ns.get(prog_name) if prog_name else None

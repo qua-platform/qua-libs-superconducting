@@ -35,19 +35,25 @@ def discover_calibration_files() -> list[Path]:
 def test_qm_extensions_importable() -> None:
     """The QUA API surface used by calibration nodes, per installed qm-qua major version.
 
-    qm-qua 2.0 removed the 1.3.1/1.4.0 sweep helpers (`qm.qua.extensions.QuaIterable`,
-    `declare_with_stream`) and introduced `@shot`; `declare_output_stream` spans both.
+    qm-qua 2.0 introduces `@shot`; `declare_output_stream` spans both major versions.
+    As of `qm-qua==2.0.0.dev19`, the 1.3.1/1.4.0 sweep helpers (`qm.qua.extensions.QuaIterable`,
+    `declare_with_stream`) remain importable as a transitional compatibility shim alongside
+    `@shot` — unlike earlier 2.0 dev builds (e.g. `2.0.0.dev5`) that dropped them outright.
+    Re-tighten this assertion (back to asserting `ModuleNotFoundError`) once a qm-qua 2.0
+    release actually removes them.
     """
     from qm.qua import declare_output_stream
 
     assert declare_output_stream is not None
 
     if qm_qua_major() >= 2:
-        from qm.qua import shot
+        from qm.qua import declare_with_stream, shot
+        from qm.qua.extensions import QuaIterable, QuaIterableRange
 
         assert shot is not None
-        with pytest.raises(ModuleNotFoundError):
-            import qm.qua.extensions  # noqa: F401, PLC0415
+        assert QuaIterable is not None
+        assert QuaIterableRange is not None
+        assert declare_with_stream is not None
     else:
         from qm.qua import declare_with_stream
         from qm.qua.extensions import QuaIterable, QuaIterableRange
