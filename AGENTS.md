@@ -1,15 +1,33 @@
----
-description: QUA language context and official Quantum Machines documentation
-alwaysApply: true
----
+# AGENTS.md
 
-# QUA in this repository
+Guidance for AI coding assistants (Cursor, Codex, Claude Code, Copilot, and others) working in this repository. This file is the single source of agent rules; the glob-scoped files in [`.cursor/rules/`](.cursor/rules/) are thin stubs that point back here.
+
+## Project overview
 
 This repo contains **QUA programs embedded in Python** for superconducting qubit control and calibration on Quantum Machines hardware (OPX).
 
+| Path | Role |
+|------|------|
+| `Quantum-Control-Applications/` | Standalone example/calibration scripts |
+| `qualibration_graphs/superconducting/` | QUAlibrate calibration nodes (`create_qua_program`, `execute_qua_program`) |
+| `Tutorials/` | Introductory QUAlibrate tutorial |
+| `scripts/` | Migration and validation tooling (catalog in [scripts/README.md](scripts/README.md)) |
+| `docs/plans/` | QUA migration guides and runbooks |
+
+Setup, formatting, linting, and tests are described in [CONTRIBUTING.md](CONTRIBUTING.md):
+
+```
+uv sync
+uv run black .
+uv run ruff check .
+uv run pytest tests/test_qca_migration_gates.py -q
+```
+
+## QUA in this repository
+
 **Branch context (QL-983-qua2):** This branch migrates to **qm-qua 2.0 / QOP 4.x**. Public online docs may still describe QUA 1.x — prefer the vendored migration guide and local wheel bundle for breaking changes and config schema.
 
-## Official documentation
+### Official documentation
 
 When writing, reviewing, or debugging QUA code, consult:
 
@@ -24,12 +42,12 @@ Useful entry points (general QUA concepts; config/API examples may still reflect
 - [Quantum Machine API](https://docs.quantum-machines.co/latest/api_references/opx1000/quantum_machine_api/) — compile, execute, simulate jobs
 
 **Primary references for QUA 2 on this branch:**
-- [docs/plans/qua-2.0-migration.md](../../docs/plans/qua-2.0-migration.md) — breaking changes with detection grep patterns and before/after recipes
-- [qua2-wheels/README.md](../../qua2-wheels/README.md) — local wheel bundle install notes
+- [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md) — breaking changes with detection grep patterns and before/after recipes
+- [qua2-wheels/README.md](qua2-wheels/README.md) — local wheel bundle install notes
 
 Prefer the vendored migration guide over general Python or generic quantum-computing assumptions when unsure about QUA 2 config schema, `@shot`, timing, streams, or hardware configuration.
 
-## Python vs QUA
+### Python vs QUA
 
 - **Python** (outside `with program()`): setup, parameters, plotting, data handling, `QuantumMachinesManager`, simulation config.
 - **QUA** (inside `with program()`): real-time pulse sequences — `declare`, `play`, `measure`, `wait`, `align`, `for_`, `if_`, `@shot`, `declare_output_stream`, `declare_input_stream`, `send_to_stream`, `receive_from_stream`, `declare_with_stream`, iterables, etc.
@@ -41,19 +59,11 @@ QUA 2 specifics:
 
 Do not rewrite QUA constructs as plain Python loops or NumPy when they must run on the OPX in real time.
 
-## Repo layout
-
-| Path | Role |
-|------|------|
-| `Quantum-Control-Applications/` | Standalone example/calibration scripts |
-| `qualibration_graphs/superconducting/` | QUAlibrate calibration nodes (`create_qua_program`, `execute_qua_program`) |
-| `Tutorials/` | Introductory QUAlibrate tutorial |
-
-## Related ecosystem (not QUA itself)
+### Related ecosystem (not QUA itself)
 
 These complement QUA but have their own docs. Prefer them over assumptions when working on calibration graphs, QUAM state, or QUAlibrate nodes.
 
-### QUAM (Quantum Abstract Machine)
+#### QUAM (Quantum Abstract Machine)
 
 When writing, reviewing, or debugging QUAM components, machine state, or `generate_config()` usage, consult:
 
@@ -66,7 +76,7 @@ Useful entry points:
 - [Migrating to QUAM](https://qua-platform.github.io/quam/migrating_to_quam/) — from raw QUA configs
 - [quam-builder](https://github.com/qua-platform/quam-builder) — builder utilities used in calibration graphs
 
-### QUAlibrate
+#### QUAlibrate
 
 When writing, reviewing, or debugging calibration nodes, graphs, or the web app workflow, consult:
 
@@ -79,24 +89,24 @@ Useful entry points:
 - [Configuration File](https://qualibrate-docs.quantum-machines.co/configuration_file/) — paths, library, runtime settings
 - [Web App](https://qualibrate-docs.quantum-machines.co/web_app/) — running nodes and graphs in the UI
 
-### Other helpers
+#### Other helpers
 
 - [py-qua-tools](https://github.com/qua-platform/py-qua-tools) — helpers used heavily in scripts (`qualang_tools`)
 
-## Conventions in this repo
+### Conventions in this repo
 
 - `from qm.qua import *` is standard here; do not flag it as a lint issue.
 - Match existing patterns in the nearest folder (standalone script vs qualibration node).
 - Format/lint: `uv run black .` and `uv run ruff check .` per [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## QUA 2.0 migration
+### QUA 2.0 migration
 
 When updating QUA programs or configs for **qm-qua 2.0 / QOP 4**, follow
-[docs/plans/qua-2.0-migration.md](../../docs/plans/qua-2.0-migration.md).
+[docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md).
 
 Apply migration-guide recipes **literally** when before-patterns match; do not invent variants.
 
-### Breaking-change checklist
+#### Breaking-change checklist
 
 | Area | QUA 1 | QUA 2 |
 |------|-------|-------|
@@ -113,26 +123,26 @@ Additional 2.0 changes (see CHANGELOG `[2.0.0]`):
 - `for_(lower, upper, step)` — all bounds must be QUA int/fixed; iteration via `with for_() as i`
 - `smearing` / `time_of_flight` moved from element to **port** config
 
-### Prior 1.3.1 work (already applied)
+#### Prior 1.3.1 work (already applied)
 
 Stream and iterable migrations from **qm-qua 1.3.1** are largely done in this repo. See
-[docs/plans/qua-1.4.0-migration.md](../../docs/plans/qua-1.4.0-migration.md) for history.
+[docs/plans/qua-1.4.0-migration.md](docs/plans/qua-1.4.0-migration.md) for history.
 Use `declare_output_stream()` (not `declare_stream()`), iterables, and `declare_with_stream` for sweep experiments.
 
-### Emulator-based validation (QUA 2 branch)
+#### Emulator-based validation (QUA 2 branch)
 
-qm-qua 2.0 has no OPX simulator — only `qua_evaluator.QuaEvaluator.evaluate()`. The validation harness supports it via `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](../../scripts/validate_simulation_baseline.py) (new [scripts/emulate_waveform_runner.py](../../scripts/emulate_waveform_runner.py)); baseline (`../qua-libs`) is unchanged. Comparison is pulse-schedule structure only (no ADC/measurement modeling). See [VALIDATION.md § QUA 2 branch](../../VALIDATION.md#qua-2-branch-emulator-based-validation-experimental) for full details.
+qm-qua 2.0 has no OPX simulator — only `qua_evaluator.QuaEvaluator.evaluate()`. The validation harness supports it via `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (new [scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py)); baseline (`../qua-libs`) is unchanged. Comparison is pulse-schedule structure only (no ADC/measurement modeling). See [VALIDATION.md § QUA 2 branch](VALIDATION.md#qua-2-branch-emulator-based-validation-experimental) for full details.
 
 Confirmed blockers for running real (not-yet-migrated) QCA scripts through the emulator, reported as a distinct `BLOCKED` status rather than a crash:
 - Script imports QUA 1.4.0-only APIs (`qm.qua.extensions.QuaIterable`, ...) or uses old call signatures (4-arg `for_`) — not present/valid in qm-qua 2.0.
 - Config still uses QUA 1.4.0 keys (pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight`) — raises `qm.exceptions.ConfigValidationException`.
 - Real-time ops (`play`, `measure`, `wait`, `align`, ...) used outside a `@shot` — raises `InvalidStatementContextError`.
 
-Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](../../tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](../../tests/fixtures/qua2_emulate_smoke_program.py); CI job `qua2-emulate-smoke`.
+Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](tests/fixtures/qua2_emulate_smoke_program.py); CI job `qua2-emulate-smoke`.
 
-## Local wheel bundle
+### Local wheel bundle
 
-QUA 2 and the QUA evaluator are **not on public PyPI**. This repo installs them from wheels in [`qua2-wheels/`](../../qua2-wheels/):
+QUA 2 and the QUA evaluator are **not on public PyPI**. This repo installs them from wheels in [`qua2-wheels/`](qua2-wheels/):
 
 - `qm-qua==2.0.0.dev19` — `qm_qua-2.0.0.dev5-py3-none-any.whl`
 - `qua-evaluator==1.0.4` — `qua_evaluator-1.0.4-py3-none-any.whl`
@@ -152,3 +162,60 @@ qop-models = { path = "../qop-models" }
 The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is standalone — use path prefix `../../qua2-wheels/` and run `uv sync` from that directory.
 
 Wheel metadata may declare Python `<3.14` (qm-qua) or `<3.12` (qua-evaluator); see the delivery README for tested Python versions.
+
+## Changelog maintenance
+
+[CHANGELOG.md](CHANGELOG.md) at the repo root follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
+
+### When to update
+
+Before creating any git commit (or when the user asks to commit), update the changelog if the change set is user- or contributor-visible: new features, behavior changes, deprecations, removals, fixes, dependency bumps, or docs/tooling that affect usage.
+
+Skip whitespace-only, comment-only, or internal refactors with no external effect.
+
+### Where and how
+
+- Edit `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+- Add bullets under the correct `###` heading: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, or `Security`.
+- Omit empty sections.
+- Write concise, human-readable bullets (e.g. "Added …", "Changed …"). Merge related work; do not paste commit messages or git diffs.
+
+### Commit workflow
+
+Include `CHANGELOG.md` in the same commit as the functional change unless the user explicitly commits the changelog separately.
+
+### Releases
+
+When cutting a release, move `[Unreleased]` entries to `## [X.Y.Z] - YYYY-MM-DD` (ISO 8601) and leave an empty `## [Unreleased]` at the top.
+
+## When editing `scripts/`
+
+Applies to `scripts/*.py` and `scripts/*.sh`.
+
+When adding, removing, renaming, or changing the purpose or CLI of a file under [`scripts/`](scripts/) (except `README.md` itself), update [`scripts/README.md`](scripts/README.md) in the same change.
+
+- Cover every `*.py` / `*.sh` in the directory; drop removed files; refresh the description and example command if behavior changed.
+- Keep the README a short catalog (purpose, typical command, pointers to the runbook / VALIDATION.md / MANIFEST). Do not duplicate those docs.
+- Skip whitespace-only or comment-only edits with no user-visible effect.
+
+When adding a new AGENTS.md section or Cursor rule stub for scripts tooling, add a `cp` line in [`scripts/bootstrap_modality_repo.sh`](scripts/bootstrap_modality_repo.sh) and a row in [`docs/bootstrap/MANIFEST.md`](docs/bootstrap/MANIFEST.md).
+
+## When adding or changing `scripts/migrate_*.py`
+
+Applies to `scripts/migrate_*.py` and `tests/test_qca_migration_gates.py`.
+
+When adding or substantially changing a `scripts/migrate_*.py` bulk migration tool, keep the modality bootstrap kit and docs in sync:
+
+1. [`docs/bootstrap/MANIFEST.md`](docs/bootstrap/MANIFEST.md) — table row for the new script
+2. [`scripts/bootstrap_modality_repo.sh`](scripts/bootstrap_modality_repo.sh) — `cp` line for the script
+3. [`scripts/README.md`](scripts/README.md) — catalog entry (purpose + typical command)
+4. [`docs/plans/qua-1.4.0-migration-runbook.md`](docs/plans/qua-1.4.0-migration-runbook.md) — execution-order step + scripts inventory row
+5. [`docs/plans/qua-1.4.0-migration.md`](docs/plans/qua-1.4.0-migration.md) — new Part section if this is a user-visible migration pillar
+6. [`tests/test_qca_migration_gates.py`](tests/test_qca_migration_gates.py) — grep gate (if applicable)
+7. [`AGENTS.md`](AGENTS.md) — short Part bullet when user-facing
+8. [`CHANGELOG.md`](CHANGELOG.md) — Added/Fixed entry under `[Unreleased]`
+9. Run `--dry-run` then apply; document the command in the runbook
+
+New migration scripts should accept `--modality` / `--qca-root` via [`scripts/migration_paths.py`](scripts/migration_paths.py).
+
+When adding a new AGENTS.md section or Cursor rule stub for migration tooling, add a `cp` line for it in `bootstrap_modality_repo.sh` and a row in `MANIFEST.md`.

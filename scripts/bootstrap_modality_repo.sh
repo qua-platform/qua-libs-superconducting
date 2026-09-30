@@ -29,8 +29,7 @@ cp "$SOURCE/Quantum-Control-Applications/Superconducting/qua_config_split.py" \
    "$TARGET/Quantum-Control-Applications/$MODALITY/"
 
 cp "$SOURCE/tests/test_qca_migration_gates.py" "$TARGET/tests/"
-cp "$SOURCE/.cursor/rules/qua-documentation.mdc" "$TARGET/.cursor/rules/"
-cp "$SOURCE/.cursor/rules/changelog.mdc" "$TARGET/.cursor/rules/"
+cp "$SOURCE/AGENTS.md" "$TARGET/"
 cp "$SOURCE/.cursor/rules/migration-scripts.mdc" "$TARGET/.cursor/rules/"
 cp "$SOURCE/.cursor/rules/scripts-readme.mdc" "$TARGET/.cursor/rules/"
 
@@ -53,7 +52,7 @@ Bootstrap copied to: $TARGET
 
 Next steps:
   1. Copy Quantum-Control-Applications/$MODALITY/ from qua-libs (upstream examples)
-  2. Edit $TARGET/.cursor/rules/qua-documentation.mdc — set modality to $MODALITY
+  2. Edit $TARGET/AGENTS.md — set modality to $MODALITY
   3. Add pyproject.toml (pin qm-qua==1.4.0) and README.md
   4. cd $TARGET && uv sync
   5. Follow docs/plans/qua-1.4.0-migration-runbook.md

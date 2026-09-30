@@ -9,7 +9,7 @@ Copy these paths from **qua-libs-superconducting** when spinning up a modality f
 ./scripts/bootstrap_modality_repo.sh AMO ../qua-libs-amo
 ```
 
-Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adapt `pyproject.toml` / `README.md`, then follow [qua-1.4.0-migration-runbook.md](../plans/qua-1.4.0-migration-runbook.md).
+Edit `../qua-libs-amo/AGENTS.md` (modality name), adapt `pyproject.toml` / `README.md`, then follow [qua-1.4.0-migration-runbook.md](../plans/qua-1.4.0-migration-runbook.md).
 
 ## Files to copy from qua-libs-superconducting
 
@@ -31,10 +31,9 @@ Edit `../qua-libs-amo/.cursor/rules/qua-documentation.mdc` (modality name), adap
 **Optional (Superconducting reference repo only):** `scripts/validate_simulation_baseline.py`, `scripts/validation_matrix.py`, `scripts/simulate_waveform_runner.py`, `scripts/emulate_waveform_runner.py`, `scripts/qca_script_loader.py` — automated waveform/schedule baseline comparison; the `simulate_waveform_runner.py` side requires sibling `../qua-libs` and CS rack access, the `emulate_waveform_runner.py` side (QUA 2 branch) does not.
 | `Quantum-Control-Applications/Superconducting/qua_config_split.py` | → `{Modality}/qua_config_split.py` |
 | `tests/test_qca_migration_gates.py` | Portable CI grep gates |
-| `.cursor/rules/qua-documentation.mdc` | Cursor QUA context (edit modality) |
-| `.cursor/rules/changelog.mdc` | Changelog rule |
-| `.cursor/rules/migration-scripts.mdc` | Checklist when adding `scripts/migrate_*.py` |
-| `.cursor/rules/scripts-readme.mdc` | Keep `scripts/README.md` in sync when scripts change |
+| `AGENTS.md` | Agent rules for any AI tool: QUA context (edit modality), changelog, scripts and migration checklists |
+| `.cursor/rules/migration-scripts.mdc` | Cursor stub: auto-attaches the `scripts/migrate_*.py` checklist from `AGENTS.md` |
+| `.cursor/rules/scripts-readme.mdc` | Cursor stub: auto-attaches the `scripts/README.md` sync rule from `AGENTS.md` |
 | `.github/workflows/ci.yml` | Adapt: drop qualibration jobs if N/A |
 | `CONTRIBUTING.md` | Adapt intro + migration links |
 | `CHANGELOG.md` | Empty `[Unreleased]` skeleton or copy structure |

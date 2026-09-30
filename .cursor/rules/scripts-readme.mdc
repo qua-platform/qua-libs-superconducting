@@ -4,12 +4,4 @@ globs: scripts/*.py,scripts/*.sh
 alwaysApply: false
 ---
 
-# Scripts README catalog
-
-When adding, removing, renaming, or changing the purpose or CLI of a file under [`scripts/`](../../scripts/) (except `README.md` itself), update [`scripts/README.md`](../../scripts/README.md) in the same change.
-
-- Cover every `*.py` / `*.sh` in the directory; drop removed files; refresh the description and example command if behavior changed.
-- Keep the README a short catalog (purpose, typical command, pointers to the runbook / VALIDATION.md / MANIFEST). Do not duplicate those docs.
-- Skip whitespace-only or comment-only edits with no user-visible effect.
-
-When adding a new Cursor rule for scripts tooling, add a `cp` line in [`scripts/bootstrap_modality_repo.sh`](../../scripts/bootstrap_modality_repo.sh) and a row in [`docs/bootstrap/MANIFEST.md`](../../docs/bootstrap/MANIFEST.md).
+Follow the "When editing `scripts/`" section of [AGENTS.md](../../AGENTS.md).

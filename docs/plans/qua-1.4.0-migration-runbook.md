@@ -229,9 +229,10 @@ Full file manifest: [`docs/bootstrap/MANIFEST.md`](../bootstrap/MANIFEST.md). On
 
 ```
 qua-libs-amo/
+├── AGENTS.md
 ├── .cursor/rules/
-│   ├── qua-documentation.mdc
-│   └── changelog.mdc
+│   ├── migration-scripts.mdc
+│   └── scripts-readme.mdc
 ├── .github/workflows/ci.yml
 ├── docs/plans/
 │   ├── qua-1.4.0-migration.md
@@ -256,7 +257,7 @@ qua-libs-amo/
 
 | Source | Copy into new repo |
 |--------|-------------------|
-| **qua-libs-superconducting** | `docs/plans/`, `scripts/`, `.cursor/rules/`, `tests/test_qca_migration_gates.py`, `docs/bootstrap/` |
+| **qua-libs-superconducting** | `docs/plans/`, `scripts/`, `AGENTS.md`, `.cursor/rules/`, `tests/test_qca_migration_gates.py`, `docs/bootstrap/` |
 | **qua-libs-superconducting** | `qua_config_split.py` → `{Modality}/qua_config_split.py` |
 | **qua-libs-superconducting** | Adapt `pyproject.toml`, `CONTRIBUTING.md`, `.github/workflows/ci.yml` |
 | **Do not copy** | Superconducting examples, qualibration graphs, QUAM state |
@@ -269,7 +270,7 @@ qua-libs-amo/
 | **B. Cursor multi-root workspace** | Solo dev | Add `../qua-libs-superconducting` as second root for before/after examples; **edit only the new repo** |
 | **C. Git submodule** | Shared tooling source | Submodule `docs/` + `scripts/` from SC repo; pin version |
 
-Do **not** hardcode absolute paths to `qua-libs-superconducting` in `.cursor/rules/`.
+Do **not** hardcode absolute paths to `qua-libs-superconducting` in `AGENTS.md` or `.cursor/rules/`.
 
 ### Modality-only `pyproject.toml`
 
@@ -290,7 +291,7 @@ Drop qualibration `build-package` / `qua-compile` jobs if not applicable.
 ### Pre-AI checklist (human, before first Cursor session)
 
 1. Run `./scripts/bootstrap_modality_repo.sh {Modality} /path/to/new-repo`.
-2. Edit `.cursor/rules/qua-documentation.mdc`: set modality name and QCA root.
+2. Edit `AGENTS.md`: set modality name and QCA root.
 3. `uv sync`; verify qm-qua imports (section A).
 4. Create `VALIDATION.md` from [template below](#i-validation-template); pin qua-libs baseline commit.
 5. Run pre-migration audit (section C); record counts.

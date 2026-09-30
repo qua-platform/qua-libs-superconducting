@@ -21,6 +21,10 @@ example, ask a question, or propose something to add.
 
 Notable changes belong in [CHANGELOG.md](CHANGELOG.md) under `## [Unreleased]`, following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Include changelog updates in the same PR or commit as the change they describe.
 
+### AI coding assistants
+
+Rules for AI coding assistants live in [AGENTS.md](AGENTS.md), so they apply whichever tool you use (Cursor, Codex, Claude Code, Copilot, …). Edit `AGENTS.md` rather than adding tool-specific rule files; the files in `.cursor/rules/` are only stubs that point back to it.
+
 ## Development
 
 This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
