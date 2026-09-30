@@ -112,7 +112,7 @@ uv run python scripts/simulate_waveform_runner.py path/to/script.py --duration 1
 
 ### [`emulate_waveform_runner.py`](emulate_waveform_runner.py)
 
-Headless QCA emulate helper used by the harness (`QuaEmulator().emulate()`, QUA 2 branch). Emits a pulse-schedule JSON (stdout or `--output`); no live QOP session needed. Scripts not yet migrated to QUA 2 report a `_blocked` payload (reason + detail) instead of crashing.
+Headless QCA emulate helper used by the harness (`QuaEvaluator().evaluate()`, QUA 2 branch). Emits a pulse-schedule JSON (stdout or `--output`); no live QOP session needed. Scripts not yet migrated to QUA 2 report a `_blocked` payload (reason + detail) instead of crashing.
 
 ```
 uv run python scripts/emulate_waveform_runner.py path/to/script.py --length-ns 40000

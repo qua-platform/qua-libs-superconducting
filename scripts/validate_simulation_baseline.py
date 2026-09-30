@@ -469,7 +469,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="simulate",
         help=(
             "Backend for the migrated (this-branch) side: 'simulate' (qmm.simulate(), "
-            "default) or 'emulate' (QuaEmulator.emulate(), QUA 2 branch). The baseline "
+            "default) or 'emulate' (QuaEvaluator.evaluate(), QUA 2 branch). The baseline "
             "side always uses 'simulate' (qua-libs has no emulator)."
         ),
     )

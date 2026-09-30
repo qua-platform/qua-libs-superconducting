@@ -101,14 +101,14 @@ uv run python scripts/validate_simulation_baseline.py \
 
 ## QUA 2 branch: emulator-based validation (experimental)
 
-This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above (`requirements.txt`/`pyproject.toml` now pins `qm-qua==2.0.0.dev5` + `qua-emulator==0.2.13` from [`qua-emulator-0.2.13-delivery/`](qua-emulator-0.2.13-delivery/README.md)). qm-qua 2.0 has **no OPX simulator**; only the [QUA emulator](qua-emulator-0.2.13-delivery/getting-started.md) (`qua_emulator.QuaEmulator`) is available on this branch.
+This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above (`requirements.txt`/`pyproject.toml` now pins `qm-qua==2.0.0.dev19` + `qua-evaluator==1.0.4` from [`qua2-wheels/`](qua2-wheels/README.md)). qm-qua 2.0 has **no OPX simulator**; only the [QUA evaluator](qua2-wheels/getting-started.md) (`qua_evaluator.QuaEvaluator`) is available on this branch.
 
 The harness now supports an **asymmetric backend split**:
 
 | Side | Backend | Unchanged? |
 |------|---------|------------|
 | **Baseline** (`../qua-libs`) | `qmm.simulate()` (OPX simulator), via [`simulate_waveform_runner.py`](scripts/simulate_waveform_runner.py) | Yes — no change |
-| **Migrated** (this repo) | `QuaEmulator().emulate()`, via [`emulate_waveform_runner.py`](scripts/emulate_waveform_runner.py) | New — opt in with `--migrated-backend emulate` |
+| **Migrated** (this repo) | `QuaEvaluator().evaluate()`, via [`emulate_waveform_runner.py`](scripts/emulate_waveform_runner.py) | New — opt in with `--migrated-backend emulate` |
 
 ```bash
 uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --migrated-backend emulate
@@ -126,7 +126,7 @@ None of today's `Quantum-Control-Applications/Superconducting/**` scripts have b
 
 ### What "pass" means once unblocked (schedule-structure comparison)
 
-The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the emulator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity per the emulator's own [getting-started notes](qua-emulator-0.2.13-delivery/getting-started.md):
+The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the emulator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity per the evaluator's own [getting-started notes](qua2-wheels/getting-started.md):
 
 - No ADC/measurement modeling (baseline's `adc_acquisitions` has no counterpart).
 - Ideal timing, not FPGA-exact — computation-induced gaps and feedback latency are not modeled.

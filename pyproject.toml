@@ -14,8 +14,9 @@ license = { file = "LICENSE" }
 authors = [{ name = "Quantum Machines", email = "info@quantum-machines.co" }]
 requires-python = ">=3.10,<3.15"
 dependencies = [
-    "qm-qua==2.0.0.dev5",
-    "qua-emulator==0.2.13",
+    "qm-qua==2.0.0.dev19",
+    "qua-evaluator==1.0.4",
+    "qop-models==0.1.2",
     "qualang-tools>=0.19.0",
     "qua-libs-core@git+https://github.com/JacobFastQM/qua-libs-core.git",
     "numpy>=1.18.5",
@@ -29,17 +30,30 @@ dependencies = [
 [tool.uv]
 package = false
 
+[[tool.uv.index]]
+name = "codeartifact"
+url = "https://quantum-machines-439440158105.d.codeartifact.us-east-1.amazonaws.com/pypi/qm-pypi/simple/"
+explicit = true
+
 [tool.uv.sources]
 superconducting-calibrations = { workspace = true }
 qua-libs-core = { git = "https://github.com/JacobFastQM/qua-libs-core.git" }
-qm-qua = { path = "qua-emulator-0.2.13-delivery/qm_qua-2.0.0.dev5-py3-none-any.whl" }
-qua-emulator = { path = "qua-emulator-0.2.13-delivery/qua_emulator-0.2.13-py3-none-any.whl" }
+qm-qua = { index = "codeartifact" }
+qua-evaluator = { path = "qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl" }
+qop-models = { path = "../qop-models" }
 
 [tool.uv.workspace]
 members = ["qualibration_graphs/superconducting"]
 
 [dependency-groups]
 dev = ["black>=24.3,<25", "ruff>=0.6,<1"]
+
+[tool.pytest.ini_options]
+# qua2-wheels/test_code.py is a vendored demo script (not a test suite) that happens to
+# match pytest's `test_*.py` collection pattern; it imports qua_emulator, which is no
+# longer a dependency now that the harness uses qua-evaluator. Ignore the whole
+# wheel-bundle directory rather than editing vendor content.
+addopts = "--ignore=qua2-wheels"
 
 [tool.black]
 line-length = 120

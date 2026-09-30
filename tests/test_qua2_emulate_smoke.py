@@ -19,7 +19,7 @@ FIXTURE = Path(__file__).resolve().parent / "fixtures" / "qua2_emulate_smoke_pro
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-qua_emulator = pytest.importorskip("qua_emulator")
+qua_evaluator = pytest.importorskip("qua_evaluator")
 
 import emulate_waveform_runner  # noqa: E402
 import validate_simulation_baseline as harness  # noqa: E402

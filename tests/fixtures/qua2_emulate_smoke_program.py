@@ -5,7 +5,7 @@ Superconducting/**` scripts are not yet QUA 2-shaped (no `@shot`, config still u
 QUA 1.4.0 keys) — see docs/plans/qua-2.0-migration.md for that separate effort.
 
 This fixture is a minimal, valid QUA 2 program + config (modeled on
-`qua-emulator-0.2.13-delivery/test_code.py`) used only to exercise
+`qua2-wheels/test_code.py`) used only to exercise
 `scripts/emulate_waveform_runner.py` end-to-end, independent of any real QCA script.
 """
 

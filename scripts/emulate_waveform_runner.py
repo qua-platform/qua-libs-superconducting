@@ -1,6 +1,6 @@
 """Headless QCA script emulation — emits a pulse-schedule JSON on stdout.
 
-Runs a QCA script's QUA program through `qua_emulator.QuaEmulator.emulate()` instead
+Runs a QCA script's QUA program through `qua_evaluator.QuaEvaluator.evaluate()` instead
 of `qmm.simulate()`. This is the QUA 2 / QOP 4 counterpart to
 `simulate_waveform_runner.py`: no live QOP session is needed, but the QUA program
 must be QUA 2-shaped (real-time ops inside a `@shot`) and the config must already
@@ -13,7 +13,7 @@ expected ways — reported as a `_blocked` payload rather than a crash:
   `for_(var, start, cond, step)`, removed in favor of `with for_(lo, hi, step) as i`).
   This is deliberately broad: pre-QUA-2 scripts can fail in many different ways
   while exec'ing their (not-yet-migrated) control flow.
-- `InvalidStatementContextError` / `UnsupportedFeatureError` (qua_emulator.errors) —
+- `InvalidStatementContextError` / `UnsupportedFeatureError` (qua_evaluator.errors) —
   real-time ops (`play`, `measure`, `wait`, ...) used outside a `@shot`.
 - `qm.exceptions.ConfigValidationException` (e.g. `ConfigSchemaError`) — the config
   still uses QUA 1.x / 1.4.0 keys (e.g. pulse-level `waveforms`, element-level
@@ -95,14 +95,14 @@ def _entry_to_dict(entry: Any) -> dict[str, Any]:
 def emulate_script(script_path: Path, length_ns: int | None) -> dict[str, Any]:
     import logging
 
-    # qm/qua_emulator log to stdout by default; keep stdout clean for the JSON payload
+    # qm/qua_evaluator log to stdout by default; keep stdout clean for the JSON payload
     logging.basicConfig(level=logging.WARNING, stream=sys.stderr, force=True)
 
     from qm import QuantumMachinesManager
     from qm.exceptions import CapabilitiesNotInitializedError, ConfigValidationException
     from qm.program import load_config
-    from qua_emulator import QuaEmulator
-    from qua_emulator.errors import InvalidStatementContextError, UnsupportedFeatureError
+    from qua_evaluator import QuaEvaluator
+    from qua_evaluator.errors import InvalidStatementContextError, UnsupportedFeatureError
 
     try:
         config, program, _ns = load_program_namespace(script_path)
@@ -115,7 +115,7 @@ def emulate_script(script_path: Path, length_ns: int | None) -> dict[str, Any]:
         QuantumMachinesManager.set_capabilities_offline()
 
     try:
-        state = QuaEmulator().emulate(program, config=config, length=length_ns)
+        state = QuaEvaluator().evaluate(program, config=config, length=length_ns)
     except InvalidStatementContextError as exc:
         raise EmulateBlocked("needs-shot-migration", str(exc)) from exc
     except UnsupportedFeatureError as exc:

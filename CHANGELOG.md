@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Switched the QUA 2 branch's emulate-based validation backend from `qua-emulator==0.2.13` (`qua_emulator.QuaEmulator.emulate()`) to `qua-evaluator==1.0.4` (`qua_evaluator.QuaEvaluator.evaluate()`) in [scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py); added the `qop-models==0.1.2` dependency it requires; renamed the local wheel bundle directory `qua-emulator-0.2.13-delivery/` to `qua2-wheels/`
 - Standardized CS rack targets across QCA `configuration*.py` files: OPX+ configs use **CS_1** (`172.16.33.101`); OPX1000 FEM configs use **CS_3** (`172.16.33.115`) with LF-FEM slots aligned to the rack (LF-only → 5, LF+Octave → 3); documented assignment in [VALIDATION.md](VALIDATION.md)
 - Pointed simulation validation baseline to `qua-libs` branch **`QL-1212-validation`** (replacing `main` @ `30823059`); documented CS rack network prerequisites for `validate_simulation_baseline.py` in [VALIDATION.md](VALIDATION.md) and [.cursor/rules/qua-documentation.mdc](.cursor/rules/qua-documentation.mdc)
 - Aligned `validation_matrix.py` script order with VALIDATION.md Results tables (alphabetical by filename)
