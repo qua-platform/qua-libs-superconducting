@@ -101,9 +101,11 @@ uv run python scripts/validate_simulation_baseline.py \
 
 ## QUA 2 branch: emulator-based validation (experimental)
 
-This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above (`requirements.txt`/`pyproject.toml` now pins `qm-qua==2.0.0.dev19` + `qua-evaluator==1.0.4` from [`qua2-wheels/`](qua2-wheels/README.md)). qm-qua 2.0 has **no OPX simulator**; only the [QUA evaluator](qua2-wheels/getting-started.md) (`qua_evaluator.QuaEvaluator`) is available on this branch.
+This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above. The root [pyproject.toml](pyproject.toml) pins `qm-qua==2.0.0.dev19` from the CodeArtifact index `codeartifact`, and `qua-evaluator==1.0.4` from [`qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl`](qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl). Evaluator source is the sibling checkout [`../qua-evaluator`](../qua-evaluator). qm-qua 2.0 has **no OPX simulator**; offline checks use `qua_evaluator.QuaEvaluator.evaluate()`.
 
-The harness now supports an **asymmetric backend split**:
+The evaluator package runs both QUA dialects (`Dialect.QUA1` / qm-qua 1.x and `Dialect.QUA2` / qm-qua 2.x; see `../qua-evaluator/docs/dialects.md`). Once a script is migrated, the intended offline check is to evaluate it here and evaluate the same relative path in [`../qua-libs`](../qua-libs) on branch **`QL-1212-validation`**, then compare pulse-schedule structure. Compiling a live program needs the matching `qm-qua` major in that process, so the two sides run in two environments (or as serialized programs). That comparison does not need the CS rack. The harness below does not do it yet.
+
+The harness still supports an **asymmetric backend split**:
 
 | Side | Backend | Unchanged? |
 |------|---------|------------|
@@ -118,7 +120,7 @@ uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Tran
 
 Running the emulate backend against **any** real QCA folder today reports every script as **`BLOCKED`**, not pass/fail — this is expected, not a regression. Confirmed blockers, in the order a script tends to hit them:
 
-1. **`needs-qua2-script-migration`** — the script's prelude fails to exec under qm-qua 2.0: QUA 1.4.0-only imports (`qm.qua.extensions.QuaIterable`, `declare_with_stream`, ...) don't exist, and old call signatures (4-arg `for_(var, start, cond, step)`) raise `TypeError`.
+1. **`needs-qua2-script-migration`** — the script's prelude fails to exec under qm-qua 2.0. `qm-qua==2.0.0.dev19` still ships `QuaIterable` / `QuaIterableRange` and `declare_with_stream` as a compatibility shim, so those imports are not the failure. Old call signatures (4-arg `for_(var, start, cond, step)`) raise `TypeError`, and other pre-QUA-2 control flow can fail the same way.
 2. **`needs-config-migration`** (`qm.exceptions.ConfigValidationException`, e.g. `ConfigSchemaError`) — the config still uses QUA 1.4.0 keys: pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight` (these move to port-level config in QUA 2).
 3. **`needs-shot-migration`** (`InvalidStatementContextError`) — once imports and config load, real-time ops (`play`, `measure`, `wait`, `align`, ...) still raise because they're not inside a `@shot`.
 
@@ -126,7 +128,7 @@ None of today's `Quantum-Control-Applications/Superconducting/**` scripts have b
 
 ### What "pass" means once unblocked (schedule-structure comparison)
 
-The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the emulator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity per the evaluator's own [getting-started notes](qua2-wheels/getting-started.md):
+The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the evaluator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity:
 
 - No ADC/measurement modeling (baseline's `adc_acquisitions` has no counterpart).
 - Ideal timing, not FPGA-exact — computation-induced gaps and feedback latency are not modeled.

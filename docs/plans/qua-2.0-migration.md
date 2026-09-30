@@ -1,7 +1,8 @@
 # QUA 1 → QUA 2 Migration Guide
 
-> **Vendored copy.** Source: [`qm-qua-sdk`](https://github.com/qm-labs/qm-qua-sdk) branch `qop4_main`, file `docs/migration/qua1-to-qua2.md`.
-> Re-copy from upstream when the migration guide changes during this branch's QUA 2 effort.
+> **Vendored copy.** Source: sibling [`../qm-qua-sdk`](../../qm-qua-sdk) ([`qm-qua-sdk`](https://github.com/qm-labs/qm-qua-sdk)) branch `qop4_main`, file `docs/migration/qua1-to-qua2.md`.
+> Re-copy from that checkout when the migration guide changes during this branch's QUA 2 effort.
+> The four recipe sections below are not the full `[2.0.0]` list — also read [`../qm-qua-sdk/CHANGELOG.md`](../../qm-qua-sdk/CHANGELOG.md) section `[2.0.0]`.
 
 ---
 

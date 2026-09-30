@@ -25,7 +25,7 @@ uv run pytest tests/test_qca_migration_gates.py -q
 
 ## QUA in this repository
 
-**Branch context (QL-983-qua2):** This branch migrates to **qm-qua 2.0 / QOP 4.x**. Public online docs may still describe QUA 1.x — prefer the vendored migration guide and local wheel bundle for breaking changes and config schema.
+**Branch context (QL-983-qua2):** This branch migrates to **qm-qua 2.0 / QOP 4.x**. Public online docs may still describe QUA 1.x — prefer the sibling `qm-qua-sdk` checkout and the vendored migration guide for breaking changes and config schema.
 
 ### Official documentation
 
@@ -42,10 +42,11 @@ Useful entry points (general QUA concepts; config/API examples may still reflect
 - [Quantum Machine API](https://docs.quantum-machines.co/latest/api_references/opx1000/quantum_machine_api/) — compile, execute, simulate jobs
 
 **Primary references for QUA 2 on this branch:**
-- [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md) — breaking changes with detection grep patterns and before/after recipes
-- [qua2-wheels/README.md](qua2-wheels/README.md) — local wheel bundle install notes
+- [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md) — vendored breaking-change recipes (detection grep patterns and before/after)
+- [`../qm-qua-sdk/docs/migration/qua1-to-qua2.md`](../qm-qua-sdk/docs/migration/qua1-to-qua2.md) — upstream source of that guide (branch `qop4_main`); re-copy the vendored file when it changes
+- [`../qm-qua-sdk/CHANGELOG.md`](../qm-qua-sdk/CHANGELOG.md) section `[2.0.0]` — full breaking-change list, including items that have no recipe section yet
 
-Prefer the vendored migration guide over general Python or generic quantum-computing assumptions when unsure about QUA 2 config schema, `@shot`, timing, streams, or hardware configuration.
+Prefer those over general Python or generic quantum-computing assumptions when unsure about QUA 2 config schema, `@shot`, timing, streams, or hardware configuration.
 
 ### Python vs QUA
 
@@ -102,9 +103,9 @@ Useful entry points:
 ### QUA 2.0 migration
 
 When updating QUA programs or configs for **qm-qua 2.0 / QOP 4**, follow
-[docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md).
+[docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md) and the `[2.0.0]` section of [`../qm-qua-sdk/CHANGELOG.md`](../qm-qua-sdk/CHANGELOG.md).
 
-Apply migration-guide recipes **literally** when before-patterns match; do not invent variants.
+Apply migration-guide recipes **literally** when before-patterns match; do not invent variants. The changelog lists additional breaking changes that are not in the four recipe sections.
 
 #### Breaking-change checklist
 
@@ -117,7 +118,7 @@ Apply migration-guide recipes **literally** when before-patterns match; do not i
 | Program structure | single `with program():` body | factor experimental runs into `@shot` methods |
 | Runtime mixer API | `qm.set_mixer_correction()` | removed — use `job.set_element_correction()` or rebuild config |
 
-Additional 2.0 changes (see CHANGELOG `[2.0.0]`):
+Additional 2.0 changes (see [`../qm-qua-sdk/CHANGELOG.md`](../qm-qua-sdk/CHANGELOG.md) `[2.0.0]`, not this repo's changelog):
 - `digital_marker` → `digital_waveform`
 - `reset_phase()` removed → `reset_phase=True` on `play()` / `measure()`
 - `for_(lower, upper, step)` — all bounds must be QUA int/fixed; iteration via `with for_() as i`
@@ -131,23 +132,28 @@ Use `declare_output_stream()` (not `declare_stream()`), iterables, and `declare_
 
 #### Emulator-based validation (QUA 2 branch)
 
-qm-qua 2.0 has no OPX simulator — only `qua_evaluator.QuaEvaluator.evaluate()`. The validation harness supports it via `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) (new [scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py)); baseline (`../qua-libs`) is unchanged. Comparison is pulse-schedule structure only (no ADC/measurement modeling). See [VALIDATION.md § QUA 2 branch](VALIDATION.md#qua-2-branch-emulator-based-validation-experimental) for full details.
+qm-qua 2.0 has no OPX simulator. Offline checks use `qua_evaluator.QuaEvaluator.evaluate()` from sibling [`../qua-evaluator`](../qua-evaluator). That package runs both dialects (`Dialect.QUA1` with qm-qua 1.x, `Dialect.QUA2` with qm-qua 2.x; see `../qua-evaluator/docs/dialects.md`). The intended comparison is a migrated script in this repo against the same relative path in [`../qua-libs`](../qua-libs) on branch `QL-1212-validation`. Compiling a live program needs the matching `qm-qua` major in that process, so the two sides run in two environments (or as serialized programs). That path does not need the CS rack. Comparison is pulse-schedule structure only (no ADC/measurement modeling).
 
-Confirmed blockers for running real (not-yet-migrated) QCA scripts through the emulator, reported as a distinct `BLOCKED` status rather than a crash:
-- Script imports QUA 1.4.0-only APIs (`qm.qua.extensions.QuaIterable`, ...) or uses old call signatures (4-arg `for_`) — not present/valid in qm-qua 2.0.
+The current harness does not do that yet. `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) ([scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py)) switches only this repo's side to the evaluator; the baseline still uses `qmm.simulate()`. See [VALIDATION.md § QUA 2 branch](VALIDATION.md#qua-2-branch-emulator-based-validation-experimental).
+
+`qm-qua==2.0.0.dev19` still ships `qm.qua.extensions` (`QuaIterable` / `QuaIterableRange`) and `declare_with_stream` as a compatibility shim next to `@shot`. Those imports are not why a script is blocked. Confirmed blockers for running real (not-yet-migrated) QCA scripts through the evaluator, reported as a distinct `BLOCKED` status rather than a crash:
+- Old call signatures (4-arg `for_`) and other prelude failures while exec'ing a pre-QUA-2 script.
 - Config still uses QUA 1.4.0 keys (pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight`) — raises `qm.exceptions.ConfigValidationException`.
 - Real-time ops (`play`, `measure`, `wait`, `align`, ...) used outside a `@shot` — raises `InvalidStatementContextError`.
 
 Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](tests/fixtures/qua2_emulate_smoke_program.py); CI job `qua2-emulate-smoke`.
 
-### Local wheel bundle
+### Where QUA 2 and the evaluator come from
 
-QUA 2 and the QUA evaluator are **not on public PyPI**. This repo installs them from wheels in [`qua2-wheels/`](qua2-wheels/):
+`qm-qua` and `qua-evaluator` are **not on public PyPI**.
 
-- `qm-qua==2.0.0.dev19` — `qm_qua-2.0.0.dev5-py3-none-any.whl`
-- `qua-evaluator==1.0.4` — `qua_evaluator-1.0.4-py3-none-any.whl`
-
-`qua-evaluator` also depends on `qop-models==0.1.2`, resolved via a local path source (sibling checkout `../qop-models`).
+| Piece | Where |
+|-------|--------|
+| `qm-qua==2.0.0.dev19` | CodeArtifact index `codeartifact` in the root [pyproject.toml](pyproject.toml) (`qm-qua = { index = "codeartifact" }`). Do not install it from `qua2-wheels/`. |
+| QUA 2 source | Sibling [`../qm-qua-sdk`](../qm-qua-sdk), branch `qop4_main`. Recipes: `docs/migration/qua1-to-qua2.md`. Full `[2.0.0]` list: `CHANGELOG.md`. |
+| `qua-evaluator==1.0.4` | Wheel [`qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl`](qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl). Source: sibling [`../qua-evaluator`](../qua-evaluator). |
+| `qop-models==0.1.2` | Sibling [`../qop-models`](../qop-models). |
+| Comparison originals | Sibling [`../qua-libs`](../qua-libs), branch `QL-1212-validation`, same relative path. |
 
 ```toml
 # pyproject.toml (workspace root)
@@ -159,9 +165,7 @@ qua-evaluator = { path = "qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl" }
 qop-models = { path = "../qop-models" }
 ```
 
-The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is standalone — use path prefix `../../qua2-wheels/` and run `uv sync` from that directory.
-
-Wheel metadata may declare Python `<3.14` (qm-qua) or `<3.12` (qua-evaluator); see the delivery README for tested Python versions.
+The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is standalone and still pins `qm-qua==2.0.0.dev5` to `qua2-wheels/qm_qua-2.0.0.dev5-py3-none-any.whl`. That is not the workspace install.
 
 ## Changelog maintenance
 
