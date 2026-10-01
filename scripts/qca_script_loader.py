@@ -26,9 +26,37 @@ def find_program_name(source: str) -> str | None:
     return match.group(1) if match else None
 
 
-def load_program_namespace(script_path: Path) -> tuple[Any, Any, dict[str, Any]]:
+def parse_overrides(items: list[str] | None) -> dict[str, str]:
+    """Parse repeated `NAME=EXPR` CLI values into a dict."""
+    overrides: dict[str, str] = {}
+    for item in items or []:
+        name, sep, expr = item.partition("=")
+        if not sep or not name.strip().isidentifier() or not expr.strip():
+            raise ValueError(f"Invalid override {item!r}; expected NAME=EXPR (e.g. n_avg=2)")
+        overrides[name.strip()] = expr.strip()
+    return overrides
+
+
+def apply_overrides(source: str, overrides: dict[str, str]) -> str:
+    """Rewrite top-level `NAME = ...` assignment lines in a script to `NAME = EXPR`.
+
+    Only unindented, single-line assignments are rewritten (e.g. `n_avg = 1000  # ...`).
+    Names with no such assignment are left alone, so one folder-wide `--set n_avg=2`
+    also works for scripts that have no `n_avg`.
+    """
+    for name, expr in overrides.items():
+        pattern = re.compile(rf"^{re.escape(name)}\s*=(?!=).*$", re.MULTILINE)
+        source = pattern.sub(f"{name} = {expr}", source)
+    return source
+
+
+def load_program_namespace(
+    script_path: Path, overrides: dict[str, str] | None = None
+) -> tuple[Any, Any, dict[str, Any]]:
     """Exec a QCA script's prelude (everything before `qmm = QuantumMachinesManager(...)`)
     and return `(config, program, namespace)`.
+
+    `overrides` rewrites top-level assignments before exec (see `apply_overrides`).
 
     Callers that need `qop_ip` / `cluster_name` / `qop_port` (e.g. to open a live
     session for OPX simulation) should check for those in the returned namespace
@@ -39,6 +67,8 @@ def load_program_namespace(script_path: Path) -> tuple[Any, Any, dict[str, Any]]
     matplotlib.use("Agg")
 
     source = script_path.read_text(encoding="utf-8")
+    if overrides:
+        source = apply_overrides(source, overrides)
     marker = "qmm = QuantumMachinesManager"
     if marker not in source:
         raise RuntimeError(f"{script_path}: could not find '{marker}'")

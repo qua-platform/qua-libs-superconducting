@@ -132,16 +132,16 @@ Use `declare_output_stream()` (not `declare_stream()`), iterables, and `declare_
 
 #### Emulator-based validation (QUA 2 branch)
 
-qm-qua 2.0 has no OPX simulator. Offline checks use `qua_evaluator.QuaEvaluator.evaluate()` from sibling [`../qua-evaluator`](../qua-evaluator). That package runs both dialects (`Dialect.QUA1` with qm-qua 1.x, `Dialect.QUA2` with qm-qua 2.x; see `../qua-evaluator/docs/dialects.md`). The intended comparison is a migrated script in this repo against the same relative path in [`../qua-libs`](../qua-libs) on branch `QL-1212-validation`. Compiling a live program needs the matching `qm-qua` major in that process, so the two sides run in two environments (or as serialized programs). That path does not need the CS rack. Comparison is pulse-schedule structure only (no ADC/measurement modeling).
+qm-qua 2.0 has no OPX simulator. Offline checks use `qua_evaluator.QuaEvaluator.evaluate()` from sibling [`../qua-evaluator`](../qua-evaluator). That package runs both dialects (`Dialect.QUA1` and `Dialect.QUA2`; see `../qua-evaluator/docs/dialects.md`), and both produce the same unrolled pulse schedule. Comparison is pulse-schedule structure only (no ADC/measurement modeling) and needs no CS rack.
 
-The current harness does not do that yet. `--migrated-backend emulate` on [scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) ([scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py)) switches only this repo's side to the evaluator; the baseline still uses `qmm.simulate()`. See [VALIDATION.md § QUA 2 branch](VALIDATION.md#qua-2-branch-emulator-based-validation-experimental).
+[scripts/validate_simulation_baseline.py](scripts/validate_simulation_baseline.py) `--baseline-backend emulate --migrated-backend emulate --set n_avg=2` runs the evaluator on both sides. The original in [`../qua-libs`](../qua-libs) (branch `QL-1212-validation`) is built in its Poetry env (qm-qua 1.x) by [scripts/export_qua_proto.py](scripts/export_qua_proto.py) and saved as protobuf bytes. This repo's env evaluates those bytes as QUA 1 and the migrated script as QUA 2 ([scripts/emulate_waveform_runner.py](scripts/emulate_waveform_runner.py)), then diffs the two schedules. `--set` matters: the evaluator unrolls every loop iteration. `--migrated-backend emulate` alone keeps a simulator baseline and cannot pass. See [VALIDATION.md § QUA 2 branch](VALIDATION.md#qua-2-branch-emulator-based-validation-experimental).
 
 `qm-qua==2.0.0.dev19` still ships `qm.qua.extensions` (`QuaIterable` / `QuaIterableRange`) and `declare_with_stream` as a compatibility shim next to `@shot`. Those imports are not why a script is blocked. Confirmed blockers for running real (not-yet-migrated) QCA scripts through the evaluator, reported as a distinct `BLOCKED` status rather than a crash:
 - Old call signatures (4-arg `for_`) and other prelude failures while exec'ing a pre-QUA-2 script.
 - Config still uses QUA 1.4.0 keys (pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight`) — raises `qm.exceptions.ConfigValidationException`.
 - Real-time ops (`play`, `measure`, `wait`, `align`, ...) used outside a `@shot` — raises `InvalidStatementContextError`.
 
-Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](tests/fixtures/qua2_emulate_smoke_program.py); CI job `qua2-emulate-smoke`.
+Offline smoke test (no real QCA script, no CS rack needed): [tests/test_qua2_emulate_smoke.py](tests/test_qua2_emulate_smoke.py) against fixture [tests/fixtures/qua2_emulate_smoke_program.py](tests/fixtures/qua2_emulate_smoke_program.py) and its QUA 1 twin (checked in as `tests/fixtures/qua1_emulate_smoke_program.proto.json`); CI job `qua2-emulate-smoke`.
 
 ### Where QUA 2 and the evaluator come from
 
@@ -165,7 +165,7 @@ qua-evaluator = { path = "qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl" }
 qop-models = { path = "../qop-models" }
 ```
 
-The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is standalone and still pins `qm-qua==2.0.0.dev5` to `qua2-wheels/qm_qua-2.0.0.dev5-py3-none-any.whl`. That is not the workspace install.
+The tutorial project (`Tutorials/intro-to-QUAlibrate/`) is a standalone uv project with its own lock, but pins the same `qm-qua==2.0.0.dev19` from the same `codeartifact` index. Its sources are not yet migrated to QUA 2 (still `QuaIterableRange`, `singleInput`).
 
 ## Changelog maintenance
 

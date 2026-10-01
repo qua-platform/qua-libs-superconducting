@@ -103,18 +103,25 @@ uv run python scripts/validate_simulation_baseline.py \
 
 This branch (`QL-983-qua2-from-QL-1212`) overlays **qm-qua 2.0 / QOP 4** on top of the `qm-qua==1.4.0` baseline described above. The root [pyproject.toml](pyproject.toml) pins `qm-qua==2.0.0.dev19` from the CodeArtifact index `codeartifact`, and `qua-evaluator==1.0.4` from [`qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl`](qua2-wheels/qua_evaluator-1.0.4-py3-none-any.whl). Evaluator source is the sibling checkout [`../qua-evaluator`](../qua-evaluator). qm-qua 2.0 has **no OPX simulator**; offline checks use `qua_evaluator.QuaEvaluator.evaluate()`.
 
-The evaluator package runs both QUA dialects (`Dialect.QUA1` / qm-qua 1.x and `Dialect.QUA2` / qm-qua 2.x; see `../qua-evaluator/docs/dialects.md`). Once a script is migrated, the intended offline check is to evaluate it here and evaluate the same relative path in [`../qua-libs`](../qua-libs) on branch **`QL-1212-validation`**, then compare pulse-schedule structure. Compiling a live program needs the matching `qm-qua` major in that process, so the two sides run in two environments (or as serialized programs). That comparison does not need the CS rack. The harness below does not do it yet.
+The evaluator package runs both QUA dialects (`Dialect.QUA1` / qm-qua 1.x and `Dialect.QUA2` / qm-qua 2.x; see `../qua-evaluator/docs/dialects.md`), and both produce the same unrolled pulse schedule (`state.sequence`). That is what we compare. It is the same idea as the 1.4.0 check, which ran `qmm.simulate()` on both sides and diffed the two waveform reports, with the evaluator in place of the simulator on both sides.
 
-The harness still supports an **asymmetric backend split**:
-
-| Side | Backend | Unchanged? |
-|------|---------|------------|
-| **Baseline** (`../qua-libs`) | `qmm.simulate()` (OPX simulator), via [`simulate_waveform_runner.py`](scripts/simulate_waveform_runner.py) | Yes — no change |
-| **Migrated** (this repo) | `QuaEvaluator().evaluate()`, via [`emulate_waveform_runner.py`](scripts/emulate_waveform_runner.py) | New — opt in with `--migrated-backend emulate` |
+### Evaluator vs evaluator (QUA 1 original vs QUA 2 migration)
 
 ```bash
-uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon --migrated-backend emulate
+uv run python scripts/validate_simulation_baseline.py --folder Single-Fixed-Transmon \
+  --baseline-backend emulate --migrated-backend emulate --set n_avg=2 --print-notes
 ```
+
+Per script:
+
+1. **Original** ([`../qua-libs`](../qua-libs), branch **`QL-1212-validation`**): the `--baseline-runner` (default `poetry run python`) runs [`export_qua_proto.py`](scripts/export_qua_proto.py). qm-qua 1.x builds the `Program` and converts the config to protobuf bytes, written to `baseline_proto.json`. Nothing is sent to a QOP server.
+2. This repo's env evaluates those bytes as `Dialect.QUA1` ([`emulate_waveform_runner.py --from-proto`](scripts/emulate_waveform_runner.py)). qm-qua 1.x is not needed here, because the evaluator reads the QUA 1 protobuf itself.
+3. **Migrated** (this repo): the same runner evaluates the QUA 2 script directly as `Dialect.QUA2`.
+4. Both reports go through the same canonicalizer, and an empty diff (with equal `PlayEntry` / `MeasureEntry` counts) is a pass.
+
+No CS rack is needed. `--set NAME=EXPR` rewrites a top-level assignment (e.g. `n_avg = 1000`) on both sides before loading. The evaluator unrolls every loop iteration, so the original 1000-shot sweeps take minutes; `n_avg=2` takes about a second. Scripts without that variable are left unchanged.
+
+`--migrated-backend emulate` with the default simulator baseline is still accepted, but its diff compares an evaluator schedule with a simulator waveform report. Those formats differ, so it cannot pass; use it only to see which scripts are `BLOCKED`.
 
 ### Current status: blocked, by design
 
@@ -124,19 +131,21 @@ Running the emulate backend against **any** real QCA folder today reports every 
 2. **`needs-config-migration`** (`qm.exceptions.ConfigValidationException`, e.g. `ConfigSchemaError`) — the config still uses QUA 1.4.0 keys: pulse-level `waveforms` / `digital_marker` / `integration_weights`, element-level `smearing` / `time_of_flight` (these move to port-level config in QUA 2).
 3. **`needs-shot-migration`** (`InvalidStatementContextError`) — once imports and config load, real-time ops (`play`, `measure`, `wait`, `align`, ...) still raise because they're not inside a `@shot`.
 
-None of today's `Quantum-Control-Applications/Superconducting/**` scripts have been migrated to QUA 2 program/config shape yet — that migration (tracked in [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md)) is a separate, larger effort. Running the harness with `--migrated-backend emulate` against a folder is a convenient way to track that migration's progress: scripts move from `BLOCKED` to `PASS`/`FAIL` as they're migrated.
+None of today's `Quantum-Control-Applications/Superconducting/**` scripts have been migrated to QUA 2 program/config shape yet — that migration (tracked in [docs/plans/qua-2.0-migration.md](docs/plans/qua-2.0-migration.md)) is a separate, larger effort. Running the evaluator-vs-evaluator command above against a folder tracks that migration's progress: scripts move from `BLOCKED` to `PASS`/`FAIL` as they're migrated. The migrated side runs first; a blocked script skips the baseline export.
+
+The QUA 1 side already works on real originals: `Single-Fixed-Transmon/00_hello_qua.py` and `08b_power_rabi.py` (with `--set n_avg=2`) from `QL-1212-validation` export and evaluate as `Dialect.QUA1` in about a second each.
 
 ### What "pass" means once unblocked (schedule-structure comparison)
 
-The comparison is **pulse-schedule structure only** — element, pulse, relative timing, amplitude, IF/frame — not port-level samples or ADC/measurement results (the evaluator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Known, permanent non-parity:
+The comparison is **pulse-schedule structure only**. Each `play` and `measure` (`PlayEntry` / `MeasureEntry`) becomes one line: element, pulse, start time relative to the first pulse, duration, output ports (`con/fem/port`), amplitude, IF and frame. Port-level samples and ADC/measurement results are not compared (the evaluator is static analysis; it doesn't model measurement outcomes or FPGA-exact timing). Waits, aligns and QUA 2 shot markers are not lines of their own. Their effect shows in the timestamps, while their count differs by dialect (QUA 2 adds implicit aligns around each shot). Known, permanent non-parity:
 
-- No ADC/measurement modeling (baseline's `adc_acquisitions` has no counterpart).
+- No ADC/measurement modeling (the simulator's `adc_acquisitions` has no counterpart).
 - Ideal timing, not FPGA-exact — computation-induced gaps and feedback latency are not modeled.
 - No inter-shot-gap modeling (gaps between shots depend on runtime conditions).
 
 ### Offline smoke test
 
-[`tests/test_qua2_emulate_smoke.py`](tests/test_qua2_emulate_smoke.py) exercises `emulate_waveform_runner.py` and the harness's schedule canonicalizer against a synthetic QUA 2 fixture ([`tests/fixtures/qua2_emulate_smoke_program.py`](tests/fixtures/qua2_emulate_smoke_program.py)) — fully offline, independent of any real QCA script or the CS rack. CI job: `qua2-emulate-smoke`.
+[`tests/test_qua2_emulate_smoke.py`](tests/test_qua2_emulate_smoke.py) exercises `emulate_waveform_runner.py` and the harness's schedule canonicalizer against a synthetic QUA 2 fixture ([`tests/fixtures/qua2_emulate_smoke_program.py`](tests/fixtures/qua2_emulate_smoke_program.py)) — fully offline, independent of any real QCA script or the CS rack. It also checks the QUA 1 vs QUA 2 comparison against that fixture's QUA 1 twin ([`tests/fixtures/qua1_emulate_smoke_program.py`](tests/fixtures/qua1_emulate_smoke_program.py)). The twin is checked in as its `export_qua_proto.py` envelope (`qua1_emulate_smoke_program.proto.json`), so CI needs no qm-qua 1.x; the regenerate command is in the fixture's docstring. CI job: `qua2-emulate-smoke`.
 
 ## Results
 

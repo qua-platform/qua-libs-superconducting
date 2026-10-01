@@ -1,4 +1,10 @@
-"""Compare migrated QCA script simulations against qua-libs baseline waveform reports."""
+"""Compare migrated QCA scripts against their qua-libs baseline.
+
+Default: both sides through `qmm.simulate()`, diffing waveform reports. With
+`--baseline-backend emulate --migrated-backend emulate`, both sides go through
+`QuaEvaluator` (baseline as QUA 1 via `export_qua_proto.py`, migrated as QUA 2) and the
+pulse schedules are diffed instead.
+"""
 
 from __future__ import annotations
 
@@ -26,6 +32,8 @@ RUNNER_BY_BACKEND = {
     "simulate": REPO_ROOT / "scripts" / "simulate_waveform_runner.py",
     "emulate": REPO_ROOT / "scripts" / "emulate_waveform_runner.py",
 }
+EXPORT_RUNNER = REPO_ROOT / "scripts" / "export_qua_proto.py"
+SCHEDULE_KINDS = ("PlayEntry", "MeasureEntry")
 
 
 def _round_value(value: Any, precision: int = 6) -> Any:
@@ -161,7 +169,7 @@ def waveform_counts(report: dict[str, Any]) -> dict[str, int]:
 def _canonical_schedule_entry(entry: dict[str, Any], relative_ts: int | None) -> str:
     ts = relative_ts if relative_ts is not None else entry.get("start_time_ns")
     parts = [
-        "schedule",
+        "measure" if entry.get("kind") == "MeasureEntry" else "play",
         f"element={entry.get('element')}",
         f"pulse={entry.get('pulse')}",
         f"timestamp={ts}",
@@ -179,11 +187,13 @@ def canonical_schedule_lines(report: dict[str, Any]) -> list[str]:
     """Canonicalize an `emulate_waveform_runner.py` report (`state.sequence`) into
     lines comparable in spirit to `canonical_waveform_lines`.
 
-    Only `PlayEntry` items are included (schedule-structure comparison, per
-    docs/plans caveats — the emulator does not model ADC/measurement results, so
-    there is no counterpart to `canonical_waveform_lines`' "adc" category).
+    Only `PlayEntry` / `MeasureEntry` items are included. Waits, aligns, and QUA 2 shot
+    markers are left out: their effect shows up in the relative timestamps, while their
+    count differs between dialects (QUA 2 inserts implicit aligns around shots/loops).
+    The evaluator does not model ADC/measurement results, so there is no counterpart to
+    `canonical_waveform_lines`' "adc" category.
     """
-    play_entries = [e for e in (report.get("sequence") or []) if e.get("kind") == "PlayEntry"]
+    play_entries = [e for e in (report.get("sequence") or []) if e.get("kind") in SCHEDULE_KINDS]
     starts = [e.get("start_time_ns") for e in play_entries if isinstance(e.get("start_time_ns"), (int, float))]
     min_ts = min(starts) if starts else None
 
@@ -196,10 +206,11 @@ def canonical_schedule_lines(report: dict[str, Any]) -> list[str]:
 
 
 def schedule_counts(report: dict[str, Any]) -> dict[str, int]:
-    counts: dict[str, int] = {}
+    counts = {kind: 0 for kind in SCHEDULE_KINDS}
     for entry in report.get("sequence") or []:
-        kind = entry.get("kind", "Unknown")
-        counts[kind] = counts.get(kind, 0) + 1
+        kind = entry.get("kind")
+        if kind in counts:
+            counts[kind] += 1
     return counts
 
 
@@ -219,6 +230,25 @@ def counts_for_backend(report: dict[str, Any], backend: str) -> dict[str, int]:
     raise ValueError(f"Unknown backend: {backend!r}")
 
 
+def _override_args(overrides: list[str] | None) -> list[str]:
+    return [arg for item in overrides or [] for arg in ("--set", item)]
+
+
+def _run(cmd: list[str], *, runner_cmd: str, cwd: Path, label: str) -> None:
+    env = os.environ.copy()
+    # Avoid inherited uv venv confusing Poetry's Python selection in qua-libs.
+    if "poetry" in runner_cmd:
+        env.pop("VIRTUAL_ENV", None)
+        env.pop("UV_PROJECT_ENVIRONMENT", None)
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False, env=env)
+    if proc.returncode != 0:
+        raise RuntimeError(f"{label}:\n{proc.stderr or proc.stdout}")
+
+
+def _emulate_length_ns(duration: int, emulate_length_ns: int | None) -> int:
+    return emulate_length_ns if emulate_length_ns is not None else duration * 4
+
+
 def run_side(
     *,
     backend: str,
@@ -228,30 +258,61 @@ def run_side(
     output_path: Path,
     duration: int,
     emulate_length_ns: int | None,
+    overrides: list[str] | None = None,
 ) -> dict[str, Any]:
     runner_path = RUNNER_BY_BACKEND[backend]
     cmd = [*shlex.split(runner_cmd), str(runner_path.resolve()), str(script_path.resolve())]
     if backend == "simulate":
         cmd += ["--duration", str(duration)]
     else:
-        length_ns = emulate_length_ns if emulate_length_ns is not None else duration * 4
-        cmd += ["--length-ns", str(length_ns)]
+        cmd += ["--length-ns", str(_emulate_length_ns(duration, emulate_length_ns))]
+        cmd += _override_args(overrides)
     cmd += ["--output", str(output_path.resolve())]
-    env = os.environ.copy()
-    # Avoid inherited uv venv confusing Poetry's Python selection in qua-libs.
-    if "poetry" in runner_cmd:
-        env.pop("VIRTUAL_ENV", None)
-        env.pop("UV_PROJECT_ENVIRONMENT", None)
-    proc = subprocess.run(
-        cmd,
-        cwd=runner_repo,
-        capture_output=True,
-        text=True,
-        check=False,
-        env=env,
+    _run(cmd, runner_cmd=runner_cmd, cwd=runner_repo, label=f"{backend} failed for {script_path.name}")
+    return json.loads(output_path.read_text(encoding="utf-8"))
+
+
+def run_baseline_emulate(
+    *,
+    export_runner_cmd: str,
+    export_repo: Path,
+    evaluator_runner_cmd: str,
+    evaluator_repo: Path,
+    script_path: Path,
+    envelope_path: Path,
+    output_path: Path,
+    duration: int,
+    emulate_length_ns: int | None,
+    overrides: list[str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate a baseline (QUA 1) script: build its program/config in the baseline env
+    with `export_qua_proto.py`, then evaluate the serialized bytes in this repo's env."""
+    export_cmd = [
+        *shlex.split(export_runner_cmd),
+        str(EXPORT_RUNNER.resolve()),
+        str(script_path.resolve()),
+        "--output",
+        str(envelope_path.resolve()),
+        *_override_args(overrides),
+    ]
+    _run(export_cmd, runner_cmd=export_runner_cmd, cwd=export_repo, label=f"export failed for {script_path.name}")
+
+    eval_cmd = [
+        *shlex.split(evaluator_runner_cmd),
+        str(RUNNER_BY_BACKEND["emulate"].resolve()),
+        str(envelope_path.resolve()),
+        "--from-proto",
+        "--length-ns",
+        str(_emulate_length_ns(duration, emulate_length_ns)),
+        "--output",
+        str(output_path.resolve()),
+    ]
+    _run(
+        eval_cmd,
+        runner_cmd=evaluator_runner_cmd,
+        cwd=evaluator_repo,
+        label=f"emulate failed for exported {script_path.name}",
     )
-    if proc.returncode != 0:
-        raise RuntimeError(f"{backend} failed for {script_path.name}:\n{proc.stderr or proc.stdout}")
     return json.loads(output_path.read_text(encoding="utf-8"))
 
 
@@ -290,7 +351,10 @@ def validate_script(
     results_dir: Path,
     duration: int,
     emulate_length_ns: int | None = None,
+    overrides: list[str] | None = None,
 ) -> dict[str, Any]:
+    if baseline_backend == "emulate" and migrated_backend != "emulate":
+        raise ValueError("--baseline-backend emulate requires --migrated-backend emulate")
     stem = Path(script_name).stem
     out_dir = results_dir / stem
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -315,6 +379,7 @@ def validate_script(
         output_path=migrated_report_path,
         duration=duration,
         emulate_length_ns=emulate_length_ns,
+        overrides=overrides,
     )
 
     blocked = migrated_report.get("_blocked")
@@ -332,15 +397,29 @@ def validate_script(
         (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
         return summary
 
-    baseline_report = run_side(
-        backend=baseline_backend,
-        runner_cmd=baseline_runner,
-        runner_repo=baseline_repo,
-        script_path=baseline_script,
-        output_path=baseline_report_path,
-        duration=duration,
-        emulate_length_ns=emulate_length_ns,
-    )
+    if baseline_backend == "emulate":
+        baseline_report = run_baseline_emulate(
+            export_runner_cmd=baseline_runner,
+            export_repo=baseline_repo,
+            evaluator_runner_cmd=migrated_runner,
+            evaluator_repo=migrated_repo,
+            script_path=baseline_script,
+            envelope_path=out_dir / "baseline_proto.json",
+            output_path=baseline_report_path,
+            duration=duration,
+            emulate_length_ns=emulate_length_ns,
+            overrides=overrides,
+        )
+    else:
+        baseline_report = run_side(
+            backend=baseline_backend,
+            runner_cmd=baseline_runner,
+            runner_repo=baseline_repo,
+            script_path=baseline_script,
+            output_path=baseline_report_path,
+            duration=duration,
+            emulate_length_ns=emulate_length_ns,
+        )
 
     baseline_lines, migrated_lines, diff = compare_reports(
         baseline_report,
@@ -354,8 +433,8 @@ def validate_script(
 
     baseline_counts = counts_for_backend(baseline_report, baseline_backend)
     migrated_counts = counts_for_backend(migrated_report, migrated_backend)
-    # Counts vocabularies only match when both sides use the same backend (today:
-    # always true for simulate/simulate; not meaningful across simulate/emulate).
+    # Counts vocabularies only match when both sides use the same backend
+    # (simulate/simulate or emulate/emulate; not meaningful across simulate/emulate).
     counts_comparable = baseline_backend == migrated_backend
     passed = diff == "" and (not counts_comparable or baseline_counts == migrated_counts)
 
@@ -365,6 +444,7 @@ def validate_script(
         "passed": passed,
         "baseline_backend": baseline_backend,
         "migrated_backend": migrated_backend,
+        "overrides": list(overrides or []),
         "timestamp": datetime.now(UTC).isoformat(),
         "baseline_counts": baseline_counts,
         "migrated_counts": migrated_counts,
@@ -401,9 +481,15 @@ def format_notes(summary: dict[str, Any], results_dir: Path) -> str:
 
     # emulate backend: schedule-structure comparison (no ADC/measurement counterpart)
     counts_str = ", ".join(f"{k}={v}" for k, v in sorted(bc.items())) or "no entries"
+    overrides = summary.get("overrides") or []
+    override_str = f" [{', '.join(overrides)}]" if overrides else ""
+    if summary.get("baseline_backend") == "emulate":
+        if summary["passed"]:
+            return f"evaluator QUA1 vs QUA2{override_str}; schedule matches baseline ({counts_str}); 0 diff lines"
+        return f"evaluator QUA1 vs QUA2{override_str}; schedule mismatch — see {diff_path}"
     if summary["passed"]:
         return f"emulate=True; schedule matches baseline structure ({counts_str}); 0 diff lines"
-    return f"emulate=True; schedule mismatch — see {diff_path}"
+    return f"emulate=True; schedule mismatch vs simulator baseline (formats differ) — see {diff_path}"
 
 
 def _print_folder_catalog() -> None:
@@ -469,8 +555,30 @@ def build_parser() -> argparse.ArgumentParser:
         default="simulate",
         help=(
             "Backend for the migrated (this-branch) side: 'simulate' (qmm.simulate(), "
-            "default) or 'emulate' (QuaEvaluator.evaluate(), QUA 2 branch). The baseline "
-            "side always uses 'simulate' (qua-libs has no emulator)."
+            "default) or 'emulate' (QuaEvaluator.evaluate(), QUA 2 branch). Combined with a "
+            "'simulate' baseline the two report formats differ, so the line diff cannot pass; "
+            "use --baseline-backend emulate for a real comparison."
+        ),
+    )
+    parser.add_argument(
+        "--baseline-backend",
+        choices=BACKENDS,
+        default="simulate",
+        help=(
+            "Backend for the baseline (qua-libs) side: 'simulate' (qmm.simulate(), default) or "
+            "'emulate' (build the program with --baseline-runner via export_qua_proto.py, then "
+            "evaluate it as QUA 1 with --migrated-runner). 'emulate' requires --migrated-backend "
+            "emulate and needs no CS rack."
+        ),
+    )
+    parser.add_argument(
+        "--set",
+        dest="overrides",
+        action="append",
+        metavar="NAME=EXPR",
+        help=(
+            "Emulate backends only: rewrite a top-level script assignment on both sides before "
+            "loading (repeatable), e.g. --set n_avg=2. The evaluator unrolls every loop iteration."
         ),
     )
     parser.add_argument(
@@ -538,6 +646,11 @@ def main() -> int:
         _print_folder_catalog()
         return 0
 
+    if args.baseline_backend == "emulate" and args.migrated_backend != "emulate":
+        parser.error("--baseline-backend emulate requires --migrated-backend emulate")
+    if args.overrides and "emulate" not in (args.baseline_backend, args.migrated_backend):
+        parser.error("--set only applies to emulate backends")
+
     scripts, baseline_root, baseline_repo, migrated_root, migrated_repo, results_dir = _resolve_run_config(args)
 
     if args.folder:
@@ -559,6 +672,7 @@ def main() -> int:
                 baseline_root=baseline_root,
                 baseline_repo=baseline_repo,
                 baseline_runner=args.baseline_runner,
+                baseline_backend=args.baseline_backend,
                 migrated_root=migrated_root,
                 migrated_repo=migrated_repo,
                 migrated_runner=args.migrated_runner,
@@ -566,6 +680,7 @@ def main() -> int:
                 results_dir=results_dir,
                 duration=args.duration,
                 emulate_length_ns=args.emulate_length_ns,
+                overrides=args.overrides,
             )
             summaries.append(summary)
             notes = format_notes(summary, results_dir)
@@ -585,7 +700,9 @@ def main() -> int:
 
     aggregate = {
         "folder": args.folder,
+        "baseline_backend": args.baseline_backend,
         "migrated_backend": args.migrated_backend,
+        "overrides": list(args.overrides or []),
         "passed": len(failures) == 0,
         "scripts": summaries,
         "failures": failures,

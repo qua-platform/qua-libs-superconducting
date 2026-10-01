@@ -28,7 +28,7 @@ Edit `../qua-libs-amo/AGENTS.md` (modality name), adapt `pyproject.toml` / `READ
 | `scripts/bootstrap_modality_repo.sh` | This bootstrap script |
 | `scripts/README.md` | Catalog of scripts in this directory |
 
-**Optional (Superconducting reference repo only):** `scripts/validate_simulation_baseline.py`, `scripts/validation_matrix.py`, `scripts/simulate_waveform_runner.py`, `scripts/emulate_waveform_runner.py`, `scripts/qca_script_loader.py` — automated waveform/schedule baseline comparison; the `simulate_waveform_runner.py` side requires sibling `../qua-libs` and CS rack access, the `emulate_waveform_runner.py` side (QUA 2 branch) does not.
+**Optional (Superconducting reference repo only):** `scripts/validate_simulation_baseline.py`, `scripts/validation_matrix.py`, `scripts/simulate_waveform_runner.py`, `scripts/emulate_waveform_runner.py`, `scripts/export_qua_proto.py`, `scripts/qca_script_loader.py` — automated waveform/schedule baseline comparison; the `simulate_waveform_runner.py` side requires sibling `../qua-libs` and CS rack access, the evaluator path (`emulate_waveform_runner.py` + `export_qua_proto.py`, QUA 2 branch) needs `../qua-libs` but no rack.
 | `Quantum-Control-Applications/Superconducting/qua_config_split.py` | → `{Modality}/qua_config_split.py` |
 | `tests/test_qca_migration_gates.py` | Portable CI grep gates |
 | `AGENTS.md` | Agent rules for any AI tool: QUA context (edit modality), changelog, scripts and migration checklists |
