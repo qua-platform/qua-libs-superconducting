@@ -1,6 +1,6 @@
 # %% {Imports}
-from qualibrate import QualibrationNode, NodeParameters
-from qua_libs_core.telemetry import instrument_calibration_node
+from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node, NodeParameters
 from quam_config import Quam
 
 description = """
@@ -9,9 +9,9 @@ description = """
 
 node = QualibrationNode[NodeParameters, Quam](
     name="00_close_other_qms", description=description, parameters=NodeParameters(), machine=Quam.load()
-)
 
 instrument_calibration_node(node, extra_attributes=["qubits"])
+)
 
 
 # %% {Close_all_quantum_machines}

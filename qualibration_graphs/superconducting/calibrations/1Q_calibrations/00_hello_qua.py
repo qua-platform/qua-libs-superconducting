@@ -24,9 +24,9 @@ description = """
 
 node = QualibrationNode[Parameters, Quam](
     name="00_hello_qua", description=description, parameters=Parameters(), machine=Quam.load()
-)
 
 instrument_calibration_node(node, extra_attributes=["qubits"])
+)
 
 
 # Any parameters that should change for debugging purposes only should go in here

@@ -89,15 +89,15 @@ Next steps before going to the next node:
 """
 
 node = QualibrationNode[Parameters, Quam](
-    name="23_measurement_induced_dephasing_matrix",
+    name="23a_measurement_induced_dephasing_matrix",
     description=description,
     parameters=Parameters(),
     machine=Quam.load(),
 )
 
+
+
 instrument_calibration_node(node, extra_attributes=["qubits"])
-
-
 # Any parameters that should change for debugging purposes only should go in here
 # These parameters are ignored when run through the GUI or as part of a graph
 @node.run_action(skip_if=node.modes.external)

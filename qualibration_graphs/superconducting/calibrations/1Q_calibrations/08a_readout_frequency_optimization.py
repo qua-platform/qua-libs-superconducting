@@ -40,7 +40,7 @@ Prerequisites:
 
 State update:
     - The readout frequency: qubit.resonator.f_01 & qubit.resonator.RF_frequency
-    - The dispersive shift: qubit.chi
+    - The dispersive shift: qubit.chi, and the node that wrote it: qubit.extras["chi_source"]
 """
 
 
@@ -51,9 +51,9 @@ node = QualibrationNode[Parameters, Quam](
     machine=Quam.load(),
 )
 
+
+
 instrument_calibration_node(node, extra_attributes=["qubits"])
-
-
 # Any parameters that should change for debugging purposes only should go in here
 # These parameters are ignored when run through the GUI or as part of a graph
 @node.run_action(skip_if=node.modes.external)
@@ -239,6 +239,7 @@ def update_state(node: QualibrationNode[Parameters, Quam]):
                 q.resonator.f_01 = node.results["fit_results"][q.name]["optimal_frequency"]
                 q.resonator.RF_frequency = node.results["fit_results"][q.name]["optimal_frequency"]
                 q.chi = node.results["fit_results"][q.name]["chi"]
+                q.extras["chi_source"] = node.name
 
 
 # %% {Save_results}
