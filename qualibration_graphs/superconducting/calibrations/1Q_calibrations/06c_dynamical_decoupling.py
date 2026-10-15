@@ -52,9 +52,9 @@ State update (one set of keys per sequence, shown here for CPMG):
 
 node = QualibrationNode[Parameters, Quam](
     name="06c_dynamical_decoupling", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 instrument_calibration_node(node, extra_attributes=["qubits"])
-)
 
 
 # Any parameters that should change for debugging purposes only should go in here

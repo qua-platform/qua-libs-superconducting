@@ -65,9 +65,9 @@ Ref: Hellings et al., arXiv:2503.04610 — long-timescale in-situ flux-line IIR.
 
 node = QualibrationNode[Parameters, Quam](
     name="17b_qubit_flux_long_distortion_ramsey", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 instrument_calibration_node(node, extra_attributes=["qubits"])
-)
 
 
 # %% {Custom_param}

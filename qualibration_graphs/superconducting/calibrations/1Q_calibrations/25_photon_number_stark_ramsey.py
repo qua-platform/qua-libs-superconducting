@@ -82,8 +82,9 @@ node = QualibrationNode[Parameters, Quam](
 )
 
 
-
 instrument_calibration_node(node, extra_attributes=["qubits"])
+
+
 @node.run_action(skip_if=node.modes.external)
 def custom_param(node: QualibrationNode[Parameters, Quam]) -> None:
     """Allow the user to locally set the node parameters for debugging purposes, or execution in the Python IDE."""

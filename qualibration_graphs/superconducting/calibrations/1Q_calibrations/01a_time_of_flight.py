@@ -54,9 +54,9 @@ State update:
 
 node = QualibrationNode[Parameters, Quam](
     name="01a_time_of_flight", description=description, parameters=Parameters(), machine=Quam.load()
+)
 
 instrument_calibration_node(node, extra_attributes=["qubits"])
-)
 
 
 # Any parameters that should change for debugging purposes only should go in here

@@ -4,6 +4,10 @@
 
 - Sync superconducting calibrations from `qua-platform/qua-libs` main (`7758a3b0`); re-applied `qua_libs_core.telemetry` on Qualibration nodes after upstream copy.
 
+### Fixed
+
+- Repair telemetry hook placement and run black on calibration nodes so CI formatting passes.
+
 ## [2026-09-25]
 
 ### Added
