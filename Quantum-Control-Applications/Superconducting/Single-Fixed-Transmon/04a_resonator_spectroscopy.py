@@ -18,7 +18,7 @@ Before proceeding to the next node:
 from qm.qua import *
 from qm import QuantumMachinesManager
 from qm import SimulationConfig
-from configuration_with_mw_fem import *  # PROTOTYPE: OPX1000 MW-FEM (CS_4), was `configuration`
+from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
 from qualang_tools.loops import from_array
