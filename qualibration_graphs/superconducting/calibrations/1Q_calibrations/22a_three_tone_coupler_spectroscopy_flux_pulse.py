@@ -19,6 +19,7 @@ from calibration_utils.three_tone_coupler_spectroscopy_flux_pulse import (
 from calibration_utils.three_tone_coupler_spectroscopy_flux_pulse.parameters import (
     resolve_coupler_rf_centers_by_pair,
 )
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
@@ -123,7 +124,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables(num_IQ_pairs=num_qubit_pairs)
         if node.parameters.use_state_discrimination:
             state = [declare(int) for _ in range(num_qubit_pairs)]
-            state_st = [declare_stream() for _ in range(num_qubit_pairs)]
+            state_st = [declare_output_stream() for _ in range(num_qubit_pairs)]
         df = declare(int)
 
         for multiplexed_qubit_pairs in qubit_pairs.batch():
@@ -230,8 +231,9 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """Execute the QUA program and fetch raw data."""
     qmm = node.machine.connect()
     config = node.machine.generate_config()
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(

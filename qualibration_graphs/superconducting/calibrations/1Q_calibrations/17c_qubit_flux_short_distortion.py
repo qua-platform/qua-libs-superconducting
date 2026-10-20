@@ -19,6 +19,7 @@ from calibration_utils.qubit_flux_short_distortion import (
     process_raw_dataset,
     resolve_flux_amplitudes,
 )
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
@@ -141,7 +142,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         I, I_st, Q, Q_st, n, n_st = node.machine.declare_qua_variables()
         if node.parameters.use_state_discrimination:
             state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
+            state_st = [declare_output_stream() for _ in range(num_qubits)]
         t_left_ns = declare(int)
         t_cycles = declare(int)
         idx = declare(int)
@@ -256,8 +257,9 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """
     qmm = node.machine.connect()
     config = node.namespace["baked_config"]
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(

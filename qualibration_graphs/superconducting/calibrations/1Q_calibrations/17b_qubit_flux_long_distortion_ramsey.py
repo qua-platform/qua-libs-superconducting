@@ -17,6 +17,7 @@ from calibration_utils.qubit_flux_long_distortion_ramsey import (
     plot_raw_data_with_fit,
     process_raw_dataset,
 )
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
@@ -142,8 +143,8 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
         I_ref, I_st_ref, Q_ref, Q_st_ref, _, _ = node.machine.declare_qua_variables()
         if node.parameters.use_state_discrimination:
             state = [declare(int) for _ in range(num_qubits)]
-            state_st = [declare_stream() for _ in range(num_qubits)]
-            state_st_ref = [declare_stream() for _ in range(num_qubits)]
+            state_st = [declare_output_stream() for _ in range(num_qubits)]
+            state_st_ref = [declare_output_stream() for _ in range(num_qubits)]
 
         frame = declare(fixed)
         t_delay = declare(int)
@@ -286,8 +287,9 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     frame_coords = node.namespace["sweep_axes"]["frame"].values
     ref_amplitudes = node.namespace["ref_amplitudes"]
 
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
 
         # The XarrayDataFetcher snapshots `ignore_handles` in its __init__
         # (it builds `self.reduce_results_keys` and the underlying

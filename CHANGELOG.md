@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Migrated 13 calibration nodes that arrived from `main` still on the pre-1.4.0 call shape (`qm_session(qmm, config)` / `qm.execute` without `config=logical_config`, and `declare_stream()`) to `split_qua_config` plus `declare_output_stream()`
 - Two-Flux-Tunable-Coupled-Transmons validation fixes: readout parity (`amplitude_scale=1` on inline `measure` in `08_qubit_spectroscopy_vs_flux_simultaneous.py` and `21_CZ.py`); nested 2D sweep streaming in `06_resonator_spectroscopy_vs_amplitude.py` (manual `qua_declaration` saves + stream buffers alongside iterables)
 - Two-Fixed-Coupled-Transmons extended simulation audit (~22 scripts): readout parity (`amplitude_scale=1` / `multiplexed_readout`), streaming/iterable migration fixes, and `12_T1` pulse-order correction; 21/22 pass vs baseline (`19a` non-parity: baseline uses localhost/mw_fem config)
 - Added `job.wait_until("Done")` before simulation result pulls in 3 Two-Fixed OPX1000 scripts; `simulate_waveform_runner.py` waits only for OPX1000 configs; grep gate `test_simulation_wait_until_before_samples_in_opx1000_qca`

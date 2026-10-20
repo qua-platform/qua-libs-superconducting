@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
 
 from qualang_tools.loops import from_array
@@ -189,11 +190,11 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
             n = declare(int)
             k = declare(int)
             a = declare(fixed)
-            n_st = declare_stream()
-            I_g_st = [declare_stream() for _ in range(num_qubits)]
-            Q_g_st = [declare_stream() for _ in range(num_qubits)]
-            I_e_st = [declare_stream() for _ in range(num_qubits)]
-            Q_e_st = [declare_stream() for _ in range(num_qubits)]
+            n_st = declare_output_stream()
+            I_g_st = [declare_output_stream() for _ in range(num_qubits)]
+            Q_g_st = [declare_output_stream() for _ in range(num_qubits)]
+            I_e_st = [declare_output_stream() for _ in range(num_qubits)]
+            Q_e_st = [declare_output_stream() for _ in range(num_qubits)]
             # Declared once for every qubit, up front, so the batch loop below only plays and
             # measures -- the same shape as `Ig[i]` in node 08b. qm-qua hoists every `declare`
             # to program scope wherever it is written, so this is a readability choice rather
@@ -283,9 +284,10 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     # than a freshly generated one.
     config = node.namespace["config"]
     # Execute the QUA program only if the quantum machine is available (this is to avoid interrupting running jobs).
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
         # The job is stored in the node namespace to be reused in the fetching_data run_action
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         # Display the progress bar
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:

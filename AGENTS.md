@@ -43,6 +43,10 @@ Related docs: [QUAM](https://qua-platform.github.io/quam/), [QUAlibrate](https:/
 
 [CHANGELOG.md](CHANGELOG.md) follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Before a commit, add user-visible work under `## [Unreleased]` (`Added` / `Changed` / `Fixed`, …). Skip whitespace-only or comment-only changes. Include `CHANGELOG.md` in the same commit as the functional change.
 
+## Commits
+
+Write a clear commit message with a subject line and a body. The subject says what changed, in one sentence. The body says why, and any constraint a later reader needs. Do not use a subject-only message.
+
 ## Superconducting validation
 
 See [`qua141_migration/VALIDATION.md`](qua141_migration/VALIDATION.md). Baseline: sibling `../qua-libs` branch `QL-1212-validation`. Harness lives in qua-libs-core; CS rack IPs stay in this repo’s VALIDATION.md.

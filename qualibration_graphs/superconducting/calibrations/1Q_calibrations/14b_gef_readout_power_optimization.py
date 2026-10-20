@@ -14,6 +14,7 @@ from calibration_utils.readout_gef_power_optimization import (
     plot_distances_with_fit,
     process_raw_dataset,
 )
+from calibration_utils.qua_config_split import split_qua_config
 from qm.qua import *
 from qualang_tools.loops import from_array
 from qualang_tools.multi_user import qm_session
@@ -162,8 +163,9 @@ def execute_qua_program(node: QualibrationNode[Parameters, Quam]):
     """Execute the QUA program and fetch raw data into ds_raw."""
     qmm = node.machine.connect()
     config = node.machine.generate_config()
-    with qm_session(qmm, config, timeout=node.parameters.timeout) as qm:
-        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"])
+    controller_config, logical_config = split_qua_config(config)
+    with qm_session(qmm, controller_config, timeout=node.parameters.timeout) as qm:
+        node.namespace["job"] = job = qm.execute(node.namespace["qua_program"], config=logical_config)
         data_fetcher = XarrayDataFetcher(job, node.namespace["sweep_axes"])
         for dataset in data_fetcher:
             progress_counter(
