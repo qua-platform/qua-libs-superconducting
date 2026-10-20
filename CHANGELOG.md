@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced deprecated QUA `amp()` pulse multiplication with `amplitude_scale` on `play`/`measure` across ~70 files (~150 occurrences): 68 QCA scripts, 4 shared `macros.py`, 2 qualibration files, 1 notebook, and 1 README; added `test_no_deprecated_amp.py` grep gate
 - Reran simulation baseline validation for Single-Fixed-Transmon, 3D-storage-cavity, and Single-Flux-Tunable-Transmon (15 scripts, all pass vs existing VALIDATION.md counts); completed first Two-Fixed-Coupled-Transmons validation run (5 scripts, all pass)
 - Completed Two-Flux-Tunable-Coupled-Transmons simulation validation (5 scripts, all pass vs qua-libs baseline); closes the 25-script Superconducting VALIDATION.md matrix
+- Reran the 25-script simulation baseline; `Single-Fixed-Transmon/04a_resonator_spectroscopy.py` no longer matches because it imports `configuration_with_mw_fem` while the baseline still uses `configuration.py`
 - Documented readout `amplitude_scale=None` vs `amplitude_scale=1` parity pitfall in migration guide and Cursor rules
 - Merged qua-libs `main` superconducting calibrations; added `uncertainties>=3.2.2` and kept Qiskit `>=2.3,<3.0` for Python 3.14
 

@@ -113,7 +113,7 @@ For these tests we used the OPX `CS_1_con1` (IP: 172.16.33.101).
 | Script | Iterables | Streaming API | Config split | `amplitude_scale` | Status | Notes |
 |--------|:---------:|:-------------:|:------------:|:-----------------:|:------:|-------|
 | `Single-Fixed-Transmon/00_hello_qua.py` | — | — | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (758 analog, 0 digital, 0 ADC); 0 diff lines |
-| `Single-Fixed-Transmon/04a_resonator_spectroscopy.py` | yes | yes | yes | — | pass | `simulate=True`; waveform report matches baseline (12 analog, 6 digital, 12 ADC); 0 diff lines |
+| `Single-Fixed-Transmon/04a_resonator_spectroscopy.py` | yes | yes | yes | — | fail | `simulate=True`; waveform mismatch — counts match (12 analog, 6 digital, 12 ADC) but 36 diff lines; migrated script imports `configuration_with_mw_fem` (CS_3 / OPX1000, `%mw_ranged` pulses, port 1) while the baseline uses `configuration.py` |
 | `Single-Fixed-Transmon/05_resonator_spectroscopy_vs_amplitude.py` | yes | yes | yes | yes (`measure`) | pass | `simulate=True`; waveform report matches baseline (12 analog, 6 digital, 12 ADC); 0 diff lines |
 | `Single-Fixed-Transmon/08b_power_rabi.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (4 analog, 1 digital, 2 ADC); 0 diff lines |
 | `Single-Fixed-Transmon/08c_power_rabi_error_amplification.py` | yes | yes | yes | yes (`play`) | pass | `simulate=True`; waveform report matches baseline (2 analog, 1 digital, 2 ADC); 0 diff lines |
