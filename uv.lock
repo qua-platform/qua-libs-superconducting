@@ -4489,27 +4489,15 @@ wheels = [
 
 [[package]]
 name = "qua-libs-core"
-version = "0.1.0"
-source = { git = "https://github.com/JacobFastQM/qua-libs-core.git#ff635c6fc58424e4f3dda734a72293b1384e6057" }
+version = "0.4.3"
+source = { git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314#c5b197ff8a296786dabacfe783b1b0cc359858fc" }
 dependencies = [
-    { name = "matplotlib", version = "3.10.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "matplotlib", version = "3.11.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "opentelemetry-api", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
     { name = "opentelemetry-api", version = "1.43.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
     { name = "opentelemetry-exporter-otlp", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
     { name = "opentelemetry-exporter-otlp", version = "1.43.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
     { name = "opentelemetry-sdk", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
     { name = "opentelemetry-sdk", version = "1.43.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
-    { name = "plotly" },
-    { name = "qm-qua" },
-    { name = "qm-saas" },
-    { name = "qualang-tools" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "uptrace", version = "1.27.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
     { name = "uptrace", version = "1.41.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
@@ -4539,6 +4527,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "black" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
@@ -4549,7 +4538,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "qm-qua", specifier = "==1.4.0" },
-    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git" },
+    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
     { name = "superconducting-calibrations", editable = "qualibration_graphs/superconducting" },
@@ -4558,6 +4547,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "black", specifier = ">=24.3,<25" },
+    { name = "pytest", specifier = ">=8.3.5" },
     { name = "ruff", specifier = ">=0.6,<1" },
 ]
 
@@ -5565,6 +5555,8 @@ dependencies = [
     { name = "qualibration-libs" },
     { name = "quam" },
     { name = "quam-builder" },
+    { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -5588,12 +5580,13 @@ requires-dist = [
     { name = "qiskit", specifier = ">=2.3,<3.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
     { name = "qm-qua", specifier = ">=1.4.0,<2.0" },
-    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git" },
+    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.5.0" },
     { name = "qualibration-libs", git = "https://github.com/qua-platform/qualibration-libs.git" },
     { name = "quam", specifier = ">=0.5.0a1" },
     { name = "quam-builder", git = "https://github.com/qua-platform/quam-builder.git" },
+    { name = "scikit-learn", specifier = ">=1.5.0" },
     { name = "scipy", specifier = ">=1.13.1" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.1" },
     { name = "tqdm", specifier = ">=4.67.1" },

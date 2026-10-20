@@ -3,6 +3,11 @@ calibrations.py: template for easily performing single qubit calibration protoco
 """
 
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_open_qm,
+    trace_qmm,
+)
 from configuration import *
 from qualang_tools.addons.calibration.calibrations import QUA_calibrations
 
@@ -66,8 +71,10 @@ scans_ramsey = [
 
 # Open communication with QOP
 #############################################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(controller_config)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qm = trace_open_qm(qmm.open_qm)(controller_config)
 
 # Run calibrations
 options = {
@@ -82,3 +89,5 @@ my_calib.simulate_calibrations(machine=qm, simulation_duration=5000)
 
 # Close the quantum machines at the end in order to put all flux biases to 0 so that the fridge doesn't heat-up
 qm.close()
+
+telemetry.end()

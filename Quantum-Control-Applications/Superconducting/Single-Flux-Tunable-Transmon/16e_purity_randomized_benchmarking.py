@@ -37,6 +37,9 @@ Prerequisites:
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+)
 from qm import SimulationConfig
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
@@ -70,6 +73,8 @@ save_data_dict = {
     "delta_clifford": delta_clifford,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 
 ###################################
@@ -165,3 +170,5 @@ def play_sequence(sequence_list, depth):
                 play("-x90", "qubit")
                 play("y90", "qubit")
                 play("-x90", "qubit")
+
+telemetry.end()

@@ -5,6 +5,14 @@ cryoscope.py: template for performing the cryoscope protocol.
 import scipy.io
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig, LoopbackInterface
 from configuration_SSB import *
 import matplotlib.pyplot as plt
@@ -155,18 +163,20 @@ with program() as cryoscope:
 #  Open Communication with the QOP  #
 #####################################
 
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port)
 
 simulation = False
 if simulation:
     simulation_config = SimulationConfig(
         duration=3000, simulation_interface=LoopbackInterface([("con1", 3, "con1", 1)])
     )
-    job = qmm.simulate(config, cryoscope, simulation_config)
-    job.get_simulated_samples().con1.plot()
+    job = trace_simulate(qmm.simulate)(config, cryoscope, simulation_config)
+    trace_get_simulated_samples(job.get_simulated_samples)().con1.plot()
 else:
-    qm = qmm.open_qm(controller_config)
-    job = qm.execute(cryoscope, config=logical_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
+    job = trace_execute(qm.execute)(cryoscope, config=logical_config)
     res_handles = job.result_handles
     I_handles = res_handles.get("I")
     Q_handles = res_handles.get("Q")
@@ -244,3 +254,5 @@ else:
         plt.legend(("exp", "theory"), loc="upper right")
         plt.show()
         plt.pause(0.1)
+
+telemetry.end()

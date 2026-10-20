@@ -1,5 +1,14 @@
 from qm.qua import *
 from qm import QuantumMachinesManager, SimulationConfig, generate_qua_script
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.results.data_handler import DataHandler
 from configuration import *
@@ -10,7 +19,9 @@ import time
 
 root_directory = "C:\\Users\\name\\Desktop\\QM_RB\\data_q1q2"  # change to your local directory
 data_handler = DataHandler(root_data_folder=root_directory)
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ##############################
 # Program-specific variables #
@@ -322,16 +333,16 @@ simulate = False
 if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
-    job = qmm.simulate(config, rb, simulation_config)
-    job.get_simulated_samples().con1.plot()
+    job = trace_simulate(qmm.simulate)(config, rb, simulation_config)
+    trace_get_simulated_samples(job.get_simulated_samples)().con1.plot()
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(controller_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(rb, config=logical_config)
+    job = trace_execute(qm.execute)(rb, config=logical_config)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["state1_avg", "state2_avg", "iteration", "state1"], mode="live")
+    results = trace_fetching(fetching_tool)(job, data_list=["state1_avg", "state2_avg", "iteration", "state1"], mode="live")
 
     state1_avg, state2_avg, iteration, state = results.fetch_all()
 
@@ -340,3 +351,5 @@ else:
     ydata = state1_avg
 
     qm.close()
+
+telemetry.end()

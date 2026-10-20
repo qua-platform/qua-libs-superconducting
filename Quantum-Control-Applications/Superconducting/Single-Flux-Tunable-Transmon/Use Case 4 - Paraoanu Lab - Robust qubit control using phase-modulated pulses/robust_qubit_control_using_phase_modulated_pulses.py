@@ -2,6 +2,14 @@ from configuration import *
 from qm.qua import *
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig
 from qualang_tools.results import progress_counter, fetching_tool
 from qualang_tools.plot import interrupt_on_close
@@ -128,7 +136,9 @@ with program() as rabi_amp_freq:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 #######################
 # Simulate or execute #
@@ -139,12 +149,14 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, rabi_amp_freq, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, rabi_amp_freq, simulation_config)
     # Plot the simulated samples
-    job.get_simulated_samples().con1.plot()
+    trace_get_simulated_samples(job.get_simulated_samples)().con1.plot()
 
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(controller_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(rabi_amp_freq, config=logical_config)
+    job = trace_execute(qm.execute)(rabi_amp_freq, config=logical_config)
+
+telemetry.end()

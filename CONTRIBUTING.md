@@ -11,15 +11,33 @@ example, ask a question, or propose something to add.
 
 ## Contributing code
 
-1. Fork the repository and create a branch.
+Daily work lands on **`develop`**. `main` is updated only by merging `develop`
+when a batch of work is ready to publish.
+
+1. Fork the repository (or use a clone) and create a branch from `develop`.
 2. Make your changes.
 3. Run the checks under *Development* below.
-4. Open a Pull Request back to the main repository.
+4. Open a Pull Request targeting **`develop`**.
 5. A maintainer reviews it and merges once it's ready. Ask for help at any step.
 
-### Changelog
+Do not push commits directly to `main`. Do not rebase or force-push `main`.
 
-Notable changes belong in [CHANGELOG.md](CHANGELOG.md) under `## [Unreleased]`, following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Include changelog updates in the same PR or commit as the change they describe.
+## Merging to main
+
+This repository is not a versioned PyPI package. Promoting work still goes
+through a Pull Request **`develop` → `main`**.
+
+1. On `develop`, move notes from `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md)
+   into a new `## [YYYY-MM-DD]` section with a non-empty body.
+2. Open a Pull Request **`develop` → `main`**. Merge it once CI is green. The
+   `changelog` job (PRs and pushes to `main` only) requires `CHANGELOG.md` to
+   differ from current `main` and to add that dated section.
+
+## Changelog
+
+Keep [`CHANGELOG.md`](CHANGELOG.md) in Keep a Changelog style. Accumulate work
+under `## [Unreleased]` on `develop`. Each merge to `main` needs a new dated
+heading; the `changelog` CI job fails without one.
 
 ## Development
 
@@ -57,7 +75,13 @@ uv run ruff check --fix .   # apply safe fixes
 The QUA `from qm.qua import *` idiom and single-letter physics names (`I`, `Q`,
 …) are intentionally ignored; see `[tool.ruff]` in `pyproject.toml`.
 
-### Calibration package — `qualibration_graphs/superconducting`
+### Tests
+
+Repo-root checks (changelog gate):
+
+```
+uv run pytest tests
+```
 
 The installable calibration package has its own build and tests:
 

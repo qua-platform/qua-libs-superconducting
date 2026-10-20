@@ -17,6 +17,15 @@ Before proceeding to the next node:
 from qm.qua import *
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
@@ -60,6 +69,8 @@ save_data_dict = {
     "dcs": dcs,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -113,7 +124,7 @@ with program() as multi_qubit_spec_vs_flux:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -125,9 +136,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, multi_qubit_spec_vs_flux, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, multi_qubit_spec_vs_flux, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -139,14 +150,14 @@ if simulate:
     plt.show()
 else:
     # Open a quantum machine to execute the QUA program
-    qm = qmm.open_qm(controller_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(multi_qubit_spec_vs_flux, config=logical_config)
+    job = trace_execute(qm.execute)(multi_qubit_spec_vs_flux, config=logical_config)
     # Prepare the figure for live plotting
     fig = plt.figure()
     interrupt_on_close(fig, job)
     # Tool to easily fetch results from the OPX (results_handle used in it)
-    results = fetching_tool(job, ["n", "I1", "Q1", "I2", "Q2"], mode="live")
+    results = trace_fetching(fetching_tool)(job, ["n", "I1", "Q1", "I2", "Q2"], mode="live")
     # Live plotting
     while results.is_processing():
         # Fetch results
@@ -198,3 +209,5 @@ else:
     save_data_dict.update({"fig_live": fig})
     data_handler.additional_files = {script_name: script_name, **default_additional_files}
     data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- QCA scripts and qualibration calibration nodes now carry `qua_libs_core.telemetry` instrumentation (`trace_open_qm`, `trace_execute`, `trace_simulate`, `trace_fetching`, etc.) on top of the QUA 1.4.0 config-split call sites, merged in from `main`
 - QUA 1.3.1 / 1.4.0 migration runbook ([docs/plans/qua-1.4.0-migration-runbook.md](docs/plans/qua-1.4.0-migration-runbook.md)) — step-by-step playbook for all QCA modalities, repo bootstrap, and pre-AI checklist
 - Modality fork bootstrap manifest ([docs/bootstrap/MANIFEST.md](docs/bootstrap/MANIFEST.md)) and `scripts/bootstrap_modality_repo.sh`
 - Portable QCA migration grep gates ([tests/test_qca_migration_gates.py](tests/test_qca_migration_gates.py)); CI job `qca-migration-gates`
@@ -70,3 +71,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Transitional merged `config` alias in configuration files (kept for simulation and data export until a follow-up removal)
 
+## [2026-09-25]
+
+### Added
+
+- Instrument QCA scripts and Qualibrate nodes with `qua_libs_core.telemetry`.
+- Pin `qua-libs-core` to PyPI `>=0.3.0,<0.4`.
+- `develop` integration branch, CI on `develop` and `main`, and a changelog check on merges to `main`.

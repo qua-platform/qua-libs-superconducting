@@ -13,6 +13,12 @@ Before proceeding to the next node, take the following steps:
 """
 
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+    trace_qmm,
+)
 from qm.qua import *
 from configuration import *
 
@@ -33,10 +39,12 @@ with program() as cw_output:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(controller_config)
+telemetry = start_qca_telemetry(__file__)
 
-job = qm.execute(cw_output, config=logical_config)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qm = trace_open_qm(qmm.open_qm)(controller_config)
+
+job = trace_execute(qm.execute)(cw_output, config=logical_config)
 
 # When done, the halt command can be called and the offsets can be written directly into the config file.
 
@@ -114,3 +122,5 @@ job = qm.execute(cw_output, config=logical_config)
 #     plt.ylabel("Phase imbalance [rad]")
 #     plt.title(f"Minimum at (I={centers[0]:.3f}, Q={centers[1]:.3f}) = {image[minimum[0]][minimum[1]]:.1f} dBm")
 # plt.suptitle(f"Image cancellation for {element}")
+
+telemetry.end()

@@ -7,6 +7,7 @@ from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.ramsey_vs_coupler_flux import (
@@ -45,6 +46,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 @node.run_action(skip_if=node.modes.external)
@@ -246,7 +249,8 @@ def update_state(node: QualibrationNode[Parameters, Quam]):
             measured_qubit_name = (
                 qp.qubit_control.name if node.parameters.measure_qubit == "control" else qp.qubit_target.name
             )
-            node.machine.qubits[measured_qubit_name].extras[f"{qp.coupler.name}_dispersion_load_id"] = node.snapshot_idx
+            extras = node.machine.qubits[measured_qubit_name].extras
+            extras[f"{qp.coupler.name}_ramsey_vs_coupler_load_id"] = node.snapshot_idx
 
 
 # %% {Save_results}

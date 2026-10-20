@@ -5,6 +5,10 @@ enough, gives the parameters needed for active reset
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_qmm,
+)
 from configuration import *
 from TwoStateDiscriminator import TwoStateDiscriminator
 import seaborn as sns
@@ -14,7 +18,9 @@ import matplotlib.pyplot as plt
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(qop_ip, qop_port, octave=octave_config)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(qop_ip, qop_port, octave=octave_config)
 
 ###################
 # The QUA program #
@@ -82,3 +88,5 @@ discriminator = TwoStateDiscriminator(
 
 
 discriminator.train(program=training, plot=True, dry_run=True, correction_method="robust")
+
+telemetry.end()

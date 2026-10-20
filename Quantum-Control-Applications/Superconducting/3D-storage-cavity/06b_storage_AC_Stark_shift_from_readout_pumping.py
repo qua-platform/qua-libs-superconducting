@@ -21,6 +21,15 @@ Prerequisites:
 from qm.qua import *
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig
 from configuration import *
 from qualang_tools.results import progress_counter, fetching_tool
@@ -53,6 +62,8 @@ save_data_dict = {
     "dfs": dfs,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -96,7 +107,7 @@ with program() as storage_AC_stark_shift:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -107,9 +118,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, storage_AC_stark_shift, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, storage_AC_stark_shift, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -120,11 +131,11 @@ if simulate:
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 else:
     # Open the quantum machine
-    qm = qmm.open_qm(controller_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
     # Send the QUA program to the OPX, which compiles and executes it
-    job = qm.execute(storage_AC_stark_shift, config=logical_config)
+    job = trace_execute(qm.execute)(storage_AC_stark_shift, config=logical_config)
     # Get results from QUA program
-    results = fetching_tool(job, data_list=["I", "Q", "state", "iteration"], mode="live")
+    results = trace_fetching(fetching_tool)(job, data_list=["I", "Q", "state", "iteration"], mode="live")
     # Live plotting
     fig1, ax1 = plt.subplots(2, 1)
     fig2, ax2 = plt.subplots(1, 1)
@@ -168,3 +179,5 @@ else:
     save_data_dict.update({"fig2_live": fig2})
     data_handler.additional_files = {script_name: script_name, **default_additional_files}
     data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

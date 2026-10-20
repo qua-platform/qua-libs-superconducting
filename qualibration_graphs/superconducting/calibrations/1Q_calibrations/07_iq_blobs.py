@@ -1,7 +1,6 @@
 # %% {Imports}
 import matplotlib.pyplot as plt
 import numpy as np
-from calibration_utils.iq_blobs.plotting import plot_historams
 from calibration_utils.qua_config_split import split_qua_config
 import xarray as xr
 from dataclasses import asdict
@@ -14,6 +13,7 @@ from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.iq_blobs import (
     Parameters,
@@ -23,6 +23,7 @@ from calibration_utils.iq_blobs import (
     plot_iq_blobs,
     plot_confusion_matrices,
 )
+from calibration_utils.iq_blobs.plotting import plot_histograms
 from qualibration_libs.parameters import get_qubits
 from qualibration_libs.runtime import simulate_and_plot
 from qualibration_libs.data import XarrayDataFetcher
@@ -57,6 +58,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),  # Node parameters defined under quam_experiment/experiments/node_name
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here
@@ -243,13 +246,17 @@ def plot_data(node: QualibrationNode[Parameters, Quam]):
     """
     fig_iq = plot_iq_blobs(node.results["ds_raw"], node.namespace["qubits"], node.results["ds_fit"])
     fig_confusion = plot_confusion_matrices(node.results["ds_raw"], node.namespace["qubits"], node.results["ds_fit"])
-    fig_histogram = plot_historams(node.results["ds_raw"], node.namespace["qubits"], node.results["ds_fit"])
+    fig_histogram = plot_histograms(node.results["ds_raw"], node.namespace["qubits"], node.results["ds_fit"])
+    fig_histogram_log = plot_histograms(
+        node.results["ds_raw"], node.namespace["qubits"], node.results["ds_fit"], log_scale=True
+    )
     plt.show()
     # Store the generated figures
     node.results["figures"] = {
         "iq_blobs": fig_iq,
         "confusion_matrix": fig_confusion,
         "histograms": fig_histogram,
+        "histograms_log": fig_histogram_log,
     }
 
 

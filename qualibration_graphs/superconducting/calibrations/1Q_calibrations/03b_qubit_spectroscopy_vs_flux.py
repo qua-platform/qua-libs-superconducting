@@ -11,6 +11,7 @@ from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.qubit_spectroscopy_vs_flux import (
@@ -39,6 +40,8 @@ Prerequisites:
 State update:
     - The qubit 0->1 frequency at the set flux point: qubit.f_01 & qubit.xy.RF_frequency
     - The flux bias corresponding to the set flux point: q.z.independent_offset or q.z.joint_offset.
+    - If save_load_id=True: this run's snapshot index in qubit.extras["qubit_spectroscopy_vs_flux_load_id"],
+      so nodes such as 17a can reload the freq-vs-flux curve without being given a run ID.
 """
 
 
@@ -48,6 +51,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here
@@ -242,6 +247,8 @@ def update_state(node: QualibrationNode[Parameters, Quam]):
     """Update the relevant parameters if the qubit data analysis was successful."""
     with node.record_state_updates():
         for q in node.namespace["qubits"]:
+            if node.parameters.save_load_id:
+                node.machine.qubits[q.name].extras["qubit_spectroscopy_vs_flux_load_id"] = node.snapshot_idx
             if node.outcomes[q.name] == "failed":
                 continue
             else:

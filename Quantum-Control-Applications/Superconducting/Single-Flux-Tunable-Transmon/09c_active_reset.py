@@ -20,6 +20,14 @@ Prerequisites:
 
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm import SimulationConfig, LoopbackInterface
 from configuration import *
 from qualang_tools.analysis.discriminator import two_state_discriminator
@@ -48,6 +56,8 @@ save_data_dict = {
     "n_shot": n_shot,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 
 ###################################
@@ -226,7 +236,7 @@ with program() as active_reset_prog:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 simulation = False
 if simulation:
@@ -234,9 +244,9 @@ if simulation:
         duration=28000, simulation_interface=LoopbackInterface([("con1", 3, "con1", 1)])
     )
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, active_reset_prog, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, active_reset_prog, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -246,8 +256,8 @@ if simulation:
     # Visualize and save the waveform report
     waveform_report.create_plot(samples, plot=True, save_path=str(Path(__file__).resolve()))
 else:
-    qm = qmm.open_qm(controller_config)
-    job = qm.execute(active_reset_prog, config=logical_config)
+    qm = trace_open_qm(qmm.open_qm)(controller_config)
+    job = trace_execute(qm.execute)(active_reset_prog, config=logical_config)
     # Creates a result handle to fetch data from the OPX
     res_handles = job.result_handles
     # Waits (blocks the Python console) until all results have been acquired
@@ -275,3 +285,5 @@ else:
     save_data_dict.update({"two_state_discriminator": [angle, threshold, fidelity, gg, ge, eg, ee]})
     data_handler.additional_files = {script_name: script_name, **default_additional_files}
     data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

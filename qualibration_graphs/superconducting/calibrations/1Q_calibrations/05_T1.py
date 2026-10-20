@@ -12,6 +12,7 @@ from qualang_tools.units import unit
 from qualang_tools.results import progress_counter
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from qualibration_libs.data import XarrayDataFetcher
 from qualibration_libs.parameters import get_qubits, get_idle_times_in_clock_cycles
@@ -49,6 +50,8 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),  # Node parameters defined under quam_experiment/experiments/node_name
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

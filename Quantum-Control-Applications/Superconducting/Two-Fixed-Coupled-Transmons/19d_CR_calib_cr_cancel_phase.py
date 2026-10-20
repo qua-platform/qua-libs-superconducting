@@ -50,6 +50,15 @@ Reference: Sarah Sheldon, Easwar Magesan, Jerry M. Chow, and Jay M. Gambetta Phy
 from qm.qua import *
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from configuration import *
 import matplotlib.pyplot as plt
 from qm import SimulationConfig
@@ -114,6 +123,8 @@ save_data_dict = {
     "n_avg": n_avg,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 
 ###################
@@ -219,7 +230,7 @@ with program() as PROGRAM:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -230,9 +241,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=3_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, PROGRAM, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, PROGRAM, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -244,15 +255,15 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(controller_config)
+        qm = trace_open_qm(qmm.open_qm)(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM, config=logical_config)
+        job = trace_execute(qm.execute)(PROGRAM, config=logical_config)
         # Prepare the figure for live plotting
         fig, axss = plt.subplots(3, 4, figsize=(12, 9), sharex=True, sharey=True)
         interrupt_on_close(fig, job)
         # Tool to easily fetch results from the OPX (results_handle used in it)
         fetch_names = ["n", "I1", "Q1", "state1", "I2", "Q2", "state2"]
-        results = fetching_tool(job, fetch_names, mode="live")
+        results = trace_fetching(fetching_tool)(job, fetch_names, mode="live")
         # Live plotting
         while results.is_processing():
             # Fetch results
@@ -317,3 +328,5 @@ else:
         qm.close()
         print("Experiment QM is now closed")
         plt.show(block=True)
+
+telemetry.end()

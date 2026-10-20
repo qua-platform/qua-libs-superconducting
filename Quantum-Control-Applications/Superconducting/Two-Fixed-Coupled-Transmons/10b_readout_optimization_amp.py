@@ -16,6 +16,15 @@ Next steps before going to the next node:
 """
 
 from qm import QuantumMachinesManager, SimulationConfig
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_get_simulated_samples,
+    trace_open_qm,
+    trace_qmm,
+    trace_simulate,
+)
 from qm.qua import *
 from qm.qua.extensions import QuaIterable, QuaIterableRange
 from configuration import *
@@ -43,6 +52,8 @@ save_data_dict = {
     "scalings": scalings,
     "config": config,
 }
+
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
 
 ###################
 # The QUA program #
@@ -84,7 +95,7 @@ with program() as PROGRAM:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 ###########################
 # Run or Simulate Program #
@@ -96,9 +107,9 @@ if simulate:
     # Simulates the QUA program for the specified duration
     simulation_config = SimulationConfig(duration=10_000)  # In clock cycles = 4ns
     # Simulate blocks python until the simulation is done
-    job = qmm.simulate(config, PROGRAM, simulation_config)
+    job = trace_simulate(qmm.simulate)(config, PROGRAM, simulation_config)
     # Get the simulated samples
-    samples = job.get_simulated_samples()
+    samples = trace_get_simulated_samples(job.get_simulated_samples)()
     # Plot the simulated samples
     samples.con1.plot()
     # Get the waveform report object
@@ -110,10 +121,10 @@ if simulate:
 else:
     try:
         # Open the quantum machine
-        qm = qmm.open_qm(controller_config)
+        qm = trace_open_qm(qmm.open_qm)(controller_config)
         # Send the QUA program to the OPX, which compiles and executes it
-        job = qm.execute(PROGRAM, config=logical_config)
-        results = fetching_tool(job, data_list=["iteration"], mode="live")
+        job = trace_execute(qm.execute)(PROGRAM, config=logical_config)
+        results = trace_fetching(fetching_tool)(job, data_list=["iteration"], mode="live")
         # Get progress counter to monitor runtime of the program
         while results.is_processing():
             # Fetch results
@@ -122,7 +133,7 @@ else:
             progress_counter(iteration[0], len(scalings), start_time=results.get_start_time())
 
         # Fetch the results at the end
-        results = fetching_tool(job, ["I_g_q0", "Q_g_q0", "I_e_q0", "Q_e_q0", "I_g_q1", "Q_g_q1", "I_e_q1", "Q_e_q1"])
+        results = trace_fetching(fetching_tool)(job, ["I_g_q0", "Q_g_q0", "I_e_q0", "Q_e_q0", "I_g_q1", "Q_g_q1", "I_e_q1", "Q_e_q1"])
         I_g_q1, Q_g_q1, I_e_q1, Q_e_q1, I_g_q2, Q_g_q2, I_e_q2, Q_e_q2 = results.fetch_all()
         # Process the data
         fidelity_vec = [[], []]
@@ -180,3 +191,5 @@ else:
         qm.close()
         print("Experiment QM is now closed")
         plt.show(block=True)
+
+telemetry.end()

@@ -5,6 +5,13 @@ SWAP_spectroscopy.py: program performing a SWAP spectroscopy used to calibrate t
 from qm.qua import *
 from configuration import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_open_qm,
+    trace_qmm,
+)
 import matplotlib.pyplot as plt
 import numpy as np
 from qualang_tools.bakery import baking
@@ -117,13 +124,15 @@ with program() as SWAP_spectroscopy:
 #####################################
 #  Open Communication with the QOP  #
 #####################################
-qmm = QuantumMachinesManager(host="192.168.88.10", port="80")
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host="192.168.88.10", port="80")
 # Open quantum machine
-qm = qmm.open_qm(controller_config)
+qm = trace_open_qm(qmm.open_qm)(controller_config)
 # Execute QUA program
-job = qm.execute(SWAP_spectroscopy, config=logical_config)
+job = trace_execute(qm.execute)(SWAP_spectroscopy, config=logical_config)
 # Get results from QUA program
-results = fetching_tool(job, data_list=["state", "iteration"], mode="live")
+results = trace_fetching(fetching_tool)(job, data_list=["state", "iteration"], mode="live")
 # Live plotting
 fig = plt.figure()
 interrupt_on_close(fig, job)  # Interrupts the job when closing the figure
@@ -139,3 +148,5 @@ while results.is_processing():
     plt.xlabel("Flux pulse time [ns]")
     plt.ylabel("Flux voltage wrt sweet spot [V]")
     plt.title("02-11 conditional on q1, measurement on q0")
+
+telemetry.end()

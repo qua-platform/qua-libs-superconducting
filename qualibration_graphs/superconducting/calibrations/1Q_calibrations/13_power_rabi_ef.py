@@ -20,6 +20,7 @@ from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from qualibration_libs import data
 from qualibration_libs.data import XarrayDataFetcher
 from qualibration_libs.parameters import get_qubits
@@ -52,6 +53,8 @@ node = QualibrationNode[EfParameters, Quam](
     parameters=EfParameters(),  # EF-specific parameters set
     machine=Quam.load(),
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

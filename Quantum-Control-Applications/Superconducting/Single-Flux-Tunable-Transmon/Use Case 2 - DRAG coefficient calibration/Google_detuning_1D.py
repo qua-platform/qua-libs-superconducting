@@ -1,6 +1,12 @@
 from qm.qua import *
 from configuration import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_open_qm,
+    trace_qmm,
+)
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
@@ -67,7 +73,9 @@ with program() as drag_fine:
         n_st.save("iteration")
         state_st.boolean_to_int().average().save("state")
 
-qmm = QuantumMachinesManager(host="192.168.88.10", port=80)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host="192.168.88.10", port=80)
 
 xaxis = []
 yaxis = []
@@ -84,9 +92,9 @@ for j in range(-50, 50):
     config["waveforms"]["x180_wf"]["samples"] = x180_wf.tolist()
     config["waveforms"]["x180_der_wf"]["samples"] = x180_der_wf.tolist()
 
-    qm = qmm.open_qm(controller_config, close_other_machines=False)
+    qm = trace_open_qm(qmm.open_qm)(controller_config, close_other_machines=False)
 
-    job = qm.execute(drag_fine, config=logical_config)
+    job = trace_execute(qm.execute)(drag_fine, config=logical_config)
     res_handles = job.result_handles
     I_handle = res_handles.get("I")
     Q_handle = res_handles.get("Q")
@@ -122,3 +130,5 @@ for j in range(-50, 50):
 
 plt.plot(xaxis, yaxis)
 np.savez("fine_det.npz", xaxis, yaxis)
+
+telemetry.end()

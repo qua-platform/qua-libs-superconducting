@@ -12,6 +12,7 @@ from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.qua_config_split import split_qua_config
 from calibration_utils.T2echo import (
@@ -46,6 +47,8 @@ Next steps before going to the next node:
 node = QualibrationNode[Parameters, Quam](
     name="06b_echo", description=description, parameters=Parameters(), machine=Quam.load()
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

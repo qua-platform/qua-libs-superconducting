@@ -1,6 +1,7 @@
 import numpy as np
 from qm import SimulationConfig, LoopbackInterface
 from qm.qua import *
+from qua_libs_core.telemetry import trace_execute, trace_open_qm
 
 
 # Todo - Replace by the known delay, maybe also not needed (reset phase)
@@ -85,9 +86,9 @@ class TimeDiffCalibrator:
 
         freq = res_freq
 
-        qm = qmm.open_qm(TimeDiffCalibrator._default_config(freq, con_name))
+        qm = trace_open_qm(qmm.open_qm)(TimeDiffCalibrator._default_config(freq, con_name))
 
-        job = qm.execute(cal_phase, config=logical_config)
+        job = trace_execute(qm.execute)(cal_phase, config=logical_config)
 
         job.result_handles.wait_for_all_values()
         adc1 = job.result_handles.adc_input1.fetch_all()["value"]

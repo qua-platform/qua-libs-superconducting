@@ -1,4 +1,5 @@
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import trace_qmm
 from qm.qua import *
 from qm.simulate import SimulationConfig
 
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 from configuration import config, ge_IF, qubit_freq, disc_file_jpa
 from TwoStateDiscriminator_2103 import TwoStateDiscriminator
 
-qmm = QuantumMachinesManager()
+qmm = trace_qmm(QuantumMachinesManager)()
 discriminator = TwoStateDiscriminator(qmm, config, True, "rr", disc_file_jpa, lsb=True)
 
 

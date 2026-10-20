@@ -21,6 +21,7 @@ from qm.qua.extensions import QuaIterable, QuaIterableRange
 from qualang_tools.multi_user import qm_session
 from qualang_tools.results import progress_counter
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from qualibration_libs.data import XarrayDataFetcher
 from qualibration_libs.parameters import get_qubit_pairs
 from qualibration_libs.runtime import simulate_and_plot
@@ -50,6 +51,11 @@ Method
 3. Measure both qubits (state discrimination or raw IQ).
 4. Fit the 2D population map to a Rabi-Chevron model to extract the resonance amplitude and gate time.
 
+The chevron is also a check that flux-line predistortion is working. A corrected pulse
+gives a left–right symmetric fringe; uncorrected distortions make the chevron
+asymmetric (skewed about the resonance amplitude, or shearing with duration).
+See Rol et al., Appl. Phys. Lett. 116, 054001 (2020), arXiv:1907.04818, Figs. 2(b)–2(c).
+
 Prerequisites:
 - Calibrated single-qubit gates for both qubits in the pair.
 - Calibrated readout for both qubits.
@@ -66,10 +72,12 @@ State update:
 
 # Be sure to include [Parameters, Quam] so the node has proper type hinting
 node = QualibrationNode[Parameters, Quam](
-    name="31_chevron_1102",  # Name should be unique
+    name="31_chevron_11_20",  # Name should be unique
     description=description,  # Describe what the node is doing, which is also reflected in the QUAlibrate GUI
     parameters=Parameters(),  # Node parameters defined under calibration_utils/chevron_cz/parameters.py
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here
@@ -77,7 +85,6 @@ node = QualibrationNode[Parameters, Quam](
 @node.run_action(skip_if=node.modes.external)
 def custom_param(node: QualibrationNode[Parameters, Quam]):
     """Allow the user to locally set the node parameters for debugging purposes, or execution in the Python IDE."""
-    # node.parameters.qubit_pairs = ["q1-q2"]
     pass
 
 
@@ -100,7 +107,7 @@ def create_qua_program(node: QualibrationNode[Parameters, Quam]):
     qubit_roles_map = {}
     for qp in qubit_pairs:
         verify_moving_qubit(
-            qubit_pair=qp,
+            qp=qp,
             operation=node.parameters.operation,
             repair_routing=True,
             log_callable=node.log,
@@ -404,3 +411,6 @@ def update_state(node: QualibrationNode[Parameters, Quam]):
 @node.run_action()
 def save_results(node: QualibrationNode[Parameters, Quam]):
     node.save()
+
+
+# %%

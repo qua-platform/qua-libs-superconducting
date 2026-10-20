@@ -10,6 +10,7 @@ from qualang_tools.results import progress_counter
 from qualang_tools.units import unit
 
 from qualibrate import QualibrationNode
+from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 from calibration_utils.hello_qua import Parameters
 from calibration_utils.qua_config_split import split_qua_config
@@ -25,6 +26,8 @@ description = """
 node = QualibrationNode[Parameters, Quam](
     name="00_hello_qua", description=description, parameters=Parameters(), machine=Quam.load()
 )
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # Any parameters that should change for debugging purposes only should go in here

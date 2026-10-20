@@ -1,5 +1,12 @@
 from qm.qua import *
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_execute,
+    trace_fetching,
+    trace_open_qm,
+    trace_qmm,
+)
 from macros import qubit_frequency_tracking
 from configuration import *
 import matplotlib.pyplot as plt
@@ -11,10 +18,10 @@ from qualang_tools.results.data_handler import DataHandler
 ######################################
 #  Open Communication with the QOP  #
 ######################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
 
 # Open quantum machine
-qm = qmm.open_qm(controller_config)
+qm = trace_open_qm(qmm.open_qm)(controller_config)
 
 # Initialize object
 freq_track_obj = qubit_frequency_tracking("qubit", "resonator", qubit_IF, ge_threshold, frame_rotation_flag=False)
@@ -38,7 +45,7 @@ for arg in ["Pe_initial", "Pe_corrected"]:
         with stream_processing():
             freq_track_obj.state_estimation_st[0].buffer(len(tau_vec)).average().save(arg)
     # Execute the program
-    job = qm.execute(prog, config=logical_config)
+    job = trace_execute(qm.execute)(prog, config=logical_config)
     # Wait until processing is done before fetching results
     job.result_handles.wait_for_all_values()
     # Plot raw data + fit
@@ -67,6 +74,8 @@ save_data_dict = {
     "config": config,
 }
 
+telemetry = start_qca_telemetry(__file__, params=save_data_dict)
+
 ###################
 # The QUA program #
 ###################
@@ -78,7 +87,7 @@ with program() as prog:
         freq_track_obj.state_estimation_st[0].buffer(len(f_vec)).average().save("Pe_fd")
 
 # Execute the program
-job = qm.execute(prog, config=logical_config)
+job = trace_execute(qm.execute)(prog, config=logical_config)
 # Wait until processing is done before fetching results
 job.result_handles.wait_for_all_values()
 # Plot raw data + fit
@@ -124,9 +133,9 @@ with program() as prog:
         freq_track_obj.corr_st.save_all("corr")
 
 # Execute the program
-job = qm.execute(prog, config=logical_config)
+job = trace_execute(qm.execute)(prog, config=logical_config)
 # Handle results
-results = fetching_tool(job, ["Pe_td_ref", "Pe_td_corr", "iteration", "f_res_corr", "corr"], mode="live")
+results = trace_fetching(fetching_tool)(job, ["Pe_td_ref", "Pe_td_corr", "iteration", "f_res_corr", "corr"], mode="live")
 
 # Starting time
 t0 = time.time()
@@ -177,3 +186,5 @@ data_handler = DataHandler(root_data_folder=save_dir)
 save_data_dict.update({"fig_live": fig})
 data_handler.additional_files = {script_name: script_name, **default_additional_files}
 data_handler.save_data(data=save_data_dict, name="_".join(script_name.split("_")[1:]).split(".")[0])
+
+telemetry.end()

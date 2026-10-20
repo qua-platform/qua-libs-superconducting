@@ -4,6 +4,7 @@ from typing import Callable, List, Literal, Dict, Tuple, Optional, Union
 import cirq
 import numpy as np
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import trace_execute, trace_open_qm
 from qm.jobs.running_qm_job import RunningQmJob
 from qm.qua import *
 
@@ -242,8 +243,8 @@ class TwoQubitRb:
 
         prog = self._gen_qua_program(circuit_depths, num_circuits_per_depth, num_shots_per_circuit)
 
-        qm = qmm.open_qm(self._config)
-        job = qm.execute(prog, config=logical_config)
+        qm = trace_open_qm(qmm.open_qm)(self._config)
+        job = trace_execute(qm.execute)(prog, config=logical_config)
 
         gen_sequence_callback = kwargs["gen_sequence_callback"] if "gen_sequence_callback" in kwargs else None
         self._insert_all_input_stream(job, circuit_depths, num_circuits_per_depth, gen_sequence_callback)

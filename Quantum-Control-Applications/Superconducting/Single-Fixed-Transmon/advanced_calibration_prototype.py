@@ -1,4 +1,9 @@
 from qm import QuantumMachinesManager
+from qua_libs_core.telemetry import (
+    start_qca_telemetry,
+    trace_open_qm,
+    trace_qmm,
+)
 from configuration import *
 from qualang_tools.addons.calibration.calibrations import QUA_calibrations
 
@@ -60,8 +65,10 @@ scans_ramsey = [
 
 # Open communication with QOP
 #############################################################
-qmm = QuantumMachinesManager(host=qop_ip, port=qop_port, cluster_name=cluster_name)
-qm = qmm.open_qm(controller_config)
+telemetry = start_qca_telemetry(__file__)
+
+qmm = trace_qmm(QuantumMachinesManager)(host=qop_ip, port=qop_port, cluster_name=cluster_name)
+qm = trace_open_qm(qmm.open_qm)(controller_config)
 
 # Run calibrations
 options = {
@@ -73,3 +80,5 @@ options = {
 }
 my_calib.simulate_calibrations(machine=qm, simulation_duration=5000)
 # my_calib.run_calibrations(quantum_machine=qm, plot="live", plot_options=options)
+
+telemetry.end()
