@@ -43,7 +43,7 @@ heading; the `changelog` CI job fails without one.
 
 This repo uses [uv](https://docs.astral.sh/uv/) and targets Python 3.10–3.14
 (uv will fetch a suitable interpreter). **CI uses Python 3.14.** QUA code targets
-**qm-qua 1.4.0**; see the shared kit in sibling `qua-libs-core`
+**qm-qua >=1.4.1,<2.0**; see the shared kit in sibling `qua-libs-core`
 ([guide](../qua-libs-core/qua141_migration/docs/qua-1.4.0-migration.md),
 [runbook](../qua-libs-core/qua141_migration/docs/qua-1.4.0-migration-runbook.md))
 and this repo’s [`qua141_migration/`](qua141_migration/).

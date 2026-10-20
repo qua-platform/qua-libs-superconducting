@@ -118,7 +118,7 @@ jobs:
       - name: Checkout qua-libs-core kit
         uses: actions/checkout@v4
         with:
-          repository: JacobFastQM/qua-libs-core
+          repository: qua-platform/qua-libs-core
           ref: QL-1212-qua141-py314
           path: .qua-libs-core
       - name: Install uv

@@ -82,7 +82,7 @@ Each baseline comparison uses **two separate Python environments** — one per r
 
 | Side | Repo | Runner | QUA version |
 |------|------|--------|-------------|
-| **Migrated** | `qua-libs-superconducting` | `uv run python <script>` from script directory | `qm-qua==1.4.0` (repo pin) |
+| **Migrated** | `qua-libs-superconducting` | `uv run python <script>` from script directory | `qm-qua>=1.4.1,<2.0` (repo pin) |
 | **Baseline** | `../qua-libs` (branch **`QL-1212-validation`**) | `poetry run python <script>` from same relative script directory | `qm-qua>=1.2.0` (qua-libs Poetry env) |
 
 Each side uses its own `configuration.py` and `macros.py`. Example harness invocation (any VALIDATION folder):

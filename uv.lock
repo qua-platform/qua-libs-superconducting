@@ -4446,7 +4446,7 @@ wheels = [
 
 [[package]]
 name = "qm-qua"
-version = "1.4.0"
+version = "1.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datadog-api-client" },
@@ -4464,9 +4464,9 @@ dependencies = [
     { name = "tinydb" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/5d/4ee7063e619180963671ec3b3f9ed2fa701e9329532dcba4dfba9ab68b82/qm_qua-1.4.0.tar.gz", hash = "sha256:77fc7c18bb73e94176d373df2065c1c59922160fb5ff6f8f886d9ecd30da8ab1", size = 476573, upload-time = "2026-08-12T07:23:57.571Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/23/0ff75172daa9c3ebe0d46d8a2d1d1717c99e111b0879704ff3584d142196/qm_qua-1.4.1.tar.gz", hash = "sha256:fa0e7b09b9bd1bbc7dd2196dce16d96d81f3e6bcb7fa8cc86bdde113c7bc39dd", size = 477604, upload-time = "2026-08-18T11:17:11.428Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/73/09626d545b8a4ec3df7b7e12c4f99d346e966b9ad6896356112b6eaf7151/qm_qua-1.4.0-py3-none-any.whl", hash = "sha256:829cc490d8fa33ea8f039f54accdb093fb1d42a0a38f5592a84ab2412b0d816c", size = 595280, upload-time = "2026-08-12T07:23:56.105Z" },
+    { url = "https://files.pythonhosted.org/packages/63/70/f5e124d18989c259ad3fc94fedc93ecb045c977e63900769a3bca9cc33ce/qm_qua-1.4.1-py3-none-any.whl", hash = "sha256:e6c702385298a1ed4eaa8358e5f444be80b24c581508d93c837a0e1acc7a87bb", size = 596621, upload-time = "2026-08-18T11:17:09.789Z" },
 ]
 
 [[package]]
@@ -4490,7 +4490,7 @@ wheels = [
 [[package]]
 name = "qua-libs-core"
 version = "0.4.3"
-source = { git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314#c5b197ff8a296786dabacfe783b1b0cc359858fc" }
+source = { git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314#7af537c89263523bc0009705db357bbe320f27fa" }
 dependencies = [
     { name = "opentelemetry-api", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
     { name = "opentelemetry-api", version = "1.43.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
@@ -4537,8 +4537,8 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.18.5" },
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "pytest", specifier = ">=9.1.1" },
-    { name = "qm-qua", specifier = "==1.4.0" },
-    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314" },
+    { name = "qm-qua", specifier = ">=1.4.1,<2.0" },
+    { name = "qua-libs-core", git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
     { name = "superconducting-calibrations", editable = "qualibration_graphs/superconducting" },
@@ -5579,8 +5579,8 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "qiskit", specifier = ">=2.3,<3.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
-    { name = "qm-qua", specifier = ">=1.4.0,<2.0" },
-    { name = "qua-libs-core", git = "https://github.com/JacobFastQM/qua-libs-core.git?branch=QL-1212-qua141-py314" },
+    { name = "qm-qua", specifier = ">=1.4.1,<2.0" },
+    { name = "qua-libs-core", git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.5.0" },
     { name = "qualibration-libs", git = "https://github.com/qua-platform/qualibration-libs.git" },

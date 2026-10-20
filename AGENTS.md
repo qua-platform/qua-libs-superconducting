@@ -2,7 +2,7 @@
 
 QUA programs for **superconducting qubits** on Quantum Machines hardware (OPX).
 
-- Pin: `qm-qua==1.4.0`
+- Pin: `qm-qua>=1.4.1,<2.0`
 - QCA folder: `Quantum-Control-Applications/Superconducting`
 - Local migration notes: [`qua141_migration/AGENTS.md`](qua141_migration/AGENTS.md)
 - Shared kit: sibling `qua-libs-core` branch `QL-1212-qua141-py314` — [`qua141_migration/AGENTS.md`](../qua-libs-core/qua141_migration/AGENTS.md)
