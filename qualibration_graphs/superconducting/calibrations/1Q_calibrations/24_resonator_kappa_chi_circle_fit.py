@@ -67,8 +67,8 @@ node = QualibrationNode[Parameters, Quam](
     machine=Quam.load(),
 )
 
-
 instrument_calibration_node(node, extra_attributes=["qubits"])
+
 PROBE_OPERATION = "linewidth_probe"
 """Temporary low-amplitude probe pulse built per qubit in create_qua_program (zero integration weights
 during the fill-up skip) and removed again in save_results, so it never reaches the saved state."""

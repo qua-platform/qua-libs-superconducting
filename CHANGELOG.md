@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Added
+
+- Readout calibration nodes **23c–23f** (depletion validation, optimal integration weights, DRACHMA zeta/kappa) and supporting `calibration_utils` from `qua-platform/qua-libs` main (`878b2a8d`).
+
 ### Changed
 
 - Sync superconducting calibrations from `qua-platform/qua-libs` main (`7758a3b0`); re-applied `qua_libs_core.telemetry` on Qualibration nodes after upstream copy.

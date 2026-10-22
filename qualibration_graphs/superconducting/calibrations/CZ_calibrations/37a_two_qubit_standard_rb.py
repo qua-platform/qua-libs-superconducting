@@ -75,7 +75,6 @@ node = QualibrationNode[Parameters, Quam](
     machine=Quam.load(),  # Instantiate the QUAM class from the state file
 )
 
-
 instrument_calibration_node(node, extra_attributes=["qubits"])
 
 

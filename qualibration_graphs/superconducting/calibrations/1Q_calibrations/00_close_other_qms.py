@@ -1,5 +1,5 @@
 # %% {Imports}
-from qualibrate import NodeParameters, QualibrationNode
+from qualibrate import QualibrationNode, NodeParameters
 from qua_libs_core.telemetry import instrument_calibration_node
 from quam_config import Quam
 
