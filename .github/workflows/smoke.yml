@@ -36,14 +36,14 @@ jobs:
             echo
             echo '| Package | Version |'
             echo '| --- | --- |'
-            uv run python -c "
-import importlib.metadata as m
-for pkg in ('quam', 'quam-builder', 'qualibrate', 'qualibration-libs', 'qm-qua', 'qualang-tools', 'qua-libs-core'):
-    try:
-        print(f'| {pkg} | {m.version(pkg)} |')
-    except m.PackageNotFoundError:
-        print(f'| {pkg} | not installed |')
-"
+            uv run python <<'PY'
+          import importlib.metadata as m
+          for pkg in ("quam", "quam-builder", "qualibrate", "qualibration-libs", "qm-qua", "qualang-tools", "qua-libs-core"):
+              try:
+                  print(f"| {pkg} | {m.version(pkg)} |")
+              except m.PackageNotFoundError:
+                  print(f"| {pkg} | not installed |")
+          PY
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run smoke tests
