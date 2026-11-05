@@ -4490,7 +4490,7 @@ wheels = [
 [[package]]
 name = "qua-libs-core"
 version = "0.4.3"
-source = { git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314#7af537c89263523bc0009705db357bbe320f27fa" }
+source = { git = "https://github.com/qm-labs/qua-libs-core.git?branch=QL-1212-qua141-py314#7af537c89263523bc0009705db357bbe320f27fa" }
 dependencies = [
     { name = "opentelemetry-api", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
     { name = "opentelemetry-api", version = "1.43.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
@@ -4538,7 +4538,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "qm-qua", specifier = ">=1.4.1,<2.0" },
-    { name = "qua-libs-core", git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314" },
+    { name = "qua-libs-core", git = "https://github.com/qm-labs/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
     { name = "superconducting-calibrations", editable = "qualibration_graphs/superconducting" },
@@ -5580,7 +5580,7 @@ requires-dist = [
     { name = "qiskit", specifier = ">=2.3,<3.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
     { name = "qm-qua", specifier = ">=1.4.1,<2.0" },
-    { name = "qua-libs-core", git = "https://github.com/qua-platform/qua-libs-core.git?branch=QL-1212-qua141-py314" },
+    { name = "qua-libs-core", git = "https://github.com/qm-labs/qua-libs-core.git?branch=QL-1212-qua141-py314" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.5.0" },
     { name = "qualibration-libs", git = "https://github.com/qua-platform/qualibration-libs.git" },
