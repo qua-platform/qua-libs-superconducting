@@ -1,0 +1,50 @@
+name: smoke
+
+# Overnight software-level smoke test for the superconducting calibration
+# nodes: import -> parameters validate -> fake QUAM loads -> QUA program
+# builds -> config generates. 
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # ~03:00 US Eastern
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: nightly node smoke test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: qualibration_graphs/superconducting
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Record installed package versions
+        run: |
+          {
+            echo "## Package versions"
+            echo
+            echo '| Package | Version |'
+            echo '| --- | --- |'
+            uv run python <<'PY'
+          import importlib.metadata as m
+          for pkg in ("quam", "quam-builder", "qualibrate", "qualibration-libs", "qm-qua", "qualang-tools", "qua-libs-core"):
+              try:
+                  print(f"| {pkg} | {m.version(pkg)} |")
+              except m.PackageNotFoundError:
+                  print(f"| {pkg} | not installed |")
+          PY
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run smoke tests
+        run: uv run pytest smoke_tests -q
