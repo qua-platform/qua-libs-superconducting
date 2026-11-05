@@ -34,6 +34,7 @@ Related docs: [QUAM](https://qua-platform.github.io/quam/), [QUAlibrate](https:/
 - Format/lint: `uv run black .` and `uv run ruff check .` per [CONTRIBUTING.md](CONTRIBUTING.md).
 - Prefer iterables + auto-streaming; `declare_output_stream()` not `declare_stream()`. Frequency arrays for `update_frequency` must be `.astype(int)`.
 - Config split: `open_qm(controller_config)`; `execute`/`compile` with `logical_config`. Simulate with `qmm.simulate(merge_qua_config(...), ...)` — never `open_qm` before simulate. `mixers` is controller config. Prefer `from qua_libs_core.qua_config import merge_qua_config`.
+- Wrap Quantum Machines calls in [`qua_libs_core.telemetry`](https://github.com/qm-labs/qua-libs-core) decorators: `trace_qmm` (`qmm_connect`), `trace_open_qm`, `trace_execute`, `trace_simulate`, and the same for `get_simulated_samples`, fetching, and fits (`trace_get_simulated_samples`, `trace_fetching`, `trace_fit`). Standalone scripts also call `start_qca_telemetry` / `telemetry.end()`. Calibration nodes call `instrument_calibration_node(node)` after the node is created. See [How to add telemetry](https://github.com/qm-labs/qua-libs-core/blob/develop/docs/telemetry/HOW_TO_ADD_TELEMETRY.md).
 - Do not use `pulse * amp(scale)`. Pass `amplitude_scale=` to `play`/`measure`. Inline multiplexed readout must pass `amplitude_scale=1`.
 - Do not use `add_to_queue(..., overrides=...)`. Prefer `qm.execute(program, config=logical_config)`.
 - Do not pass literal `None` as the third argument to `measure()`; omit it.
