@@ -1,7 +1,7 @@
 # Review checklist
 
 Reviewers reject PRs on the points below. Check them before opening a PR, and use them when reviewing.
-Formatting and lint (black, ruff) are enforced by CI and not repeated here.
+Black is enforced by CI. Run `uv run ruff check .` locally; ruff is not a CI job. Formatting and lint are not repeated here.
 
 ## Physics and measurement
 - The description says exactly what the quantity is and what it is **not** (e.g. η is not readout fidelity), and names the confounders that move it.
@@ -37,6 +37,6 @@ Formatting and lint (black, ruff) are enforced by CI and not repeated here.
 - One definition per constant/sequence — import it, don't copy it between node and utils. Shared logic between sibling nodes (e.g. 37a/37b) is imported, not copy-pasted.
 - Code lives at the right level: one node → `calibration_utils/<node_name>/`; several nodes → `common_utils/`; generic → upstream library (see AGENTS.md *Layout*).
 - Keep `Parameters` thin: only what a user should tune.
-- Telemetry is kept: nodes call `instrument_calibration_node`; QCA scripts use the `trace_*` wrappers (see AGENTS.md *Conventions*).
+- Telemetry is kept: nodes call `instrument_calibration_node(node, extra_attributes=["qubits"])`; QCA scripts use the `trace_*` wrappers (see AGENTS.md *Conventions*).
 - Public helpers have type hints and a docstring with all arguments and a short usage example; expose them via `__init__.py`.
 - The PR only touches files it needs: no unrelated reformatting, no WIP from another PR.

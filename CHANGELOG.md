@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consume the shared QUA 1.4.0 kit from `qua-libs-core` branch `QL-1212-qua141-py314` (`qua141_migration/`); Superconducting-only matrix, VALIDATION.md, and inventories live in this repo’s `qua141_migration/`
 - Pin `qua-libs-core` to git branch `QL-1212-qua141-py314`; `qua_config_split.py` re-exports `qua_libs_core.qua_config`
 - Agent guidance is root [`AGENTS.md`](AGENTS.md) (QUA conventions + changelog); migration notes in [`qua141_migration/AGENTS.md`](qua141_migration/AGENTS.md)
+- Corrected [`AGENTS.md`](AGENTS.md) and [`REVIEW.md`](REVIEW.md): CI runs black only, the QCA migration gates live in qua-libs-core, and the node layout, telemetry call, config-split imports, and state-update notes match the tree
 
 ### Added
 

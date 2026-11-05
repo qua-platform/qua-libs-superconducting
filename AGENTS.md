@@ -9,7 +9,7 @@ QUA programs for **superconducting qubits** on Quantum Machines hardware (OPX).
 
 Official QUA docs: https://docs.quantum-machines.co/latest/
 
-This file covers how this repository works. For how to write QUA itself, see the QUA guide for agents: TODO link.
+This file covers how this repository works. QUA syntax and hardware behavior are in the official docs above.
 
 ## Layout
 
@@ -17,18 +17,18 @@ This file covers how this repository works. For how to write QUA itself, see the
 |------|------|
 | `qualibration_graphs/superconducting/calibrations/1Q_calibrations/` | Single-qubit nodes (`NNx_name.py`) and 1Q graphs (`8x`/`9x_calibration_graph_*`) |
 | `qualibration_graphs/superconducting/calibrations/CZ_calibrations/` | Two-qubit / CZ nodes and CZ graphs (`98`/`99_*`) |
-| `qualibration_graphs/superconducting/calibration_utils/<node_name>/` | Per-node `parameters.py`, `analysis.py`, `plotting.py`, exposed via `__init__.py` |
-| `qualibration_graphs/superconducting/calibration_utils/common_utils/` | Helpers shared by several nodes in this repo |
+| `qualibration_graphs/superconducting/calibration_utils/<node_name>/` | Per-node helpers, usually `parameters.py`, `analysis.py`, `plotting.py`, exposed via `__init__.py`. Some nodes omit analysis, plotting, or the package init (`cryoscope`, `pi_flux`, `hello_qua`, and others). |
+| `qualibration_graphs/superconducting/calibration_utils/common_utils/` | Helpers shared by several nodes. `qua_config_split.py` and `pair_grid.py` sit directly under `calibration_utils/` instead. |
 | `qualibration_graphs/superconducting/quam_config/` | `Quam` class, `generate_quam.py`, `populate_quam_*.py`, `wiring_examples/` |
 | `qualibration_graphs/superconducting/tests/` | Static gates for calibration nodes (see *Checks*) |
 | `Quantum-Control-Applications/` | Standalone example/calibration scripts |
 | `Tutorials/` | Introductory QUAlibrate tutorial |
 | `qua141_migration/` | Superconducting-only matrix, VALIDATION.md, inventories |
-| `scripts/`, `tests/` | Repo tooling and repo-level gates (changelog, QCA migration) |
+| `scripts/`, `tests/` | Changelog gate only (`scripts/check_main_changelog.py`, `tests/test_check_main_changelog.py`). QCA migration grep gates live in sibling qua-libs-core (`qua141_migration/tests/test_qca_migration_gates.py`); CI checks that repo out. |
 
 Where code belongs:
 - Used by one node → `calibration_utils/<node_name>/`.
-- Used by several nodes in this repo → `calibration_utils/common_utils/`.
+- Used by several nodes in this repo → `calibration_utils/common_utils/`. Do not add another top-level module next to the existing `qua_config_split.py` and `pair_grid.py`.
 - Generic, not superconducting-specific (plotting, data fetching, runtime) → `qualibration-libs`; wiring/connectivity → `quam-builder` or `py-qua-tools`. Don't add it here.
 
 ## Writing a calibration node
@@ -36,10 +36,10 @@ Where code belongs:
 Start from an existing node (e.g. `1Q_calibrations/04b_power_rabi.py`) and keep its structure; details in [`calibrations/README.md`](qualibration_graphs/superconducting/calibrations/README.md). Must-haves:
 
 - `description` block with what is measured (and what it is not), **Prerequisites**, and **State update** (exact QUAM paths written).
-- `instrument_calibration_node(node)` right after the node is created (see *Conventions*).
+- `instrument_calibration_node(node, extra_attributes=["qubits"])` right after the node is created (see *Conventions*).
 - Use the QUAM channel API (`qubit.xy.play`, `resonator.measure`, `qubit.reset`, macros) rather than raw `play`/`measure` on element names.
 - `analyse_data` sets `node.outcomes[q]` to `"successful"` or `"failed"`, and the success criterion can actually fail.
-- `update_state` skips failed targets, runs inside `node.record_state_updates()`, and writes only what this run measured.
+- Nodes that write QUAM state: `update_state` skips failed targets, runs inside `node.record_state_updates()`, and writes only what this run measured. Nodes that do not update state (for example `00_hello_qua`, `20_all_xy`, tomography) have no `record_state_updates()`.
 - Anything the analysis needs is stored in `node.results`, so `load_data_id` reproduces the run.
 
 ## Python vs QUA
@@ -57,8 +57,8 @@ Related docs: [QUAM](https://qua-platform.github.io/quam/), [QUAlibrate](https:/
 - Match existing patterns in the nearest folder (standalone script vs qualibration node).
 - Format/lint: `uv run black .` and `uv run ruff check .` per [CONTRIBUTING.md](CONTRIBUTING.md).
 - Prefer iterables + auto-streaming; `declare_output_stream()` not `declare_stream()`. Frequency arrays for `update_frequency` must be `.astype(int)`.
-- Config split: `open_qm(controller_config)`; `execute`/`compile` with `logical_config`. Simulate with `qmm.simulate(merge_qua_config(...), ...)` — never `open_qm` before simulate. `mixers` is controller config. Prefer `from qua_libs_core.qua_config import merge_qua_config`.
-- Wrap Quantum Machines calls in [`qua_libs_core.telemetry`](https://github.com/qm-labs/qua-libs-core) decorators: `trace_qmm` (`qmm_connect`), `trace_open_qm`, `trace_execute`, `trace_simulate`, and the same for `get_simulated_samples`, fetching, and fits (`trace_get_simulated_samples`, `trace_fetching`, `trace_fit`). Standalone scripts also call `start_qca_telemetry` / `telemetry.end()`. Calibration nodes call `instrument_calibration_node(node)` after the node is created. See [How to add telemetry](https://github.com/qm-labs/qua-libs-core/blob/develop/docs/telemetry/HOW_TO_ADD_TELEMETRY.md).
+- Config split: `open_qm(controller_config)`; `execute`/`compile` with `logical_config`. Simulate with `qmm.simulate(merge_qua_config(...), ...)` — never `open_qm` before simulate. `mixers` is controller config. Calibration nodes import `split_qua_config` from `calibration_utils.qua_config_split` (a local copy). QCA scripts re-export `qua_libs_core.qua_config` from `Quantum-Control-Applications/Superconducting/qua_config_split.py`.
+- Wrap Quantum Machines calls in [`qua_libs_core.telemetry`](https://github.com/qm-labs/qua-libs-core) decorators: `trace_qmm` (`qmm_connect`), `trace_open_qm`, `trace_execute`, `trace_simulate`, and the same for `get_simulated_samples`, fetching, and fits (`trace_get_simulated_samples`, `trace_fetching`, `trace_fit`). Standalone scripts also call `start_qca_telemetry` / `telemetry.end()`. Calibration nodes call `instrument_calibration_node(node, extra_attributes=["qubits"])` after the node is created. See [How to add telemetry](https://github.com/qm-labs/qua-libs-core/blob/develop/docs/telemetry/HOW_TO_ADD_TELEMETRY.md).
 - Do not use `pulse * amp(scale)`. Pass `amplitude_scale=` to `play`/`measure`. Inline multiplexed readout must pass `amplitude_scale=1`.
 - Do not use `add_to_queue(..., overrides=...)`. Prefer `qm.execute(program, config=logical_config)`.
 - Do not pass literal `None` as the third argument to `measure()`; omit it.
@@ -70,7 +70,7 @@ Related docs: [QUAM](https://qua-platform.github.io/quam/), [QUAlibrate](https:/
 uv sync                                                     # repo root
 uv sync --package superconducting-calibrations --group dev  # node tests
 uv run black --check . && uv run ruff check .
-uv run pytest tests                                         # repo-level gates
+uv run pytest tests                                         # changelog gate only
 cd qualibration_graphs/superconducting && uv run pytest -q  # node gates
 ```
 
