@@ -1,0 +1,22 @@
+# Nodes that are EXPECTED to fail the smoke test, along with a comment explaining
+# the reason for the failure.
+#
+# Gaps in our own fake QUAM (missing pulses, unset scalar fields, CZ routing,
+# ...) do NOT belong here: fix them in `fake_quam.py` instead. Only list a node
+# if the failure is the node's / the dependencies' business, not the fake
+# machine's.
+#
+# Format: `relative/path/to/node.py  # reason`
+# Path is relative to `calibrations/`. The comment is the xfail reason. 
+#
+# Tracked by `test_node_smoke.py` as `xfail(strict=True)`:
+#   - listed + still fails     -> xfailed, job stays green.
+#   - listed + starts passing  -> xpass, job goes RED. Remove the line here.
+#   - not listed + fails       -> fails, job goes RED. A real failure.
+
+1Q_calibrations/17a_qubit_flux_long_distortion_qubitspec.py   # needs-prior-calibration: freq_vs_flux_01_quad_term (node 09a) is missing/zero
+1Q_calibrations/17c_qubit_flux_short_distortion.py            # needs-prior-calibration: freq_vs_flux_01_quad_term (node 09a) is missing/zero
+1Q_calibrations/25_photon_number_stark_ramsey.py              # needs-prior-calibration: resonator kappa_ext/kappa_int (node 24) missing
+CZ_calibrations/30_cz_iswap_flux_bootstrap.py                 # needs-prior-calibration: moving qubit's freq_vs_flux_01_quad_term (node 09a) is zero
+CZ_calibrations/31_chevron_11_20.py                           # needs-prior-calibration: moving qubit's freq_vs_flux_01_quad_term (node 09a) is zero
+CZ_calibrations/36_bell_state_tomography.py                   # needs-prior-calibration: pair readout confusion matrix (node 35) missing
