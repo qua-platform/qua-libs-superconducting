@@ -75,3 +75,15 @@ def test_discovery_found_the_expected_nodes() -> None:
         f"only found {found} calibration node files under {CALIBRATIONS_DIR} -- "
         "discovery may be broken (check discovery.py against the current directory layout)"
     )
+
+
+def test_known_broken_entries_exist() -> None:
+    """Every known_broken.txt path must still be a discovered node.
+
+    `_build_params` only looks up discovered nodes in the list. A renamed,
+    deleted, or mistyped entry matches nothing, and the real node then runs
+    without its xfail.
+    """
+    discovered = {_relative_id(p) for p in discover_node_files(CALIBRATIONS_DIR)}
+    stale = set(_load_known_broken()) - discovered
+    assert not stale, f"known_broken.txt has entries that match no node: {sorted(stale)}"
