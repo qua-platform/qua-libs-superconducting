@@ -121,12 +121,11 @@ def pytest_terminal_summary(terminalreporter, exitstatus: int, config: pytest.Co
         "passed": "✅ passed",
         "failed": "❌ FAILED",
         "error": "❌ ERROR",
-        "xfailed": "🟡 known-broken (as expected)",
-        "xpassed": "⚠️ known-broken list is stale -- this now passes",
+        "xfailed": "🟡 known-broken (failed with its expected error)",
     }
     lines = ["", "## Nightly QuaLibs smoke test", "", "| Node | Result |", "| --- | --- |"]
     stats = terminalreporter.stats
-    for outcome in ("failed", "error", "xpassed", "passed", "xfailed"):
+    for outcome in ("failed", "error", "passed", "xfailed"):
         for report in stats.get(outcome, []):
             node_id = getattr(report, "nodeid", "")
             name = node_id.split("::")[-1] if "::" in node_id else node_id
