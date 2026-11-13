@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [2026-11-13]
+
 ### Added
 
 - Shared **1Q/2Q RB** utilities (`calibration_utils/common_utils/rb/`), RB node updates (11a/11b, 37a/37b), and pytest coverage from `qua-platform/qua-libs` main (`84edacd3`).
@@ -9,12 +11,14 @@
 
 ### Changed
 
-- Sync superconducting calibrations from `qua-platform/qua-libs` main (`7758a3b0`); re-applied `qua_libs_core.telemetry` on Qualibration nodes after upstream copy.
+- Sync superconducting calibrations from `qua-platform/qua-libs` through `84edacd3`; re-applied `qua_libs_core.telemetry` on Qualibration nodes after upstream copy.
 - Pin `qua-libs-core` to `>=0.5.1,<0.6` in the workspace, the calibration package, and the intro-to-QUAlibrate tutorial. Pin `quam-builder` to git tag `v0.6.0` in the calibration package only; the tutorial's `quam-builder` dependency stays an unpinned git URL.
+- Route daily work through `develop` and require a changelog on merges to `main`.
 
 ### Fixed
 
 - Repair telemetry hook placement and run black on calibration nodes so CI formatting passes.
+- Fix `uv sync --upgrade` failing on quam-builder and IBM build dependencies.
 
 ## [2026-09-25]
 
