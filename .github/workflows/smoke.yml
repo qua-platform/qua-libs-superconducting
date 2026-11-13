@@ -1,0 +1,126 @@
+name: smoke
+
+# Software-level smoke test for the superconducting calibration
+# nodes: import -> parameters validate -> fake QUAM loads -> QUA program
+# builds -> config generates.
+#
+# Runs overnight, and also on pull requests that touch the nodes or this workflow.
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # ~03:00 US Eastern
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "qualibration_graphs/superconducting/calibrations/**"
+      - "qualibration_graphs/superconducting/smoke_tests/**"
+      - "qualibration_graphs/superconducting/pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/smoke.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  locked:
+    name: smoke (locked)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: qualibration_graphs/superconducting
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --locked --group dev
+
+      - name: Record installed package versions
+        run: |
+          {
+            echo "## Package versions (locked)"
+            echo
+            echo '| Package | Version |'
+            echo '| --- | --- |'
+            uv run python <<'PY'
+          import importlib.metadata as m
+          import json
+
+          for pkg in ("quam", "quam-builder", "qualibrate", "qualibration-libs", "qm-qua", "qualang-tools", "qua-libs-core"):
+              try:
+                  dist = m.distribution(pkg)
+              except m.PackageNotFoundError:
+                  print(f"| {pkg} | not installed |")
+                  continue
+              version = dist.version
+              commit = ""
+              for file in dist.files or []:
+                  if file.name != "direct_url.json":
+                      continue
+                  info = json.loads(file.locate().read_text())
+                  commit_id = (info.get("vcs_info") or {}).get("commit_id")
+                  if commit_id:
+                      commit = f" @ {commit_id[:12]}"
+                  break
+              print(f"| {pkg} | {version}{commit} |")
+          PY
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run smoke tests
+        run: uv run pytest smoke_tests -q
+
+  # Nightly and manual runs also try an upgrade. Pull requests skip this.
+  upgrade:
+    name: smoke (upgrade)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: qualibration_graphs/superconducting
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --upgrade --group dev
+
+      - name: Record installed package versions
+        run: |
+          {
+            echo "## Package versions (upgrade)"
+            echo
+            echo '| Package | Version |'
+            echo '| --- | --- |'
+            uv run python <<'PY'
+          import importlib.metadata as m
+          import json
+
+          for pkg in ("quam", "quam-builder", "qualibrate", "qualibration-libs", "qm-qua", "qualang-tools", "qua-libs-core"):
+              try:
+                  dist = m.distribution(pkg)
+              except m.PackageNotFoundError:
+                  print(f"| {pkg} | not installed |")
+                  continue
+              version = dist.version
+              commit = ""
+              for file in dist.files or []:
+                  if file.name != "direct_url.json":
+                      continue
+                  info = json.loads(file.locate().read_text())
+                  commit_id = (info.get("vcs_info") or {}).get("commit_id")
+                  if commit_id:
+                      commit = f" @ {commit_id[:12]}"
+                  break
+              print(f"| {pkg} | {version}{commit} |")
+          PY
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run smoke tests
+        run: uv run pytest smoke_tests -q

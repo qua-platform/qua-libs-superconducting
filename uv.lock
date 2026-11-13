@@ -2766,6 +2766,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-timeout"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/82/4c9ecabab13363e72d880f2fb504c5f750433b2b6f16e99f4ec21ada284c/pytest_timeout-2.4.0.tar.gz", hash = "sha256:7e68e90b01f9eff71332b25001f85c75495fc4e3a836701876183c4bcfd0540a", size = 17973, upload-time = "2025-05-05T19:44:34.99Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl", hash = "sha256:c42667e5cdadb151aeb5b26d114aff6bdf5a907f176a007a30b940d3d865b5c2", size = 14382, upload-time = "2025-05-05T19:44:33.502Z" },
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
@@ -3212,7 +3224,7 @@ wheels = [
 
 [[package]]
 name = "qua-libs-core"
-version = "0.3.0"
+version = "0.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "opentelemetry-api", version = "1.41.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
@@ -3225,9 +3237,9 @@ dependencies = [
     { name = "uptrace", version = "1.27.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' or sys_platform == 'win32'" },
     { name = "uptrace", version = "1.41.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/20/38/46392a712d828804d95fdd167b97255d29665a02260442d3bd3136137e5b/qua_libs_core-0.3.0.tar.gz", hash = "sha256:e02180c5c4504ad179cfbbc38638d32c898c2daf9bdeb8858482f1df27b48991", size = 26703, upload-time = "2026-09-23T22:10:37.974Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d5/d2/260bd6772eef80784d4173d87011b189892c7ebef32e2bd79fbe65b84591/qua_libs_core-0.5.1.tar.gz", hash = "sha256:ac3da44fb99b37fa86987af2fa151ac9119134499d9034cd100f6e0fbdfd8b8b", size = 26734, upload-time = "2026-11-04T18:02:06.843Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ad/96/f28d058a1766e3ded86adba96efd0b183a97698141d921d9bea6214c46e3/qua_libs_core-0.3.0-py3-none-any.whl", hash = "sha256:9750c083b131cbb1a23b711840fcb72c7e7a036f4fa11fb76742c319cb678c96", size = 37536, upload-time = "2026-09-23T22:10:36.602Z" },
+    { url = "https://files.pythonhosted.org/packages/83/31/e0f431fc86cb175e6e35f8463a40f8a27d091a09a931dc18289951d9e7ac/qua_libs_core-0.5.1-py3-none-any.whl", hash = "sha256:080e81e891c550b3d760b7160d0b56745442b5f6b7977f3b1b8af94a77f74099", size = 37566, upload-time = "2026-11-04T18:02:05.765Z" },
 ]
 
 [[package]]
@@ -3263,7 +3275,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.18.5" },
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "qm-qua", specifier = ">=1.2.0" },
-    { name = "qua-libs-core", specifier = ">=0.3.0,<0.4" },
+    { name = "qua-libs-core", specifier = ">=0.5.1,<0.6" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
     { name = "superconducting-calibrations", editable = "qualibration_graphs/superconducting" },
@@ -3402,8 +3414,8 @@ wheels = [
 
 [[package]]
 name = "quam-builder"
-version = "0.4.0"
-source = { git = "https://github.com/qua-platform/quam-builder.git#b2056cd9920cdd00c9ec9df225d54e61fccdc39c" }
+version = "0.6.0"
+source = { git = "https://github.com/qua-platform/quam-builder.git?rev=v0.6.0#ec436282166cb97626767a9b7a0f68a28fceb790" }
 dependencies = [
     { name = "qcodes-contrib-drivers", version = "0.23.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "qcodes-contrib-drivers", version = "0.24.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
@@ -3988,6 +4000,7 @@ dependencies = [
 dev = [
     { name = "ipykernel" },
     { name = "pytest" },
+    { name = "pytest-timeout" },
 ]
 
 [package.metadata]
@@ -3997,12 +4010,12 @@ requires-dist = [
     { name = "qiskit", specifier = "<2.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
     { name = "qm-qua", specifier = ">=1.2.1" },
-    { name = "qua-libs-core", specifier = ">=0.3.0,<0.4" },
+    { name = "qua-libs-core", specifier = ">=0.5.1,<0.6" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.0.2" },
     { name = "qualibration-libs", git = "https://github.com/qua-platform/qualibration-libs.git" },
     { name = "quam", specifier = ">=0.5.0a1" },
-    { name = "quam-builder", git = "https://github.com/qua-platform/quam-builder.git" },
+    { name = "quam-builder", git = "https://github.com/qua-platform/quam-builder.git?rev=v0.6.0" },
     { name = "scikit-learn", specifier = ">=1.5.0" },
     { name = "scipy", specifier = ">=1.13.1" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.1" },
@@ -4015,6 +4028,7 @@ requires-dist = [
 dev = [
     { name = "ipykernel", specifier = ">=7.0.0a1" },
     { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-timeout", specifier = ">=2.3.1" },
 ]
 
 [[package]]
