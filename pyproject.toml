@@ -30,6 +30,11 @@ package = false
 [tool.uv.sources]
 superconducting-calibrations = { workspace = true }
 
+# Older source-only IBM packages fail to build under newer setuptools, so we pin an older one for them.
+[tool.uv.extra-build-dependencies]
+ibm-platform-services = ["setuptools<80"]
+ibm-cloud-sdk-core = ["setuptools<80"]
+
 [tool.uv.workspace]
 members = ["qualibration_graphs/superconducting"]
 
