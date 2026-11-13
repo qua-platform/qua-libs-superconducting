@@ -30,10 +30,7 @@ package = false
 [tool.uv.sources]
 superconducting-calibrations = { workspace = true }
 
-# ibm-platform-services (via qiskit) imports pkg_resources at build time without
-# declaring setuptools. This is a known uv build-isolation issue.
-# ibm-platform-services (via qiskit) has a setup.py that imports pkg_resources, but
-# setuptools 80+ removed that module. Pin a setuptools that still ships it.
+# Older source-only IBM packages fail to build under newer setuptools, so we pin an older one for them.
 [tool.uv.extra-build-dependencies]
 ibm-platform-services = ["setuptools<80"]
 ibm-cloud-sdk-core = ["setuptools<80"]
