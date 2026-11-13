@@ -69,8 +69,6 @@ node = QualibrationNode[Parameters, Quam](
     parameters=Parameters(),
 )
 
-instrument_calibration_node(node, extra_attributes=["qubits"])
-
 
 # Any parameters that should change for debugging purposes only should go in here
 # These parameters are ignored when run through the GUI or as part of a graph
@@ -83,6 +81,8 @@ def custom_param(node: QualibrationNode[Parameters, Quam]):
 
 # Instantiate the QUAM class from the state file
 node.machine = Quam.load()
+
+instrument_calibration_node(node, extra_attributes=["qubits"])
 
 
 # %% {Create_QUA_program}
