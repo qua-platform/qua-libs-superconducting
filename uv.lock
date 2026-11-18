@@ -3700,7 +3700,7 @@ wheels = [
 
 [[package]]
 name = "qua-libs-core"
-version = "0.5.1"
+version = "0.5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "opentelemetry-api" },
@@ -3709,9 +3709,9 @@ dependencies = [
     { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "uptrace" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/d2/260bd6772eef80784d4173d87011b189892c7ebef32e2bd79fbe65b84591/qua_libs_core-0.5.1.tar.gz", hash = "sha256:ac3da44fb99b37fa86987af2fa151ac9119134499d9034cd100f6e0fbdfd8b8b", size = 26734, upload-time = "2026-11-04T18:02:06.843Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/fc/ab143a80bb4cefce884c439b87efc0224d94057dd37fde71865cebea5c1e/qua_libs_core-0.5.2.tar.gz", hash = "sha256:2a4121dd5f2f2249abd7d6b9637b7ac2a641be2450b2a7143f1a4fd959f63bb4", size = 27169, upload-time = "2026-11-18T15:33:32.229Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/31/e0f431fc86cb175e6e35f8463a40f8a27d091a09a931dc18289951d9e7ac/qua_libs_core-0.5.1-py3-none-any.whl", hash = "sha256:080e81e891c550b3d760b7160d0b56745442b5f6b7977f3b1b8af94a77f74099", size = 37566, upload-time = "2026-11-04T18:02:05.765Z" },
+    { url = "https://files.pythonhosted.org/packages/98/1b/c8149b5a15b9a79794b819f4328cdfd93065bac2f29e273aaa1882d839ed/qua_libs_core-0.5.2-py3-none-any.whl", hash = "sha256:1c7474263b0bae991903d10f22e85c894e7cbb96beb30ac8e6b47f450c6e97e9", size = 38041, upload-time = "2026-11-18T15:33:31.21Z" },
 ]
 
 [[package]]
@@ -3747,7 +3747,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.18.5" },
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "qm-qua", specifier = ">=1.2.0" },
-    { name = "qua-libs-core", specifier = ">=0.5.1,<0.6" },
+    { name = "qua-libs-core", specifier = ">=0.5.2,<0.6" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "scipy", specifier = ">=1.7.0" },
     { name = "superconducting-calibrations", editable = "qualibration_graphs/superconducting" },
@@ -4660,7 +4660,7 @@ requires-dist = [
     { name = "qiskit", specifier = "<2.0" },
     { name = "qiskit-experiments", specifier = ">=0.9.0" },
     { name = "qm-qua", specifier = ">=1.2.1" },
-    { name = "qua-libs-core", specifier = ">=0.5.1,<0.6" },
+    { name = "qua-libs-core", specifier = ">=0.5.2,<0.6" },
     { name = "qualang-tools", specifier = ">=0.19.0" },
     { name = "qualibrate", specifier = ">=1.0.2" },
     { name = "qualibration-libs", git = "https://github.com/qua-platform/qualibration-libs.git" },

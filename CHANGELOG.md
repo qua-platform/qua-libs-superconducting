@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+
+- Pin `qua-libs-core` to `>=0.5.2,<0.6` in the workspace, the calibration package, and the intro-to-QUAlibrate tutorial.
+
 ## [2026-11-13]
 
 ### Added
